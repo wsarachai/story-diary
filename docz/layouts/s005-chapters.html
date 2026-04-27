@@ -24,32 +24,63 @@
             padding: 7% 7% 6%;
         }
 
-        .chapter-diamond {
+        .chapter-diamond-wrap {
             width: 72%;
             height: 86%;
-            border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
-            background: #55d0d7;
-            position: relative;
-            overflow: hidden;
             display: grid;
             place-items: center;
         }
 
-        .chapter-bg-img {
-            position: absolute;
-            inset: 0;
+        .chapter-diamond-wrap-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .chapter-diamond {
+            width: 78%;
+            aspect-ratio: 1 / 1;
+            background: #55d0d7;
+            border-radius: 12%;
+            transform: rotate(45deg);
+            position: relative;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        .chapter-diamond-inner {
+            transform: rotate(-45deg);
+            text-align: center;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            border-radius: inherit;
+            position: relative;
+            top: -7%;
         }
 
         .chapter-diamond h1 {
             margin: 0;
-            font-size: 74px;
+            font-size: 66px;
             font-weight: 500;
-            z-index: 1;
+            line-height: 1;
+        }
+
+        .diamond-motif {
+            margin: 2.2rem auto 0;
+            width: 72%;
+            color: rgba(67, 126, 172, 0.9);
+            font-size: 1.85rem;
+            letter-spacing: 0.15rem;
+            white-space: nowrap;
+            opacity: 0.9;
+        }
+
+        .diamond-tail {
+            width: 46%;
+            height: 5.6rem;
+            margin: 0.5rem auto 0;
+            border-radius: 999px;
+            background: radial-gradient(circle at 50% 0, rgba(67, 126, 172, 0.5) 0 22%, transparent 23%),
+                        radial-gradient(circle at 50% 100%, rgba(67, 126, 172, 0.42) 0 20%, transparent 21%);
+            opacity: 0.86;
         }
 
         .chapters-dashboard {
@@ -63,17 +94,17 @@
         .chapter-card {
             border-radius: 48px;
             background: #59d6dc;
-            min-height: 292px;
+            min-height: 250px;
             position: relative;
             overflow: hidden;
-            padding: 2rem 2.4rem;
+            padding: 2rem;
             display: flex;
             align-items: center;
         }
 
         .chapter-card h2 {
             margin: 0;
-            font-size: 68px;
+            font-size: 66px;
             font-weight: 500;
             line-height: 0.95;
             position: relative;
@@ -82,27 +113,43 @@
 
         .chapter-card-top {
             justify-content: center;
+        }
+
+        .learning-logo {
+            width: 84%;
+            max-width: 25rem;
+            height: 100%;
+            border-radius: 32px;
+            position: relative;
+            display: grid;
+            place-items: center;
             text-align: center;
         }
 
-        .chapter-card-top::before,
-        .chapter-card-top::after {
+        .learning-logo h2 {
+            font-size: 56px;
+        }
+
+        .learning-logo::before,
+        .learning-logo::after {
             content: "";
             position: absolute;
-            width: 180px;
+            right: 8%;
+            width: 9.2rem;
             height: 3px;
-            background: rgba(59, 137, 176, 0.42);
-            transform: rotate(47deg);
+            background: rgba(67, 126, 172, 0.58);
+            transform: rotate(48deg);
+            transform-origin: right center;
         }
 
-        .chapter-card-top::before {
-            right: 9%;
-            top: 20%;
+        .learning-logo::before {
+            top: 22%;
         }
 
-        .chapter-card-top::after {
-            right: 4%;
-            top: 28%;
+        .learning-logo::after {
+            top: 34%;
+            right: 5%;
+            width: 8rem;
         }
 
         .chapter-card-bottom {
@@ -140,6 +187,11 @@
             left: 6.4rem;
             bottom: 4.15rem;
             width: 4.4rem;
+        }
+
+        .chapter-card-bottom h2 {
+            font-size: 74px;
+            margin-right: 1.4rem;
         }
 
         .icon-rail {
@@ -190,16 +242,23 @@
     <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Chapters Layout">
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
             <section class="page page-left page-seam-right" aria-label="Story summary preview">
-                <article class="chapter-diamond">
-                    <img src="images/story-preview-870x975.svg" class="chapter-bg-img" alt="" aria-hidden="true">
-                    <h1>เนื้อเรื่อง</h1>
-                </article>
+                <a class="chapter-diamond-wrap chapter-diamond-wrap-link" href="s008-chapters-menu.html" aria-label="ไปหน้าเมนูบท">
+                    <div class="chapter-diamond">
+                        <div class="chapter-diamond-inner">
+                            <h1>เนื้อเรื่อง</h1>
+                            <div class="diamond-motif" aria-hidden="true">✦ ✧ ✦ ✦ ✧ ✦</div>
+                            <div class="diamond-tail" aria-hidden="true"></div>
+                        </div>
+                    </div>
+                </a>
             </section>
 
             <section class="page page-right" aria-label="Story chapter navigation">
                 <div class="chapters-dashboard">
                     <section class="chapter-card chapter-card-top">
-                        <h2>ดาวแห่ง<br>การเรียนรู้</h2>
+                        <div class="learning-logo" aria-label="ดาวแห่งการเรียนรู้">
+                            <h2>ดาว<br>แห่ง<br>การเรียนรู้</h2>
+                        </div>
                     </section>
 
                     <section class="chapter-card chapter-card-bottom">
