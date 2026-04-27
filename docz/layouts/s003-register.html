@@ -3,46 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Diary - Register (Desktop)</title>
+    <title>Story Diary - Register</title>
+    <link rel="stylesheet" href="assets/common.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .register-card { background: white; width: 600px; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h2 { text-align: center; margin-bottom: 30px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .full-width { grid-column: span 2; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input[type="text"], input[type="password"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .gender-selection { margin: 10px 0; }
-        .btn-submit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; margin-top: 20px; }
+        :root {
+            --male: #9dc6f2;
+        }
+
+        .page {
+            padding: 8% 10% 7%;
+        }
+
+        .register-title {
+            margin: 0 0 2.25rem;
+            font-size: 70px;
+            line-height: 1.05;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .line-form {
+            display: grid;
+            gap: 1.4rem;
+            margin-top: 3rem;
+        }
+
+        .line-field {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: end;
+            column-gap: 0.4rem;
+        }
+
+        .line-field label {
+            font-size: 40px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .line-field input {
+            width: 100%;
+            border: 0;
+            border-bottom: 4px solid #161616;
+            background: transparent;
+            font-size: 23px;
+            padding: 0.2rem 0.25rem 0.1rem;
+            outline: none;
+            font-family: inherit;
+            color: var(--ink);
+        }
+
+        .line-field input:focus {
+            border-bottom-color: #1798be;
+        }
+
+        .character-form {
+            height: 100%;
+            display: grid;
+            justify-items: center;
+            align-content: start;
+            gap: 1.6rem;
+        }
+
+        .character-name {
+            width: 360px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--panel-blue);
+            padding: 0.55rem;
+        }
+
+        .character-name input {
+            width: 100%;
+            border: 0;
+            border-radius: 999px;
+            background: var(--field-fill);
+            color: var(--ink);
+            font-size: 35px;
+            text-align: center;
+            padding: 0.55rem 1rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .character-name input:focus {
+            box-shadow: inset 0 0 0 3px rgba(23, 152, 190, 0.3);
+        }
+
+        .gender-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: end;
+            margin-top: 0.4rem;
+        }
+
+        .gender-option {
+            display: grid;
+            justify-items: center;
+            gap: 0.7rem;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .gender-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .figure {
+            width: 150px;
+            aspect-ratio: 0.55 / 1;
+            position: relative;
+        }
+
+        .figure::before,
+        .figure::after,
+        .figure .head,
+        .figure .torso,
+        .figure .arm,
+        .figure .leg,
+        .figure .skirt {
+            content: "";
+            position: absolute;
+            display: block;
+            background: currentColor;
+        }
+
+        .figure .head {
+            left: 50%;
+            top: 0;
+            width: 26%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .figure .torso {
+            left: 50%;
+            top: 18%;
+            width: 36%;
+            height: 44%;
+            border-radius: 24px;
+            transform: translateX(-50%);
+        }
+
+        .figure .arm {
+            width: 10%;
+            height: 32%;
+            top: 22%;
+            border-radius: 999px;
+        }
+
+        .figure .arm.left {
+            left: 17%;
+            transform: rotate(17deg);
+            transform-origin: top center;
+        }
+
+        .figure .arm.right {
+            right: 17%;
+            transform: rotate(-17deg);
+            transform-origin: top center;
+        }
+
+        .figure .leg {
+            width: 11%;
+            height: 37%;
+            bottom: 0;
+            border-radius: 999px;
+        }
+
+        .figure .leg.left {
+            left: 39%;
+        }
+
+        .figure .leg.right {
+            right: 39%;
+        }
+
+        .figure.female .torso {
+            top: 18%;
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 95px solid currentColor;
+            background: transparent;
+            transform: translateX(-50%);
+        }
+
+        .figure.female .skirt {
+            left: 50%;
+            top: 33%;
+            width: 42%;
+            height: 20%;
+            background: currentColor;
+            clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%);
+            transform: translateX(-50%);
+        }
+
+        .figure.female .leg.left {
+            left: 41%;
+            bottom: 0;
+            height: 31%;
+        }
+
+        .figure.female .leg.right {
+            right: 41%;
+            bottom: 0;
+            height: 31%;
+        }
+
+        .gender-option.male {
+            color: var(--male);
+        }
+
+        .gender-option.female {
+            color: #050505;
+        }
+
+        .gender-option span {
+            font-size: 45px;
+            line-height: 1;
+        }
+
+        .gender-option:focus-within .figure,
+        .gender-option:hover .figure,
+        .gender-option input:checked + .figure {
+            filter: drop-shadow(0 0 0.6rem rgba(23, 152, 190, 0.22));
+            transform: translateY(-2px);
+        }
+
+        .confirm-button {
+            padding: 0.45em 1.1em;
+            font-size: 43px;
+            font-weight: 600;
+            margin-top: 0.3rem;
+        }
+
+        .gender-option:focus-within {
+            outline: 4px solid rgba(23, 152, 190, 0.35);
+            outline-offset: 4px;
+            border-radius: 18px;
+        }
+
     </style>
 </head>
-<body>
-    <div class="register-card">
-        <h2>ลงทะเบียน</h2>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>ชื่อตัวละคร</label>
-                <input type="text">
-            </div>
-            <div class="form-group">
-                <label>ชื่อ</label>
-                <input type="text">
-            </div>
-            <div class="form-group full-width">
-                <label>e-mail</label>
-                <input type="email">
-            </div>
-            <div class="form-group full-width">
-                <label>Password</label>
-                <input type="password">
-            </div>
-        </div>
-        <div class="gender-selection">
-            <label><input type="radio" name="gender"> ชาย</label>
-            <label><input type="radio" name="gender"> หญิง</label>
-        </div>
-        <button class="btn-submit">ยืนยัน</button>
-    </div>
+<body class="story-diary-body">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Register Layout">
+        <section class="book-shell book-shell-tight book-shell-stack-mobile">
+            <section class="page page-left page-seam-right">
+                <h1 class="register-title">ลงทะเบียน</h1>
+
+                <form class="line-form" action="#" method="post">
+                    <div class="line-field">
+                        <label for="name">ชื่อ</label>
+                        <input id="name" name="name" type="text" autocomplete="name">
+                    </div>
+
+                    <div class="line-field">
+                        <label for="email">e-mail</label>
+                        <input id="email" name="email" type="email" autocomplete="email">
+                    </div>
+
+                    <div class="line-field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="new-password">
+                    </div>
+                </form>
+            </section>
+
+            <section class="page page-right">
+                <form class="character-form" action="#" method="post">
+                    <label class="character-name" for="character-name">
+                        <input id="character-name" name="characterName" type="text" placeholder="ชื่อตัวละคร">
+                    </label>
+
+                    <div class="gender-grid" role="radiogroup" aria-label="เลือกเพศ">
+                        <label class="gender-option male">
+                            <input type="radio" name="gender" value="male">
+                            <span class="figure male" aria-hidden="true">
+                                <span class="head"></span>
+                                <span class="torso"></span>
+                                <span class="arm left"></span>
+                                <span class="arm right"></span>
+                                <span class="leg left"></span>
+                                <span class="leg right"></span>
+                            </span>
+                            <span>ชาย</span>
+                        </label>
+
+                        <label class="gender-option female">
+                            <input type="radio" name="gender" value="female">
+                            <span class="figure female" aria-hidden="true">
+                                <span class="head"></span>
+                                <span class="torso"></span>
+                                <span class="skirt"></span>
+                                <span class="arm left"></span>
+                                <span class="arm right"></span>
+                                <span class="leg left"></span>
+                                <span class="leg right"></span>
+                            </span>
+                            <span>หญิง</span>
+                        </label>
+                    </div>
+
+                    <button class="confirm-button rounded-pill-button" type="button" data-navigate="s004-home.html">ยืนยัน</button>
+                </form>
+            </section>
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
 </body>
 </html>
