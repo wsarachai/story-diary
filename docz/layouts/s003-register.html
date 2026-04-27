@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Register (Desktop)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .register-card { background: white; width: 600px; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="text"], input[type="password"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .gender-selection { margin: 10px 0; }
+        .btn-submit { width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <h2>ลงทะเบียน</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>ชื่อตัวละคร</label>
+                <input type="text">
+            </div>
+            <div class="form-group">
+                <label>ชื่อ</label>
+                <input type="text">
+            </div>
+            <div class="form-group full-width">
+                <label>e-mail</label>
+                <input type="email">
+            </div>
+            <div class="form-group full-width">
+                <label>Password</label>
+                <input type="password">
+            </div>
+        </div>
+        <div class="gender-selection">
+            <label><input type="radio" name="gender"> ชาย</label>
+            <label><input type="radio" name="gender"> หญิง</label>
+        </div>
+        <button class="btn-submit">ยืนยัน</button>
+    </div>
+</body>
+</html>

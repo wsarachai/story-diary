@@ -37,4 +37,7 @@ tmp/
 temp/
 
 # Local docs artifacts (optional)
-docz/
+.docz/
+
+# Generated PDF files (optional)
+*.pdf

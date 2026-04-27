@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Login (Desktop)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-card { background: white; width: 450px; padding: 50px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+        .dummy-logo { width: 100%; aspect-ratio: 16 / 9; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; color: #888; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .btn-login { width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; margin-top: 10px; }
+        .register-link { display: block; margin-top: 20px; color: #0066cc; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="dummy-logo">App Logo / Icon (16:9)</div>
+        <h2>เข้าสู่ระบบ</h2>
+        <div class="form-group">
+            <label>ชื่อผู้ใช้</label>
+            <input type="text" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <label>รหัสผ่าน</label>
+            <input type="password" placeholder="Password">
+        </div>
+        <button class="btn-login">เข้าสู่ระบบ</button>
+        <a href="s003-register.html" class="register-link">ยังไม่เคยลงทะเบียน? สร้างบัญชี</a>
+    </div>
+</body>
+</html>
