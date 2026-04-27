@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Chapters Explain</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .chapter-explain-screen {
+            position: relative;
+            isolation: isolate;
+        }
+
+        .chapter-explain-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .chapter-explain-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 16%;
+            bottom: 22%;
+            background: rgba(239, 246, 249, 0.78);
+            display: grid;
+            place-items: center;
+            text-align: center;
+            backdrop-filter: blur(1px);
+        }
+
+        .chapter-explain-panel h1 {
+            margin: 0;
+            font-size: 98px;
+            font-weight: 500;
+            line-height: 1;
+            color: #101419;
+        }
+
+        .chapter-explain-next {
+            position: absolute;
+            left: 50%;
+            bottom: 3.4rem;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 46px solid transparent;
+            border-right: 46px solid transparent;
+            border-top: 72px solid #efb364;
+            filter: drop-shadow(0 8px 10px rgba(55, 40, 20, 0.16));
+        }
+
+        .chapter-explain-link {
+            position: absolute;
+            inset: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen chapter-explain-screen" aria-label="Story Diary Chapters Explain">
+        <img class="chapter-explain-bg" src="images/chapters-explain-bg-1920x1080.svg" alt="">
+        <section class="chapter-explain-panel" aria-label="บทบรรยาย">
+            <h1>บทบรรยาย</h1>
+            <div class="chapter-explain-next" aria-hidden="true"></div>
+        </section>
+        <a class="chapter-explain-link" href="s010-chapters-explain-details.html" aria-label="ไปหน้ารายละเอียดบทบรรยาย"></a>
+    </main>
+</body>
+</html>

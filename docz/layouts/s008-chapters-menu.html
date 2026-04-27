@@ -59,10 +59,16 @@
         }
 
         .chapter-row {
+            display: block;
+        }
+
+        .chapter-row-link {
             display: grid;
             grid-template-columns: 8.2rem 1fr;
             align-items: center;
             column-gap: 1.9rem;
+            text-decoration: none;
+            color: inherit;
         }
 
         .pin {
@@ -197,27 +203,31 @@
                     <div class="chapter-title-rule" aria-hidden="true"></div>
                     <ol class="chapter-list">
                         <li class="chapter-row">
-                            <div class="pin" aria-hidden="true">
-                                <div class="pin-circle">01</div>
-                                <div class="pin-tip"></div>
-                                <div class="pin-base"></div>
-                                <div class="pin-link"></div>
-                            </div>
-                            <div class="chapter-pill">
-                                <span class="chapter-pill-text">บทที่ 1</span>
-                            </div>
+                            <a class="chapter-row-link" href="s009-chapters-explain.html" aria-label="ไปหน้าบทบรรยาย บทที่ 1">
+                                <div class="pin" aria-hidden="true">
+                                    <div class="pin-circle">01</div>
+                                    <div class="pin-tip"></div>
+                                    <div class="pin-base"></div>
+                                    <div class="pin-link"></div>
+                                </div>
+                                <div class="chapter-pill">
+                                    <span class="chapter-pill-text">บทที่ 1</span>
+                                </div>
+                            </a>
                         </li>
 
                         <li class="chapter-row">
-                            <div class="pin" aria-hidden="true">
-                                <div class="pin-circle">02</div>
-                                <div class="pin-tip"></div>
-                                <div class="pin-base"></div>
-                            </div>
-                            <div class="chapter-pill">
-                                <span class="chapter-pill-text">บทที่ 2</span>
-                                <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
-                            </div>
+                            <a class="chapter-row-link" href="s009-chapters-explain.html" aria-label="ไปหน้าบทบรรยาย บทที่ 2">
+                                <div class="pin" aria-hidden="true">
+                                    <div class="pin-circle">02</div>
+                                    <div class="pin-tip"></div>
+                                    <div class="pin-base"></div>
+                                </div>
+                                <div class="chapter-pill">
+                                    <span class="chapter-pill-text">บทที่ 2</span>
+                                    <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
+                                </div>
+                            </a>
                         </li>
                     </ol>
                 </article>
@@ -227,41 +237,47 @@
                 <article class="chapters-menu" aria-label="รายการบทฝั่งขวา">
                     <ol class="chapter-list">
                         <li class="chapter-row">
-                            <div class="pin" aria-hidden="true">
-                                <div class="pin-circle">03</div>
-                                <div class="pin-tip"></div>
-                                <div class="pin-base"></div>
-                                <div class="pin-link"></div>
-                            </div>
-                            <div class="chapter-pill">
-                                <span class="chapter-pill-text">บทที่ 3</span>
-                                <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
-                            </div>
+                            <a class="chapter-row-link" href="s009-chapters-explain.html" aria-label="ไปหน้าบทบรรยาย บทที่ 3">
+                                <div class="pin" aria-hidden="true">
+                                    <div class="pin-circle">03</div>
+                                    <div class="pin-tip"></div>
+                                    <div class="pin-base"></div>
+                                    <div class="pin-link"></div>
+                                </div>
+                                <div class="chapter-pill">
+                                    <span class="chapter-pill-text">บทที่ 3</span>
+                                    <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
+                                </div>
+                            </a>
                         </li>
 
                         <li class="chapter-row">
-                            <div class="pin" aria-hidden="true">
-                                <div class="pin-circle">04</div>
-                                <div class="pin-tip"></div>
-                                <div class="pin-base"></div>
-                                <div class="pin-link"></div>
-                            </div>
-                            <div class="chapter-pill">
-                                <span class="chapter-pill-text">บทที่ 4</span>
-                                <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
-                            </div>
+                            <a class="chapter-row-link" href="s009-chapters-explain.html" aria-label="ไปหน้าบทบรรยาย บทที่ 4">
+                                <div class="pin" aria-hidden="true">
+                                    <div class="pin-circle">04</div>
+                                    <div class="pin-tip"></div>
+                                    <div class="pin-base"></div>
+                                    <div class="pin-link"></div>
+                                </div>
+                                <div class="chapter-pill">
+                                    <span class="chapter-pill-text">บทที่ 4</span>
+                                    <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
+                                </div>
+                            </a>
                         </li>
 
                         <li class="chapter-row">
-                            <div class="pin" aria-hidden="true">
-                                <div class="pin-circle">05</div>
-                                <div class="pin-tip"></div>
-                                <div class="pin-base"></div>
-                            </div>
-                            <div class="chapter-pill">
-                                <span class="chapter-pill-text">บทที่ 5</span>
-                                <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
-                            </div>
+                            <a class="chapter-row-link" href="s009-chapters-explain.html" aria-label="ไปหน้าบทบรรยาย บทที่ 5">
+                                <div class="pin" aria-hidden="true">
+                                    <div class="pin-circle">05</div>
+                                    <div class="pin-tip"></div>
+                                    <div class="pin-base"></div>
+                                </div>
+                                <div class="chapter-pill">
+                                    <span class="chapter-pill-text">บทที่ 5</span>
+                                    <img class="lock-icon" src="assets/icons/lock-key.svg" alt="ล็อก" aria-hidden="true">
+                                </div>
+                            </a>
                         </li>
                     </ol>
                 </article>
