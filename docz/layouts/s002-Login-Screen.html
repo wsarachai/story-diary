@@ -7,11 +7,7 @@
     <link rel="stylesheet" href="assets/common.css">
     <style>
         .page-left {
-            background:
-                radial-gradient(circle at 18% 24%, rgba(16, 143, 177, 0.25) 0 0.5%, transparent 0.6%),
-                radial-gradient(circle at 32% 22%, rgba(16, 143, 177, 0.35) 0 0.7%, transparent 0.8%),
-                radial-gradient(circle at 50% 30%, rgba(16, 143, 177, 0.25) 0 0.5%, transparent 0.6%),
-                linear-gradient(180deg, #60d9df 0%, #59d2d9 100%);
+            background: #59d2d9;
         }
 
         .page-right {
@@ -21,61 +17,24 @@
             padding: 7% 7% 5%;
         }
 
-        .star-field,
+        .login-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
         .compass {
             position: absolute;
             pointer-events: none;
-        }
-
-        .star-field {
-            inset: 0;
-            background:
-                radial-gradient(circle at 14% 14%, rgba(8, 118, 165, 0.95) 0 0.7%, transparent 0.8%),
-                radial-gradient(circle at 32% 9%, rgba(8, 118, 165, 0.95) 0 1.2%, transparent 1.3%),
-                radial-gradient(circle at 45% 17%, rgba(8, 118, 165, 0.95) 0 0.9%, transparent 1%),
-                radial-gradient(circle at 61% 22%, rgba(8, 118, 165, 0.95) 0 1.1%, transparent 1.2%),
-                radial-gradient(circle at 74% 15%, rgba(8, 118, 165, 0.95) 0 0.9%, transparent 1%),
-                radial-gradient(circle at 22% 35%, rgba(8, 118, 165, 0.8) 0 0.8%, transparent 0.9%),
-                radial-gradient(circle at 54% 28%, rgba(8, 118, 165, 0.72) 0 1%, transparent 1.1%),
-                radial-gradient(circle at 69% 40%, rgba(8, 118, 165, 0.72) 0 0.8%, transparent 0.9%);
-            opacity: 0.9;
-        }
-
-        .star-field::before,
-        .star-field::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-repeat: no-repeat;
-        }
-
-        .star-field::before {
-            background-image:
-                radial-gradient(circle, rgba(7, 126, 177, 0.94) 0 42%, transparent 44%),
-                radial-gradient(circle, rgba(7, 126, 177, 0.94) 0 42%, transparent 44%),
-                radial-gradient(circle, rgba(7, 126, 177, 0.94) 0 42%, transparent 44%),
-                radial-gradient(circle, rgba(7, 126, 177, 0.94) 0 42%, transparent 44%);
-            background-size: 56px 56px, 64px 64px, 48px 48px, 60px 60px;
-            background-position: 8% 24%, 35% 18%, 58% 44%, 80% 41%;
-            clip-path: polygon(50% 0, 61% 36%, 100% 50%, 61% 64%, 50% 100%, 39% 64%, 0 50%, 39% 36%);
-            opacity: 0.75;
-        }
-
-        .star-field::after {
-            background:
-                radial-gradient(circle at 80% 9%, rgba(7, 126, 177, 0.9) 0 3.8%, transparent 4.1%),
-                radial-gradient(circle at 84% 13%, rgba(7, 126, 177, 0.9) 0 0.6%, transparent 0.8%),
-                linear-gradient(35deg, transparent 0 48%, rgba(7, 126, 177, 0.85) 49% 51%, transparent 52%),
-                linear-gradient(110deg, transparent 0 48%, rgba(7, 126, 177, 0.85) 49% 51%, transparent 52%);
-            opacity: 0.9;
-        }
-
-        .compass {
             left: 4.5%;
             bottom: 3.5%;
             width: 35%;
             aspect-ratio: 1;
             color: rgba(7, 126, 177, 0.95);
+            z-index: 1;
         }
 
         .compass svg {
@@ -85,15 +44,15 @@
         }
 
         .form-wrap {
-            width: 520px;
+            width: 540px;
             display: grid;
             justify-items: center;
             gap: 1.4rem;
         }
 
         .title {
-            margin: 0 0 1.5rem;
-            font-size: 64px;
+            margin: 0 0 2.25rem;
+            font-size: 56px;
             line-height: 1.05;
             font-weight: 600;
         }
@@ -106,12 +65,12 @@
             background: var(--panel-blue);
             border-radius: 999px;
             padding: 0.45rem 0.55rem 0.45rem 1.2rem;
-            min-height: 4.8rem;
+            min-height: 5rem;
             gap: 0.65rem;
         }
 
         .field-label {
-            font-size: 35px;
+            font-size: 30px;
             font-weight: 600;
             white-space: nowrap;
         }
@@ -123,7 +82,7 @@
             border-radius: 999px;
             background: var(--field-fill);
             color: var(--ink);
-            font-size: 22px;
+            font-size: 20px;
             padding: 0.95rem 1.25rem;
             outline: none;
             font-family: inherit;
@@ -140,14 +99,14 @@
         .login-button {
             margin-top: 1.5rem;
             padding: 0.58em 1.2em;
-            font-size: 45px;
+            font-size: 40px;
             font-weight: 600;
             box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.45);
         }
 
         .register-text {
-            margin: 0.2rem 0 0;
-            font-size: 29px;
+            margin: 0.3rem 0 0;
+            font-size: 22px;
             text-align: center;
         }
     </style>
@@ -156,7 +115,7 @@
     <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Login Layout">
         <section class="book-shell book-shell-stack-mobile">
             <section class="page page-left page-seam-right" aria-hidden="true">
-                <div class="star-field"></div>
+                <img src="images/login-bg-960x1080.svg" class="login-bg-img" alt="" aria-hidden="true">
                 <div class="compass">
                     <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <circle cx="100" cy="100" r="63" stroke="currentColor" stroke-width="5" opacity="0.95"/>

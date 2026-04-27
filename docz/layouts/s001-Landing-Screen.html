@@ -46,8 +46,8 @@
             top: 4%;
             width: 44%;
             height: 88%;
-            border-radius: 36px;
-            background: linear-gradient(180deg, #58d2d6 0%, #4ec6d1 100%);
+            border-radius: 54px;
+            background: #4ec6d1;
             box-shadow: inset 0 -10px 30px rgba(0, 0, 0, 0.05);
             z-index: 2;
             overflow: hidden;
@@ -73,55 +73,31 @@
         .title {
             margin: 0;
             font-family: "Baloo 2", cursive;
-            font-size: 80px;
+            font-size: 72px;
             line-height: 0.95;
             letter-spacing: 0.02em;
             text-transform: uppercase;
             color: #071018;
         }
 
-        .leaves,
-        .leaves-bottom {
+        .book-art-image {
             position: absolute;
-            pointer-events: none;
-            filter: saturate(1.1);
-        }
-
-        .leaves {
-            top: 4%;
-            right: 5%;
-            width: 42%;
-            height: 16%;
-            background:
-                radial-gradient(ellipse 30% 45% at 10% 60%, var(--leaf), transparent 75%),
-                radial-gradient(ellipse 22% 35% at 26% 32%, #4cb180, transparent 75%),
-                radial-gradient(ellipse 26% 36% at 44% 70%, #3f9f71, transparent 75%),
-                radial-gradient(ellipse 30% 40% at 62% 40%, #51b088, transparent 75%),
-                radial-gradient(ellipse 25% 38% at 80% 70%, #42a57f, transparent 75%);
-        }
-
-        .leaves-bottom {
-            bottom: -1%;
-            left: 23%;
-            width: 58%;
-            height: 20%;
-            background:
-                radial-gradient(ellipse 20% 60% at 8% 58%, #8dc4a0, transparent 76%),
-                radial-gradient(ellipse 19% 62% at 26% 46%, #7db495, transparent 76%),
-                radial-gradient(ellipse 22% 62% at 44% 58%, #93c6aa, transparent 76%),
-                radial-gradient(ellipse 18% 56% at 64% 52%, #83bb9a, transparent 76%),
-                radial-gradient(ellipse 24% 60% at 84% 54%, #97caae, transparent 76%);
-            opacity: 0.95;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            border-radius: inherit;
         }
 
         .start-button {
             border: 0;
-            border-radius: 28px;
+            border-radius: 42px;
             background: var(--button);
             color: #06080a;
             text-decoration: none;
             font-weight: 600;
-            font-size: 44px;
+            font-size: 40px;
             letter-spacing: 0.01em;
             line-height: 1;
             padding: 0.7em 1.2em;
@@ -148,17 +124,16 @@
         <div class="paper-mail" aria-hidden="true"></div>
 
         <section class="book-panel">
+            <img src="images/cover-art-660x1080.svg" class="book-art-image" alt="" aria-hidden="true">
             <div class="book-spine" aria-hidden="true"></div>
-            <div class="leaves" aria-hidden="true"></div>
             <div class="book-content">
                 <h1 class="title">Story<br>Diary</h1>
                 <button class="start-button" type="button" data-navigate="s002-Login-Screen.html" aria-label="เริ่มใช้งาน Story Diary">-กดเพื่อเริ่ม-</button>
             </div>
-            <div class="leaves-bottom" aria-hidden="true"></div>
         </section>
 
         <p class="screen-note">
-            Recommended artboard: 1280x750. Safe interactive zone: center 70%.
+            Recommended artboard: 1920x1080. Safe interactive zone: center 70%.
         </p>
     </main>
     <script src="assets/common.js"></script>

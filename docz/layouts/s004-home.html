@@ -27,41 +27,19 @@
             width: 72%;
             height: 86%;
             border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
-            background:
-                radial-gradient(circle at 22% 10%, rgba(10, 126, 176, 0.9) 0 1.2%, transparent 1.3%),
-                radial-gradient(circle at 40% 12%, rgba(10, 126, 176, 0.9) 0 1.6%, transparent 1.7%),
-                radial-gradient(circle at 54% 14%, rgba(10, 126, 176, 0.9) 0 1.2%, transparent 1.3%),
-                radial-gradient(circle at 65% 7%, rgba(10, 126, 176, 0.9) 0 0.8%, transparent 0.9%),
-                radial-gradient(circle at 74% 15%, rgba(10, 126, 176, 0.9) 0 1.2%, transparent 1.3%),
-                linear-gradient(180deg, #5bd7df 0%, #55d0d7 100%);
+            background: #55d0d7;
             position: relative;
             overflow: hidden;
         }
 
-        .story-card::before {
-            content: "";
+        .story-bg-img {
             position: absolute;
-            inset: 8% 8% auto 8%;
-            height: 34%;
-            background:
-                radial-gradient(circle at 0 0, transparent 19px, rgba(10, 126, 176, 0.8) 20px, transparent 21px) 0 0 / 120px 70px repeat-x,
-                linear-gradient(rgba(10, 126, 176, 0.65), rgba(10, 126, 176, 0.65)) 8% 12% / 84% 2px no-repeat;
-            opacity: 0.85;
-        }
-
-        .story-card::after {
-            content: "";
-            position: absolute;
-            right: 10%;
-            top: 28%;
-            width: 10%;
-            height: 42%;
-            background:
-                linear-gradient(180deg, rgba(10, 126, 176, 0.55) 0 100%) 50% 0 / 2px 100% no-repeat,
-                radial-gradient(circle at 50% 8%, rgba(10, 126, 176, 0.8) 0 9%, transparent 10%),
-                radial-gradient(circle at 50% 58%, rgba(10, 126, 176, 0.8) 0 9%, transparent 10%),
-                radial-gradient(circle at 50% 82%, rgba(10, 126, 176, 0.8) 0 9%, transparent 10%);
-            opacity: 0.75;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            border-radius: inherit;
         }
 
         .story-card-title {
@@ -71,35 +49,36 @@
             bottom: 10%;
             margin: 0;
             text-align: center;
-            font-size: 74px;
+            font-size: 56px;
             font-weight: 500;
+            z-index: 1;
         }
 
         .dashboard {
             height: 100%;
             display: grid;
             grid-template-columns: 1fr auto;
-            gap: 1.2rem;
+            gap: 1.8rem;
         }
 
         .dashboard-main {
             display: grid;
             grid-template-rows: auto 1fr;
-            gap: 2rem;
+            gap: 3rem;
             padding-top: 8%;
         }
 
         .feature-card {
             position: relative;
-            border-radius: 32px;
+            border-radius: 48px;
             background: #59d6dc;
-            padding: 1.4rem 1.6rem;
-            min-height: 180px;
+            padding: 1.6rem 1.8rem;
+            min-height: 210px;
         }
 
         .feature-card h2 {
             margin: 0;
-            font-size: 64px;
+            font-size: 40px;
             font-weight: 500;
             line-height: 1.05;
         }
@@ -117,7 +96,7 @@
 
         .minigame-card {
             align-self: end;
-            min-height: 175px;
+            min-height: 200px;
             padding-top: 2.3rem;
             display: flex;
             align-items: flex-end;
@@ -126,10 +105,10 @@
 
         .minigame-hearts {
             position: absolute;
-            left: 1.25rem;
-            top: 1rem;
+            left: 1.88rem;
+            top: 1.5rem;
             display: flex;
-            gap: 0.3rem;
+            gap: 0.45rem;
         }
 
         .minigame-hearts img {
@@ -140,15 +119,15 @@
         .icon-rail {
             display: grid;
             align-content: start;
-            gap: 0.6rem;
-            padding-top: 1.2rem;
+            gap: 0.9rem;
+            padding-top: 1.8rem;
         }
 
         .icon-rail-link {
             display: block;
-            width: 4.25rem;
-            height: 4.25rem;
-            border-radius: 1.2rem;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 1.3rem;
             overflow: hidden;
             box-shadow: 0 12px 18px -16px rgba(0, 0, 0, 0.55);
         }
@@ -166,6 +145,7 @@
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
             <section class="page page-left page-seam-right" aria-label="Story summary preview">
                 <article class="story-card">
+                    <img src="images/story-preview-870x975.svg" class="story-bg-img" alt="" aria-hidden="true">
                     <h1 class="story-card-title">เนื้อเรื่อง</h1>
                 </article>
             </section>
