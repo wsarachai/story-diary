@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Diary - Home</title>
+    <title>Story Diary - Chapters</title>
     <link rel="stylesheet" href="assets/common.css">
     <style>
         .book-shell {
@@ -24,16 +24,18 @@
             padding: 7% 7% 6%;
         }
 
-        .story-card {
+        .chapter-diamond {
             width: 72%;
             height: 86%;
             border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
             background: #55d0d7;
             position: relative;
             overflow: hidden;
+            display: grid;
+            place-items: center;
         }
 
-        .story-bg-img {
+        .chapter-bg-img {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -43,19 +45,14 @@
             border-radius: inherit;
         }
 
-        .story-card-title {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 10%;
+        .chapter-diamond h1 {
             margin: 0;
-            text-align: center;
-            font-size: 56px;
+            font-size: 74px;
             font-weight: 500;
             z-index: 1;
         }
 
-        .dashboard {
+        .chapters-dashboard {
             height: 100%;
             display: grid;
             grid-template-rows: auto 1fr;
@@ -63,42 +60,86 @@
             padding-top: 8%;
         }
 
-
-        .feature-card {
-            position: relative;
+        .chapter-card {
             border-radius: 48px;
             background: #59d6dc;
-            padding: 1.6rem 1.8rem;
-            min-height: 210px;
-        }
-
-        .feature-card h2 {
-            margin: 0;
-            font-size: 40px;
-            font-weight: 500;
-            line-height: 1.05;
-        }
-
-        .minigame-card {
-            align-self: end;
-            min-height: 200px;
-            padding-top: 2.3rem;
+            min-height: 292px;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem 2.4rem;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
+        }
+
+        .chapter-card h2 {
+            margin: 0;
+            font-size: 68px;
+            font-weight: 500;
+            line-height: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-card-top {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .chapter-card-top::before,
+        .chapter-card-top::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 3px;
+            background: rgba(59, 137, 176, 0.42);
+            transform: rotate(47deg);
+        }
+
+        .chapter-card-top::before {
+            right: 9%;
+            top: 20%;
+        }
+
+        .chapter-card-top::after {
+            right: 4%;
+            top: 28%;
+        }
+
+        .chapter-card-bottom {
+            align-self: end;
             justify-content: flex-end;
         }
 
-        .minigame-hearts {
+        .ebook-arch {
             position: absolute;
-            left: 1.88rem;
-            top: 1.5rem;
-            display: flex;
-            gap: 0.45rem;
+            left: 3rem;
+            bottom: 1.4rem;
+            width: 9.8rem;
+            height: 12.8rem;
+            border-radius: 4.8rem 4.8rem 0 0;
+            background: #508db9;
         }
 
-        .minigame-hearts img {
-            width: 3rem;
-            height: 3rem;
+        .ebook-step {
+            position: absolute;
+            left: 3.3rem;
+            bottom: 2rem;
+            width: 4.8rem;
+            height: 1.15rem;
+            background: #f0f3f5;
+            border: 2px solid rgba(34, 70, 98, 0.2);
+        }
+
+        .ebook-step.s2 {
+            left: 5rem;
+            bottom: 3.05rem;
+            width: 6.1rem;
+        }
+
+        .ebook-step.s3 {
+            left: 6.4rem;
+            bottom: 4.15rem;
+            width: 4.4rem;
         }
 
         .icon-rail {
@@ -140,44 +181,42 @@
             width: calc(100% + 3rem);
             height: 100%;
             border-radius: 0 1.3rem 1.3rem 0;
-            background: #ff3131;
+            background: #08c65a;
             z-index: 0;
         }
-
     </style>
 </head>
 <body class="story-diary-body">
-    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Home Layout">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Chapters Layout">
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
             <section class="page page-left page-seam-right" aria-label="Story summary preview">
-                <article class="story-card">
-                    <img src="images/story-preview-870x975.svg" class="story-bg-img" alt="" aria-hidden="true">
-                    <h1 class="story-card-title">เนื้อเรื่อง</h1>
+                <article class="chapter-diamond">
+                    <img src="images/story-preview-870x975.svg" class="chapter-bg-img" alt="" aria-hidden="true">
+                    <h1>เนื้อเรื่อง</h1>
                 </article>
             </section>
 
-            <section class="page page-right" aria-label="Home navigation and features">
-                <div class="dashboard">
-                    <section class="feature-card">
-                        <h2>Habit tracker</h2>
+            <section class="page page-right" aria-label="Story chapter navigation">
+                <div class="chapters-dashboard">
+                    <section class="chapter-card chapter-card-top">
+                        <h2>ดาวแห่ง<br>การเรียนรู้</h2>
                     </section>
 
-                    <section class="feature-card minigame-card">
-                        <div class="minigame-hearts" aria-hidden="true">
-                            <img src="assets/icons/heart.svg" alt="">
-                            <img src="assets/icons/heart.svg" alt="">
-                            <img src="assets/icons/heart.svg" alt="">
-                        </div>
-                        <h2>Minigame</h2>
+                    <section class="chapter-card chapter-card-bottom">
+                        <div class="ebook-arch" aria-hidden="true"></div>
+                        <div class="ebook-step" aria-hidden="true"></div>
+                        <div class="ebook-step s2" aria-hidden="true"></div>
+                        <div class="ebook-step s3" aria-hidden="true"></div>
+                        <h2>E-book</h2>
                     </section>
                 </div>
             </section>
 
             <nav class="icon-rail" aria-label="Main navigation">
-                <a class="icon-rail-link is-active" href="s004-home.html" aria-label="ไปหน้าแรก" aria-current="page">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
                     <img src="assets/icons/home.svg" alt="">
                 </a>
-                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                <a class="icon-rail-link is-active" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง" aria-current="page">
                     <img src="assets/icons/book.svg" alt="">
                 </a>
                 <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้าสร้างตัวละคร">

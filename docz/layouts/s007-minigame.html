@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Diary - Home</title>
+    <title>Story Diary - Minigame</title>
     <link rel="stylesheet" href="assets/common.css">
     <style>
         .book-shell {
@@ -24,7 +24,7 @@
             padding: 7% 7% 6%;
         }
 
-        .story-card {
+        .game-card {
             width: 72%;
             height: 86%;
             border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
@@ -33,7 +33,7 @@
             overflow: hidden;
         }
 
-        .story-bg-img {
+        .game-bg-img {
             position: absolute;
             inset: 0;
             width: 100%;
@@ -41,21 +41,22 @@
             object-fit: cover;
             z-index: 0;
             border-radius: inherit;
+            opacity: 0.45;
         }
 
-        .story-card-title {
+        .game-card-title {
             position: absolute;
             left: 0;
             right: 0;
             bottom: 10%;
             margin: 0;
             text-align: center;
-            font-size: 56px;
+            font-size: 58px;
             font-weight: 500;
             z-index: 1;
         }
 
-        .dashboard {
+        .minigame-dashboard {
             height: 100%;
             display: grid;
             grid-template-rows: auto 1fr;
@@ -63,42 +64,42 @@
             padding-top: 8%;
         }
 
-
-        .feature-card {
-            position: relative;
+        .minigame-card {
             border-radius: 48px;
             background: #59d6dc;
-            padding: 1.6rem 1.8rem;
+            padding: 1.8rem 2rem;
             min-height: 210px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .feature-card h2 {
+        .minigame-card h2 {
             margin: 0;
-            font-size: 40px;
+            font-size: 38px;
             font-weight: 500;
             line-height: 1.05;
         }
 
-        .minigame-card {
-            align-self: end;
-            min-height: 200px;
-            padding-top: 2.3rem;
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
+        .badge-pill {
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.52);
+            font-weight: 600;
+            color: #1d6377;
+            white-space: nowrap;
         }
 
-        .minigame-hearts {
-            position: absolute;
-            left: 1.88rem;
-            top: 1.5rem;
+        .life-strip {
             display: flex;
             gap: 0.45rem;
         }
 
-        .minigame-hearts img {
-            width: 3rem;
-            height: 3rem;
+        .life-strip img {
+            width: 2.2rem;
+            height: 2.2rem;
         }
 
         .icon-rail {
@@ -140,41 +141,41 @@
             width: calc(100% + 3rem);
             height: 100%;
             border-radius: 0 1.3rem 1.3rem 0;
-            background: #ff3131;
+            background: #c771e8;
             z-index: 0;
         }
-
     </style>
 </head>
 <body class="story-diary-body">
-    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Home Layout">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Minigame Layout">
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
-            <section class="page page-left page-seam-right" aria-label="Story summary preview">
-                <article class="story-card">
-                    <img src="images/story-preview-870x975.svg" class="story-bg-img" alt="" aria-hidden="true">
-                    <h1 class="story-card-title">เนื้อเรื่อง</h1>
+            <section class="page page-left page-seam-right" aria-label="Minigame summary preview">
+                <article class="game-card">
+                    <img src="images/story-preview-870x975.svg" class="game-bg-img" alt="" aria-hidden="true">
+                    <h1 class="game-card-title">Minigame</h1>
                 </article>
             </section>
 
-            <section class="page page-right" aria-label="Home navigation and features">
-                <div class="dashboard">
-                    <section class="feature-card">
-                        <h2>Habit tracker</h2>
+            <section class="page page-right" aria-label="Minigame actions and progress">
+                <div class="minigame-dashboard">
+                    <section class="minigame-card">
+                        <h2>เกมคำศัพท์</h2>
+                        <span class="badge-pill">เริ่มเล่น</span>
                     </section>
 
-                    <section class="feature-card minigame-card">
-                        <div class="minigame-hearts" aria-hidden="true">
+                    <section class="minigame-card">
+                        <h2>พลังชีวิต</h2>
+                        <div class="life-strip" aria-hidden="true">
                             <img src="assets/icons/heart.svg" alt="">
                             <img src="assets/icons/heart.svg" alt="">
                             <img src="assets/icons/heart.svg" alt="">
                         </div>
-                        <h2>Minigame</h2>
                     </section>
                 </div>
             </section>
 
             <nav class="icon-rail" aria-label="Main navigation">
-                <a class="icon-rail-link is-active" href="s004-home.html" aria-label="ไปหน้าแรก" aria-current="page">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
                     <img src="assets/icons/home.svg" alt="">
                 </a>
                 <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
@@ -183,7 +184,7 @@
                 <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้าสร้างตัวละคร">
                     <img src="assets/icons/edit.svg" alt="">
                 </a>
-                <a class="icon-rail-link" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม">
+                <a class="icon-rail-link is-active" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม" aria-current="page">
                     <img src="assets/icons/game.svg" alt="">
                 </a>
             </nav>
