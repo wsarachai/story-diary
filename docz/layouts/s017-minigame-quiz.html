@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Minigame Quiz</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+        }
+
+        .page-left {
+            padding: 7% 6% 6% 7%;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            gap: 2.2rem;
+        }
+
+        .page-right {
+            padding: 7% 7% 6% 6%;
+            display: grid;
+            grid-template-rows: 1fr auto;
+            gap: 2.4rem;
+        }
+
+        /* ── Progress ── */
+        .quiz-progress-row {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+        }
+
+        .quiz-counter {
+            margin: 0;
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+            white-space: nowrap;
+        }
+
+        .quiz-progress-bar {
+            flex: 1;
+            height: 1.4rem;
+            border-radius: 999px;
+            background: rgba(89,214,220,0.3);
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: #59d6dc;
+        }
+
+        /* ── Question ── */
+        .quiz-question-label {
+            margin: 0;
+            font-size: 40px;
+            font-weight: 600;
+            color: rgba(13,18,23,0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .quiz-question-card {
+            border-radius: 36px;
+            background: #59d6dc;
+            padding: 2.4rem 2.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quiz-question-text {
+            margin: 0;
+            font-size: 54px;
+            font-weight: 600;
+            line-height: 1.35;
+            color: #fff;
+        }
+
+        /* ── Answer options ── */
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.4rem;
+        }
+
+        .quiz-option {
+            border-radius: 28px;
+            background: #edf9fa;
+            border: 4px solid #59d6dc;
+            padding: 1.4rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .quiz-option:hover {
+            border-color: #6a24f2;
+            background: #f0e8ff;
+        }
+
+        .option-letter {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: #59d6dc;
+            display: grid;
+            place-items: center;
+            font-size: 40px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            font-size: 44px;
+            font-weight: 600;
+            color: var(--ink);
+            line-height: 1.2;
+        }
+
+        /* ── Submit ── */
+        .quiz-submit-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .quiz-submit-btn {
+            border-radius: 999px;
+            background: #6a24f2;
+            color: #fff;
+            border: none;
+            padding: 1rem 3.6rem;
+            font-size: 52px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 8px 22px -8px rgba(106,36,242,0.48);
+            transition: transform 0.15s;
+        }
+
+        .quiz-submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ── Nav rail ── */
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #c771e8;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen" aria-label="Story Diary Minigame Quiz">
+        <section class="book-shell book-shell-tight">
+
+            <!-- Left page: question -->
+            <section class="page page-left page-seam-right" aria-label="คำถาม">
+                <div class="quiz-progress-row">
+                    <p class="quiz-counter">บทถดสอบที่ <strong>3</strong>/13</p>
+                    <div class="quiz-progress-bar" aria-hidden="true">
+                        <div class="quiz-progress-fill" style="width: 23%;"></div>
+                    </div>
+                </div>
+
+                <p class="quiz-question-label">โจทย์</p>
+
+                <div class="quiz-question-card" aria-live="polite">
+                    <p class="quiz-question-text">
+                        ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใด<br>เพื่อป้องกันผิวหนังจากแสงยูวี?
+                    </p>
+                </div>
+            </section>
+
+            <!-- Right page: answer options + submit -->
+            <section class="page page-right" aria-label="ตัวเลือกคำตอบ">
+                <div class="quiz-options" role="group" aria-label="เลือกคำตอบ">
+                    <button class="quiz-option" aria-label="ตัวเลือก A">
+                        <span class="option-letter">A</span>
+                        <span class="option-text">06:00 – 09:00 น.</span>
+                    </button>
+                    <button class="quiz-option" aria-label="ตัวเลือก B">
+                        <span class="option-letter">B</span>
+                        <span class="option-text">10:00 – 17:00 น.</span>
+                    </button>
+                    <button class="quiz-option" aria-label="ตัวเลือก C">
+                        <span class="option-letter">C</span>
+                        <span class="option-text">17:00 – 19:00 น.</span>
+                    </button>
+                    <button class="quiz-option" aria-label="ตัวเลือก D">
+                        <span class="option-letter">D</span>
+                        <span class="option-text">ทุกช่วงเวลา</span>
+                    </button>
+                </div>
+
+                <div class="quiz-submit-row">
+                    <a class="quiz-submit-btn" href="s018-minigame-quiz-feedback.html" aria-label="ส่งคำตอบ">ไป →</a>
+                </div>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม" aria-current="page">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>

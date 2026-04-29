@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Habit Add Activity</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+        }
+
+        /* Left page: dimmed daily-today backdrop */
+        .page-left {
+            padding: 7% 6% 6% 7%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+            opacity: 0.38;
+            pointer-events: none;
+        }
+
+        .backdrop-title {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+        }
+
+        .backdrop-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 1.4rem;
+        }
+
+        .backdrop-entry {
+            border-radius: 24px;
+            background: #edf9fa;
+            border-left: 10px solid #59d6dc;
+            padding: 1.2rem 1.6rem;
+            font-size: 40px;
+            font-weight: 600;
+        }
+
+        /* Right page: form modal */
+        .page-right {
+            padding: 5% 6% 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* ── Form card ── */
+        .form-card {
+            flex: 1;
+            border-radius: 36px;
+            background: #fff;
+            box-shadow: 0 16px 48px -12px rgba(13,18,35,0.22);
+            border: 3px solid #59d6dc;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .form-card-header {
+            background: #59d6dc;
+            padding: 1.2rem 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+        }
+
+        .form-btn-icon {
+            width: 4.4rem;
+            height: 4.4rem;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .form-btn-cancel { background: #ff4d4d; }
+        .form-btn-save   { background: #08c65a; margin-left: auto; }
+
+        .form-btn-icon svg {
+            width: 2.4rem;
+            height: 2.4rem;
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .form-card-title {
+            margin: 0;
+            font-size: 52px;
+            font-weight: 700;
+            flex: 1;
+            text-align: center;
+        }
+
+        /* ── Category tabs ── */
+        .category-tabs {
+            display: flex;
+            gap: 0;
+            padding: 1.2rem 1.6rem;
+            border-bottom: 3px solid #edf9fa;
+        }
+
+        .cat-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 0.6rem;
+            border-radius: 20px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .cat-tab.is-active {
+            background: #edf9fa;
+        }
+
+        .cat-tab-icon {
+            width: 4.4rem;
+            height: 4.4rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+        }
+
+        .cat-tab-icon svg {
+            width: 2.6rem;
+            height: 2.6rem;
+        }
+
+        .cat-tab-label {
+            font-size: 30px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .cat-med   .cat-tab-icon { background: #f0e6ff; }
+        .cat-food  .cat-tab-icon { background: #fff4e6; }
+        .cat-body  .cat-tab-icon { background: #e6f7f4; }
+
+        /* ── Form body ── */
+        .form-body {
+            flex: 1;
+            padding: 1.4rem 1.8rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.4rem;
+            overflow: hidden;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 34px;
+            font-weight: 600;
+            color: rgba(13,18,23,0.65);
+        }
+
+        .form-input {
+            border-radius: 18px;
+            border: 3px solid #59d6dc;
+            background: #edf9fa;
+            padding: 0.7rem 1.2rem;
+            font-size: 40px;
+            font-family: inherit;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #6a24f2;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1.2rem;
+        }
+
+        .form-row .form-field { flex: 1; }
+
+        .form-chip-row {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .form-chip {
+            border-radius: 999px;
+            padding: 0.45rem 1.4rem;
+            font-size: 34px;
+            font-weight: 600;
+            border: 3px solid #59d6dc;
+            background: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--ink);
+        }
+
+        .form-chip.is-selected {
+            background: #6a24f2;
+            border-color: #6a24f2;
+            color: #fff;
+        }
+
+        .form-chip-group-label {
+            font-size: 34px;
+            font-weight: 600;
+            color: rgba(13,18,23,0.65);
+            align-self: center;
+            flex: 0 0 auto;
+        }
+
+        /* ── Nav rail ── */
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #6a24f2;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen" aria-label="Story Diary Add Activity">
+        <section class="book-shell book-shell-tight">
+
+            <!-- Left page: dimmed backdrop of daily today -->
+            <section class="page page-left page-seam-right" aria-hidden="true">
+                <p class="backdrop-title">today</p>
+                <div class="backdrop-entries">
+                    <div class="backdrop-entry">กินยา xxx</div>
+                    <div class="backdrop-entry">รับประทานอาหารครบ 5 หมู่</div>
+                    <div class="backdrop-entry">ท่าออกกำลังกาย</div>
+                </div>
+            </section>
+
+            <!-- Right page: add-activity form -->
+            <section class="page page-right" aria-label="เพิ่มกิจกรรม">
+                <div class="form-card" role="dialog" aria-modal="true" aria-labelledby="form-title">
+
+                    <!-- Header -->
+                    <header class="form-card-header">
+                        <button class="form-btn-icon form-btn-cancel" aria-label="ยกเลิก" data-navigate="s012-habit-daily-today.html">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                        <h2 class="form-card-title" id="form-title">เพิ่มกิจกรรม</h2>
+                        <button class="form-btn-icon form-btn-save" aria-label="บันทึก" data-navigate="s012-habit-daily-today.html">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                    </header>
+
+                    <!-- Category tabs -->
+                    <div class="category-tabs" role="tablist" aria-label="ประเภทกิจกรรม">
+                        <button class="cat-tab cat-med is-active" role="tab" aria-selected="true" aria-label="ยา">
+                            <div class="cat-tab-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2">
+                                    <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                                    <rect x="9" y="1" width="6" height="4" rx="1"/>
+                                    <line x1="9" y1="12" x2="15" y2="12"/>
+                                    <line x1="12" y1="9" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <span class="cat-tab-label">ยา</span>
+                        </button>
+
+                        <button class="cat-tab cat-food" role="tab" aria-selected="false" aria-label="โภชนาการ">
+                            <div class="cat-tab-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#f4a261" stroke-width="2">
+                                    <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
+                                    <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
+                                </svg>
+                            </div>
+                            <span class="cat-tab-label">โภชนาการ</span>
+                        </button>
+
+                        <button class="cat-tab cat-body" role="tab" aria-selected="false" aria-label="กิจกรรมทางกาย">
+                            <div class="cat-tab-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="2">
+                                    <circle cx="12" cy="5" r="2"/>
+                                    <path d="M5 22v-5l2-3 5 2 5-2 2 3v5"/>
+                                    <path d="M7 12l5-3 5 3"/>
+                                </svg>
+                            </div>
+                            <span class="cat-tab-label">กิจกรรมทางกาย</span>
+                        </button>
+                    </div>
+
+                    <!-- Form body: ยา (medication) tab active -->
+                    <div class="form-body" role="tabpanel">
+                        <div class="form-field">
+                            <span class="form-label">ชื่อยา</span>
+                            <input class="form-input" type="text" placeholder="ระบุชื่อยา" aria-label="ชื่อยา">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <span class="form-label">มื้อ</span>
+                                <div class="form-chip-row">
+                                    <button class="form-chip is-selected">เช้า</button>
+                                    <button class="form-chip">กลางวัน</button>
+                                    <button class="form-chip">เย็น</button>
+                                </div>
+                            </div>
+                            <div class="form-field">
+                                <span class="form-label">เวลา</span>
+                                <div class="form-chip-row">
+                                    <button class="form-chip">ก่อนอาหาร</button>
+                                    <button class="form-chip is-selected">หลังอาหาร</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <span class="form-label">เป้าหมาย</span>
+                            <div class="form-chip-row">
+                                <button class="form-chip is-selected">ครั้งเดียว</button>
+                                <button class="form-chip">หลายจำนวนครั้ง</button>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <span class="form-label">ความถี่</span>
+                            <div class="form-chip-row">
+                                <button class="form-chip is-selected">ทุกวัน</button>
+                                <button class="form-chip">สัปดาห์</button>
+                                <button class="form-chip">เลือกวัน</button>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <span class="form-label">ความสำคัญ</span>
+                            <div class="form-chip-row">
+                                <button class="form-chip is-selected">ทั่วไป</button>
+                                <button class="form-chip">นาน มาก</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker" aria-current="page">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>

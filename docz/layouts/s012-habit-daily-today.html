@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Habit Daily Today</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+        }
+
+        .page-left {
+            padding: 7% 6% 7% 7%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+        }
+
+        .page-right {
+            padding: 7% 7% 6% 6%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+        }
+
+        /* ── Left page ── */
+        .today-label {
+            margin: 0;
+            font-size: 88px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--panel-blue-deep);
+        }
+
+        .mood-card {
+            border-radius: 40px;
+            background: #59d6dc;
+            padding: 2rem 2.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+
+        .mood-card-title {
+            margin: 0;
+            font-size: 48px;
+            font-weight: 600;
+        }
+
+        .mood-row {
+            display: flex;
+            gap: 1.4rem;
+            align-items: center;
+        }
+
+        .mood-emoji {
+            font-size: 72px;
+            line-height: 1;
+            cursor: pointer;
+            filter: grayscale(0.35);
+            transition: transform 0.15s;
+        }
+
+        .mood-emoji:hover,
+        .mood-emoji.is-selected {
+            transform: scale(1.18);
+            filter: none;
+        }
+
+        /* ── Right page ── */
+        .today-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .today-header-title {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+        }
+
+        .add-btn {
+            width: 5.8rem;
+            height: 5.8rem;
+            border-radius: 50%;
+            background: #59d6dc;
+            border: none;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 8px 18px -8px rgba(0,0,0,0.22);
+        }
+
+        .add-btn svg {
+            width: 3rem;
+            height: 3rem;
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .habit-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 1.6rem;
+            overflow: hidden;
+        }
+
+        .habit-entry {
+            border-radius: 28px;
+            background: #edf9fa;
+            border-left: 12px solid #59d6dc;
+            padding: 1.4rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.6rem;
+        }
+
+        .habit-entry.entry-med   { border-left-color: #9b5de5; }
+        .habit-entry.entry-food  { border-left-color: #f4a261; }
+        .habit-entry.entry-body  { border-left-color: #2a9d8f; }
+        .habit-entry.entry-mood  { border-left-color: #e76f51; }
+
+        .habit-entry-icon {
+            width: 4.8rem;
+            height: 4.8rem;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .habit-entry-icon svg {
+            width: 2.8rem;
+            height: 2.8rem;
+        }
+
+        .habit-entry-body {
+            flex: 1;
+        }
+
+        .habit-entry-name {
+            margin: 0;
+            font-size: 44px;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .habit-entry-sub {
+            margin: 0.3rem 0 0;
+            font-size: 34px;
+            color: rgba(13,18,23,0.58);
+        }
+
+        .habit-check {
+            width: 3.8rem;
+            height: 3.8rem;
+            border-radius: 50%;
+            border: 4px solid #59d6dc;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .habit-check.done {
+            background: #08c65a;
+            border-color: #08c65a;
+        }
+
+        .habit-check.done svg {
+            display: block;
+        }
+
+        .habit-check svg {
+            display: none;
+            width: 2rem;
+            height: 2rem;
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        /* ── Nav rail ── */
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #6a24f2;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen" aria-label="Story Diary Habit Daily Today">
+        <section class="book-shell book-shell-tight">
+
+            <!-- Left page: mood check-in -->
+            <section class="page page-left page-seam-right" aria-label="บันทึกอารมณ์วันนี้">
+                <h1 class="today-label">today</h1>
+
+                <div class="mood-card">
+                    <h2 class="mood-card-title">สำรวจอารมณ์ในวันนี้</h2>
+                    <div class="mood-row" role="group" aria-label="เลือกอารมณ์">
+                        <span class="mood-emoji" role="button" aria-label="โกรธมาก">😠</span>
+                        <span class="mood-emoji" role="button" aria-label="ไม่สบายใจ">😟</span>
+                        <span class="mood-emoji" role="button" aria-label="เฉยๆ">😐</span>
+                        <span class="mood-emoji is-selected" role="button" aria-label="ดี">🙂</span>
+                        <span class="mood-emoji" role="button" aria-label="ดีมาก">😄</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right page: habit entry list -->
+            <section class="page page-right" aria-label="รายการกิจกรรมวันนี้">
+                <header class="today-header">
+                    <h2 class="today-header-title">กิจกรรมวันนี้</h2>
+                    <a href="s016-habit-add-activity.html" class="add-btn" aria-label="เพิ่มกิจกรรม">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </a>
+                </header>
+
+                <div class="habit-entries">
+                    <div class="habit-entry entry-med">
+                        <div class="habit-entry-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2">
+                                <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
+                                <rect x="9" y="1" width="6" height="4" rx="1"/>
+                                <line x1="9" y1="12" x2="15" y2="12"/>
+                                <line x1="12" y1="9" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="habit-entry-body">
+                            <p class="habit-entry-name">กินยา xxx</p>
+                            <p class="habit-entry-sub">หลังอาหารเช้า-เย็น</p>
+                        </div>
+                        <div class="habit-check done" aria-label="ทำเสร็จแล้ว">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="habit-entry entry-food">
+                        <div class="habit-entry-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#f4a261" stroke-width="2">
+                                <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
+                                <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
+                            </svg>
+                        </div>
+                        <div class="habit-entry-body">
+                            <p class="habit-entry-name">รับประทานอาหารครบ 5 หมู่</p>
+                            <p class="habit-entry-sub">ทุกวัน</p>
+                        </div>
+                        <div class="habit-check" aria-label="ยังไม่ทำ"></div>
+                    </div>
+
+                    <div class="habit-entry entry-body">
+                        <div class="habit-entry-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" stroke-width="2">
+                                <circle cx="12" cy="5" r="2"/>
+                                <path d="M6 11h12M12 7v4M9 21l3-7 3 7"/>
+                            </svg>
+                        </div>
+                        <div class="habit-entry-body">
+                            <p class="habit-entry-name">ท่าออกกำลังกาย</p>
+                            <p class="habit-entry-sub">ทุกวัน · ทั่วไป</p>
+                        </div>
+                        <div class="habit-check" aria-label="ยังไม่ทำ"></div>
+                    </div>
+
+                    <div class="habit-entry entry-mood">
+                        <div class="habit-entry-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#e76f51" stroke-width="2">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                <line x1="15" y1="9" x2="15.01" y2="9"/>
+                            </svg>
+                        </div>
+                        <div class="habit-entry-body">
+                            <p class="habit-entry-name">สังเกตอาการผิดปกติ</p>
+                            <p class="habit-entry-sub">ทุกวัน · สำคัญ</p>
+                        </div>
+                        <div class="habit-check" aria-label="ยังไม่ทำ"></div>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker" aria-current="page">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>

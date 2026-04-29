@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Habit Monthly Tracker</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+        }
+
+        .page-left {
+            padding: 6% 4% 5% 6%;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            gap: 1.6rem;
+            overflow: hidden;
+        }
+
+        .page-right {
+            padding: 6% 6% 5% 4%;
+            display: grid;
+            grid-template-rows: 1fr;
+            overflow: hidden;
+        }
+
+        /* ── Headers ── */
+        .tracker-section-title {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+            line-height: 1;
+        }
+
+        .tracker-tab-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tracker-tab {
+            border-radius: 999px;
+            padding: 0.55rem 1.6rem;
+            font-size: 36px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            color: var(--ink);
+        }
+
+        .tracker-tab.is-active {
+            background: #6a24f2;
+            color: #fff;
+        }
+
+        .tracker-tab:not(.is-active) {
+            background: rgba(89,214,220,0.35);
+        }
+
+        /* ── Monthly grid (left page) ── */
+        .monthly-grid-wrap {
+            overflow: hidden;
+            border-radius: 24px;
+            background: #edf9fa;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        .monthly-col-header {
+            display: grid;
+            grid-template-columns: 2.4fr repeat(16, 1fr);
+            background: #59d6dc;
+            border-radius: 24px 24px 0 0;
+            padding: 0.5rem 0.6rem;
+            gap: 0;
+        }
+
+        .monthly-col-header span {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            padding: 0.2rem 0;
+        }
+
+        .monthly-col-header span:first-child {
+            text-align: left;
+            padding-left: 0.4rem;
+        }
+
+        .monthly-body {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .monthly-row {
+            display: grid;
+            grid-template-columns: 2.4fr repeat(16, 1fr);
+            align-items: center;
+            padding: 0.45rem 0.6rem;
+            gap: 0;
+            border-bottom: 1px solid rgba(89,214,220,0.2);
+        }
+
+        .monthly-row:last-child { border-bottom: none; }
+
+        .monthly-row-label {
+            font-size: 28px;
+            font-weight: 600;
+            padding-left: 0.4rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .monthly-cell {
+            display: grid;
+            place-items: center;
+            padding: 0.2rem 0;
+        }
+
+        .m-dot {
+            width: 1.9rem;
+            height: 1.9rem;
+            border-radius: 50%;
+            border: 2px solid #59d6dc;
+            background: #fff;
+        }
+
+        .m-dot.done  { background: #08c65a; border-color: #08c65a; }
+        .m-dot.skip  { background: #f4a261; border-color: #f4a261; }
+        .m-dot.today { border-color: #6a24f2; border-width: 3px; }
+
+        /* ── Right page: dates 17-31 ── */
+        .monthly-grid-right {
+            overflow: hidden;
+            border-radius: 24px;
+            background: #edf9fa;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        .monthly-col-header-right {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            background: #59d6dc;
+            border-radius: 24px 24px 0 0;
+            padding: 0.5rem 0.6rem;
+        }
+
+        .monthly-col-header-right span {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            padding: 0.2rem 0;
+        }
+
+        .monthly-body-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .monthly-row-right {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            align-items: center;
+            padding: 0.45rem 0.6rem;
+            border-bottom: 1px solid rgba(89,214,220,0.2);
+        }
+
+        .monthly-row-right:last-child { border-bottom: none; }
+
+        /* ── Nav rail ── */
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #6a24f2;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen" aria-label="Story Diary Monthly Tracker">
+        <section class="book-shell book-shell-tight">
+
+            <!-- Left page: กิจกรรม + dates 1–16 -->
+            <section class="page page-left page-seam-right" aria-label="ตาราง monthly tracker วันที่ 1-16">
+                <h1 class="tracker-section-title">Monthly Tracker</h1>
+
+                <div class="tracker-tab-row">
+                    <a class="tracker-tab" href="s012-habit-daily-today.html">daily habits</a>
+                    <a class="tracker-tab" href="s013-habit-weekly-tracker.html">weekly habits</a>
+                    <span class="tracker-tab is-active" aria-current="page">monthly habits</span>
+                </div>
+
+                <div class="monthly-grid-wrap" role="table" aria-label="ตารางรายเดือน วันที่ 1-16">
+                    <div class="monthly-col-header" role="row">
+                        <span>กิจกรรม</span>
+                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
+                    </div>
+                    <div class="monthly-body">
+                        <div class="monthly-row" role="row">
+                            <span class="monthly-row-label">กินยา xxx</span>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot today"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row" role="row">
+                            <span class="monthly-row-label">อาหาร 5 หมู่</span>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot today"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row" role="row">
+                            <span class="monthly-row-label">ออกกำลังกาย</span>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot today"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row" role="row">
+                            <span class="monthly-row-label">ป้องกันแสงแดด</span>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot today"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row" role="row">
+                            <span class="monthly-row-label">ป้องกันการติดเชื้อ</span>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot done"></div></div>
+                            <div class="monthly-cell"><div class="m-dot today"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right page: dates 17–31 -->
+            <section class="page page-right" aria-label="ตาราง monthly tracker วันที่ 17-31">
+                <div class="monthly-grid-right" role="table" aria-label="ตารางรายเดือน วันที่ 17-31">
+                    <div class="monthly-col-header-right" role="row">
+                        <span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+                        <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
+                        <span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
+                    </div>
+                    <div class="monthly-body-right">
+                        <div class="monthly-row-right" role="row">
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row-right" role="row">
+                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row-right" role="row">
+                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row-right" role="row">
+                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                        <div class="monthly-row-right" role="row">
+                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker" aria-current="page">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>

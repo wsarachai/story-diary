@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Habit Monthly Summary</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+        }
+
+        .page-left {
+            padding: 7% 6% 6% 7%;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            gap: 2rem;
+        }
+
+        .page-right {
+            padding: 7% 7% 6% 6%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+        }
+
+        /* ── Shared ── */
+        .tracker-section-title {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+            line-height: 1;
+        }
+
+        .section-rule {
+            height: 4px;
+            border-radius: 999px;
+            background: #59d6dc;
+            margin: 0;
+        }
+
+        /* ── Goals (left) ── */
+        .goals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            overflow: hidden;
+        }
+
+        .goal-card {
+            border-radius: 28px;
+            background: #59d6dc;
+            padding: 1.6rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .goal-card-name {
+            margin: 0;
+            font-size: 46px;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .goal-card-sub {
+            margin: 0.4rem 0 0;
+            font-size: 34px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .goal-progress-ring {
+            width: 7rem;
+            height: 7rem;
+            flex-shrink: 0;
+        }
+
+        .goal-progress-ring circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .ring-bg    { stroke: rgba(255,255,255,0.3); }
+        .ring-fill  { stroke: #fff; stroke-dasharray: 157; }
+        .ring-fill.p90 { stroke-dashoffset: 16; }
+        .ring-fill.p70 { stroke-dashoffset: 47; }
+        .ring-fill.p50 { stroke-dashoffset: 79; }
+
+        .ring-label {
+            font-size: 24px;
+            font-weight: 700;
+            fill: #fff;
+            dominant-baseline: middle;
+            text-anchor: middle;
+        }
+
+        /* ── Results (right) ── */
+        .results-title {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+            line-height: 1;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.6rem;
+            align-content: start;
+        }
+
+        .result-stat {
+            border-radius: 28px;
+            background: #edf9fa;
+            border: 4px solid #59d6dc;
+            padding: 1.6rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .result-stat-label {
+            margin: 0;
+            font-size: 36px;
+            color: rgba(13,18,23,0.6);
+            font-weight: 600;
+        }
+
+        .result-stat-value {
+            margin: 0;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--panel-blue-deep);
+            line-height: 1;
+        }
+
+        .result-stat-unit {
+            font-size: 36px;
+            font-weight: 400;
+        }
+
+        .result-stat.highlight {
+            background: #6a24f2;
+            border-color: #6a24f2;
+            grid-column: 1 / -1;
+        }
+
+        .result-stat.highlight .result-stat-label,
+        .result-stat.highlight .result-stat-value {
+            color: #fff;
+        }
+
+        .result-bar-wrap {
+            height: 1.4rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.35);
+            overflow: hidden;
+        }
+
+        .result-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: #fff;
+        }
+
+        /* ── Nav rail ── */
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #6a24f2;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen" aria-label="Story Diary Monthly Summary">
+        <section class="book-shell book-shell-tight">
+
+            <!-- Left page: เป้าหมาย (Goals) -->
+            <section class="page page-left page-seam-right" aria-label="เป้าหมายประจำเดือน">
+                <h1 class="tracker-section-title">เป้าหมาย</h1>
+                <div class="section-rule" aria-hidden="true"></div>
+
+                <div class="goals-list">
+                    <div class="goal-card">
+                        <div>
+                            <p class="goal-card-name">กินยา xxx</p>
+                            <p class="goal-card-sub">กิจกรรม · ทุกวัน · สำคัญมาก</p>
+                        </div>
+                        <svg class="goal-progress-ring" viewBox="0 0 60 60" aria-label="90%">
+                            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+                            <circle class="ring-fill p90" cx="30" cy="30" r="25" transform="rotate(-90 30 30)"/>
+                            <text class="ring-label" x="30" y="31">90%</text>
+                        </svg>
+                    </div>
+
+                    <div class="goal-card">
+                        <div>
+                            <p class="goal-card-name">รับประทานอาหาร 5 หมู่</p>
+                            <p class="goal-card-sub">โภชนาการ · ทุกวัน · ทั่วไป</p>
+                        </div>
+                        <svg class="goal-progress-ring" viewBox="0 0 60 60" aria-label="70%">
+                            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+                            <circle class="ring-fill p70" cx="30" cy="30" r="25" transform="rotate(-90 30 30)"/>
+                            <text class="ring-label" x="30" y="31">70%</text>
+                        </svg>
+                    </div>
+
+                    <div class="goal-card">
+                        <div>
+                            <p class="goal-card-name">ท่าออกกำลังกาย</p>
+                            <p class="goal-card-sub">กิจกรรมทางกาย · ทุกวัน · ทั่วไป</p>
+                        </div>
+                        <svg class="goal-progress-ring" viewBox="0 0 60 60" aria-label="50%">
+                            <circle class="ring-bg" cx="30" cy="30" r="25"/>
+                            <circle class="ring-fill p50" cx="30" cy="30" r="25" transform="rotate(-90 30 30)"/>
+                            <text class="ring-label" x="30" y="31">50%</text>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right page: ผลลัพธ์ (Results) -->
+            <section class="page page-right" aria-label="ผลลัพธ์ประจำเดือน">
+                <h2 class="results-title">ผลลัพธ์</h2>
+
+                <div class="results-grid">
+                    <div class="result-stat highlight">
+                        <p class="result-stat-label">ทำได้ทั้งหมด</p>
+                        <p class="result-stat-value">127 <span class="result-stat-unit">ครั้ง</span></p>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar" style="width:72%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="result-stat">
+                        <p class="result-stat-label">เป้าหมาย</p>
+                        <p class="result-stat-value">155 <span class="result-stat-unit">ครั้ง</span></p>
+                    </div>
+
+                    <div class="result-stat">
+                        <p class="result-stat-label">ข้ามไป</p>
+                        <p class="result-stat-value">8 <span class="result-stat-unit">ครั้ง</span></p>
+                    </div>
+
+                    <div class="result-stat">
+                        <p class="result-stat-label">วันที่ทำครบ</p>
+                        <p class="result-stat-value">11 <span class="result-stat-unit">วัน</span></p>
+                    </div>
+
+                    <div class="result-stat">
+                        <p class="result-stat-label">Streak สูงสุด</p>
+                        <p class="result-stat-value">9 <span class="result-stat-unit">วัน</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker" aria-current="page">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>

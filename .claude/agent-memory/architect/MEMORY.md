@@ -1,0 +1,3 @@
+- [Project state at first API spec](project_state.md) — `docs/specs/user-profile.md` is the first API contract; reuse its error envelope and `users` schema in later specs.
+- [Design source of truth is docz/layouts](feedback_design_source_of_truth.md) — derive API field names and enums from the HTML prototypes before inventing schemas.
+- [Next.js 16 route handler params are a Promise](feedback_nextjs16_route_params.md) — use `RouteContext<'/path/[id]'>` and `await ctx.params` in handler skeletons.

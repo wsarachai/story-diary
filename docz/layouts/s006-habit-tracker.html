@@ -15,101 +15,192 @@
             padding: 0;
         }
 
+        /* ── Left page ── */
         .page-left {
-            display: grid;
-            place-items: center;
+            padding: 6% 7%;
+            display: flex;
+            flex-direction: column;
         }
 
-        .page-right {
-            padding: 7% 7% 6%;
-        }
-
-        .tracker-card {
-            width: 72%;
-            height: 86%;
-            border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
-            background: #55d0d7;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tracker-bg-img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            border-radius: inherit;
-            opacity: 0.45;
-        }
-
-        .tracker-card-title {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 10%;
-            margin: 0;
-            text-align: center;
-            font-size: 54px;
-            font-weight: 500;
-            z-index: 1;
-        }
-
-        .habit-dashboard {
-            height: 100%;
-            display: grid;
-            grid-template-rows: auto 1fr;
-            gap: 3rem;
-            padding-top: 8%;
-        }
-
-        .habit-card {
-            border-radius: 48px;
-            background: #59d6dc;
-            padding: 1.8rem 2rem;
-            min-height: 210px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .habit-card h2 {
-            margin: 0;
-            font-size: 40px;
-            font-weight: 500;
-            line-height: 1.05;
-        }
-
-        .streak-badge {
-            position: absolute;
-            right: 1.8rem;
-            bottom: 1.6rem;
-            width: 6.3rem;
-            height: 6.3rem;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.52);
-            display: grid;
-            place-items: center;
-            font-size: 1.7rem;
+        .tracker-title {
+            margin: 0 0 0.3rem;
+            font-size: 3.6rem;
             font-weight: 700;
-            color: #1d6377;
+            border-bottom: 3px solid #111;
+            padding-bottom: 0.5rem;
         }
 
-        .habit-list {
-            margin: 1.6rem 0 0;
-            padding: 0;
-            list-style: none;
+        .section-label {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0.8rem 0 1rem;
+        }
+
+        .daily-card {
+            background: #55d0d7;
+            border-radius: 2rem;
+            padding: 1.4rem 1.8rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .habit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .habit-checkbox {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2.5px solid #111;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .habit-line {
+            flex: 1;
+            height: 2.5px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .section-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .edit-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.2rem;
+            height: 3.2rem;
+            border-radius: 50%;
+            background: #55d0d7;
+            color: #fff;
+            text-decoration: none;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px -4px rgba(0,0,0,0.22);
+        }
+
+        .edit-icon-btn svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        /* ── Right page ── */
+        .page-right {
+            padding: 6% 7%;
             display: grid;
-            gap: 0.8rem;
+            grid-template-rows: 1fr 1fr;
+            gap: 2rem;
         }
 
-        .habit-list li {
-            background: rgba(255, 255, 255, 0.42);
-            border-radius: 999px;
-            padding: 0.5rem 0.9rem;
+        /* Weekly habits */
+        .weekly-section {
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+        }
+
+        .weekly-card {
+            background: #55d0d7;
+            border-radius: 1.6rem;
+            padding: 0.9rem 1.4rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .weekly-day {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.18rem 0;
+        }
+
+        .weekly-day-name {
             font-size: 1.05rem;
+            font-weight: 600;
+            min-width: 2.6rem;
         }
 
+        .weekly-day-line {
+            flex: 1;
+            height: 2px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .weekly-label {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            flex-shrink: 0;
+        }
+
+        /* Monthly habits */
+        .monthly-section {
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+        }
+
+        .monthly-label {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            flex-shrink: 0;
+        }
+
+        .monthly-calendar {
+            flex: 1;
+            background: #55d0d7;
+            border-radius: 1.6rem;
+            overflow: hidden;
+        }
+
+        .cal-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #111;
+        }
+
+        .cal-header span {
+            text-align: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0.3rem 0;
+        }
+
+        .cal-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .cal-cell {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.22rem 0;
+            border: 1px solid #111;
+            min-height: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cal-cell.empty {
+            color: transparent;
+        }
+
+        /* ── Icon rail ── */
         .icon-rail {
             display: grid;
             align-content: start;
@@ -155,31 +246,107 @@
     </style>
 </head>
 <body class="story-diary-body">
-    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Habit Tracker Layout">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Habit Tracker">
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
-            <section class="page page-left page-seam-right" aria-label="Habit tracker summary preview">
-                <article class="tracker-card">
-                    <img src="images/story-preview-870x975.svg" class="tracker-bg-img" alt="" aria-hidden="true">
-                    <h1 class="tracker-card-title">Habit tracker</h1>
-                </article>
+
+            <!-- Left page: daily habits -->
+            <section class="page page-left page-seam-right" aria-label="Daily habits">
+                <h1 class="tracker-title">Habit tracker</h1>
+                <div class="section-label-row">
+                    <div class="section-label">daily habits</div>
+                    <a href="s012-habit-daily-today.html" class="edit-icon-btn" aria-label="แก้ไขกิจกรรมวันนี้">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="daily-card" aria-label="Daily habit checklist">
+                    <div class="habit-item"><div class="habit-checkbox"></div><div class="habit-line"></div></div>
+                    <div class="habit-item"><div class="habit-checkbox"></div><div class="habit-line"></div></div>
+                    <div class="habit-item"><div class="habit-checkbox"></div><div class="habit-line"></div></div>
+                    <div class="habit-item"><div class="habit-checkbox"></div><div class="habit-line"></div></div>
+                    <div class="habit-item"><div class="habit-checkbox"></div><div class="habit-line"></div></div>
+                </div>
             </section>
 
-            <section class="page page-right" aria-label="Habit tracker details">
-                <div class="habit-dashboard">
-                    <section class="habit-card">
-                        <h2>Streak วันนี้</h2>
-                        <div class="streak-badge">7</div>
-                    </section>
+            <!-- Right page: weekly + monthly -->
+            <section class="page page-right" aria-label="Weekly and monthly habits">
 
-                    <section class="habit-card">
-                        <h2>กิจวัตรประจำวัน</h2>
-                        <ul class="habit-list">
-                            <li>อ่านนิทาน 10 นาที</li>
-                            <li>เขียนบันทึกความรู้สึก</li>
-                            <li>ทบทวนคำศัพท์ใหม่</li>
-                        </ul>
-                    </section>
+                <!-- Weekly habits -->
+                <div class="weekly-section">
+                    <div class="weekly-card" aria-label="Weekly habit log">
+                        <div class="weekly-day"><span class="weekly-day-name">Mon</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Tue</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Wed</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Thu</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Fri</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Sat</span><div class="weekly-day-line"></div></div>
+                        <div class="weekly-day"><span class="weekly-day-name">Sun</span><div class="weekly-day-line"></div></div>
+                    </div>
+                    <div class="weekly-label" aria-label="Weekly habits">weekly<br>habits</div>
                 </div>
+
+                <!-- Monthly habits -->
+                <div class="monthly-section">
+                    <div class="monthly-label" aria-label="Monthly habits">monthly<br>habits</div>
+                    <div class="monthly-calendar" aria-label="Monthly calendar">
+                        <div class="cal-header" aria-hidden="true">
+                            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                        </div>
+                        <div class="cal-body" aria-hidden="true">
+                            <!-- week 1: month starts on Friday -->
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell">1</div>
+                            <div class="cal-cell">2</div>
+                            <!-- week 2 -->
+                            <div class="cal-cell">3</div>
+                            <div class="cal-cell">4</div>
+                            <div class="cal-cell">5</div>
+                            <div class="cal-cell">6</div>
+                            <div class="cal-cell">7</div>
+                            <div class="cal-cell">8</div>
+                            <div class="cal-cell">9</div>
+                            <!-- week 3 -->
+                            <div class="cal-cell">10</div>
+                            <div class="cal-cell">11</div>
+                            <div class="cal-cell">12</div>
+                            <div class="cal-cell">13</div>
+                            <div class="cal-cell">14</div>
+                            <div class="cal-cell">15</div>
+                            <div class="cal-cell">16</div>
+                            <!-- week 4 -->
+                            <div class="cal-cell">17</div>
+                            <div class="cal-cell">18</div>
+                            <div class="cal-cell">19</div>
+                            <div class="cal-cell">20</div>
+                            <div class="cal-cell">21</div>
+                            <div class="cal-cell">22</div>
+                            <div class="cal-cell">23</div>
+                            <!-- week 5 -->
+                            <div class="cal-cell">24</div>
+                            <div class="cal-cell">25</div>
+                            <div class="cal-cell">26</div>
+                            <div class="cal-cell">27</div>
+                            <div class="cal-cell">28</div>
+                            <div class="cal-cell">29</div>
+                            <div class="cal-cell">30</div>
+                            <!-- week 6 -->
+                            <div class="cal-cell">31</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                            <div class="cal-cell empty">-</div>
+                        </div>
+                    </div>
+                </div>
+
             </section>
 
             <nav class="icon-rail" aria-label="Main navigation">
