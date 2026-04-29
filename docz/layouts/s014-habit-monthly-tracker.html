@@ -16,18 +16,19 @@
         }
 
         .page-left {
-            padding: 6% 4% 5% 6%;
+            grid-column: 1 / 3;
+            padding: 5% 6% 5%;
             display: grid;
             grid-template-rows: auto auto 1fr;
             gap: 1.6rem;
             overflow: hidden;
         }
 
-        .page-right {
-            padding: 6% 6% 5% 4%;
+        .monthly-content {
             display: grid;
-            grid-template-rows: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             overflow: hidden;
+            min-height: 0;
         }
 
         /* ── Headers ── */
@@ -77,7 +78,7 @@
 
         .monthly-col-header {
             display: grid;
-            grid-template-columns: 2.4fr repeat(16, 1fr);
+            grid-template-columns: 2.8fr repeat(31, minmax(0, 1fr));
             background: #59d6dc;
             border-radius: 24px 24px 0 0;
             padding: 0.5rem 0.6rem;
@@ -86,7 +87,7 @@
 
         .monthly-col-header span {
             text-align: center;
-            font-size: 28px;
+            font-size: 21px;
             font-weight: 700;
             color: #fff;
             padding: 0.2rem 0;
@@ -105,7 +106,7 @@
 
         .monthly-row {
             display: grid;
-            grid-template-columns: 2.4fr repeat(16, 1fr);
+            grid-template-columns: 2.8fr repeat(31, minmax(0, 1fr));
             align-items: center;
             padding: 0.45rem 0.6rem;
             gap: 0;
@@ -115,7 +116,7 @@
         .monthly-row:last-child { border-bottom: none; }
 
         .monthly-row-label {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 600;
             padding-left: 0.4rem;
             overflow: hidden;
@@ -130,8 +131,8 @@
         }
 
         .m-dot {
-            width: 1.9rem;
-            height: 1.9rem;
+            width: 1.45rem;
+            height: 1.45rem;
             border-radius: 50%;
             border: 2px solid #59d6dc;
             background: #fff;
@@ -140,47 +141,6 @@
         .m-dot.done  { background: #08c65a; border-color: #08c65a; }
         .m-dot.skip  { background: #f4a261; border-color: #f4a261; }
         .m-dot.today { border-color: #6a24f2; border-width: 3px; }
-
-        /* ── Right page: dates 17-31 ── */
-        .monthly-grid-right {
-            overflow: hidden;
-            border-radius: 24px;
-            background: #edf9fa;
-            display: grid;
-            grid-template-rows: auto 1fr;
-        }
-
-        .monthly-col-header-right {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            background: #59d6dc;
-            border-radius: 24px 24px 0 0;
-            padding: 0.5rem 0.6rem;
-        }
-
-        .monthly-col-header-right span {
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            padding: 0.2rem 0;
-        }
-
-        .monthly-body-right {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .monthly-row-right {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            align-items: center;
-            padding: 0.45rem 0.6rem;
-            border-bottom: 1px solid rgba(89,214,220,0.2);
-        }
-
-        .monthly-row-right:last-child { border-bottom: none; }
 
         /* ── Nav rail ── */
         .icon-rail {
@@ -241,150 +201,113 @@
                     <span class="tracker-tab is-active" aria-current="page">monthly habits</span>
                 </div>
 
-                <div class="monthly-grid-wrap" role="table" aria-label="ตารางรายเดือน วันที่ 1-16">
-                    <div class="monthly-col-header" role="row">
-                        <span>กิจกรรม</span>
-                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                        <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
-                        <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
-                    </div>
-                    <div class="monthly-body">
-                        <div class="monthly-row" role="row">
-                            <span class="monthly-row-label">กินยา xxx</span>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot today"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
+                <div class="monthly-content">
+                    <div class="monthly-grid-wrap" role="table" aria-label="ตารางรายเดือน วันที่ 1-16">
+                        <div class="monthly-col-header" role="row">
+                            <span>กิจกรรม</span>
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                            <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
+                            <span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+                            <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
+                            <span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
                         </div>
-                        <div class="monthly-row" role="row">
-                            <span class="monthly-row-label">อาหาร 5 หมู่</span>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot today"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row" role="row">
-                            <span class="monthly-row-label">ออกกำลังกาย</span>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot today"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row" role="row">
-                            <span class="monthly-row-label">ป้องกันแสงแดด</span>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot skip"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot today"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row" role="row">
-                            <span class="monthly-row-label">ป้องกันการติดเชื้อ</span>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot done"></div></div>
-                            <div class="monthly-cell"><div class="m-dot today"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Right page: dates 17–31 -->
-            <section class="page page-right" aria-label="ตาราง monthly tracker วันที่ 17-31">
-                <div class="monthly-grid-right" role="table" aria-label="ตารางรายเดือน วันที่ 17-31">
-                    <div class="monthly-col-header-right" role="row">
-                        <span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
-                        <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
-                        <span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
-                    </div>
-                    <div class="monthly-body-right">
-                        <div class="monthly-row-right" role="row">
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                            <div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row-right" role="row">
-                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row-right" role="row">
-                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row-right" role="row">
-                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
-                        </div>
-                        <div class="monthly-row-right" role="row">
-                            <div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div><div class="monthly-cell"><div class="m-dot"></div></div>
+                        <div class="monthly-body">
+                            <div class="monthly-row" role="row">
+                                <span class="monthly-row-label">กินยา xxx</span>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot today"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
+                            <div class="monthly-row" role="row">
+                                <span class="monthly-row-label">อาหาร 5 หมู่</span>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot today"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
+                            <div class="monthly-row" role="row">
+                                <span class="monthly-row-label">ออกกำลังกาย</span>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                                <div class="monthly-cell"><div class="m-dot today"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
+                            <div class="monthly-row" role="row">
+                                <span class="monthly-row-label">ป้องกันแสงแดด</span>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot skip"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot today"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
+                            <div class="monthly-row" role="row">
+                                <span class="monthly-row-label">ป้องกันการติดเชื้อ</span>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot done"></div></div>
+                                <div class="monthly-cell"><div class="m-dot today"></div></div>
+                                <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -408,5 +331,23 @@
         </section>
     </main>
     <script src="assets/common.js"></script>
+    <script>
+        // Ensure each activity row has cells for all 31 days.
+        document.querySelectorAll('.monthly-row').forEach((row) => {
+            const existingCells = row.querySelectorAll('.monthly-cell').length;
+            const missing = 31 - existingCells;
+
+            for (let i = 0; i < missing; i += 1) {
+                const cell = document.createElement('div');
+                cell.className = 'monthly-cell';
+
+                const dot = document.createElement('div');
+                dot.className = 'm-dot';
+
+                cell.appendChild(dot);
+                row.appendChild(cell);
+            }
+        });
+    </script>
 </body>
 </html>
