@@ -15,93 +15,100 @@
             padding: 0;
         }
 
+        /* Left page — illustration */
         .page-left {
+            display: grid;
+            place-items: center;
+            background: #f5efe6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .doodle-wrap {
+            width: 78%;
+            aspect-ratio: 1;
+            position: relative;
             display: grid;
             place-items: center;
         }
 
-        .page-right {
-            padding: 7% 7% 6%;
-        }
-
-        .game-card {
-            width: 72%;
-            height: 86%;
-            border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
-            background: #55d0d7;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-bg-img {
-            position: absolute;
-            inset: 0;
+        .doodle-wrap svg {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            border-radius: inherit;
-            opacity: 0.45;
         }
 
-        .game-card-title {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 10%;
-            margin: 0;
-            text-align: center;
-            font-size: 58px;
-            font-weight: 500;
-            z-index: 1;
-        }
-
-        .minigame-dashboard {
-            height: 100%;
-            display: grid;
-            grid-template-rows: auto 1fr;
-            gap: 3rem;
-            padding-top: 8%;
-        }
-
-        .minigame-card {
-            border-radius: 48px;
-            background: #59d6dc;
-            padding: 1.8rem 2rem;
-            min-height: 210px;
-            position: relative;
-            overflow: hidden;
+        /* Right page */
+        .page-right {
+            padding: 6% 8% 7%;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2rem;
         }
 
-        .minigame-card h2 {
+        .intro-text {
             margin: 0;
-            font-size: 38px;
-            font-weight: 500;
-            line-height: 1.05;
-        }
-
-        .badge-pill {
-            padding: 0.45rem 1rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.52);
+            font-size: 72px;
             font-weight: 600;
-            color: #1d6377;
-            white-space: nowrap;
+            line-height: 1.35;
+            text-align: center;
+            color: #1a1008;
         }
 
-        .life-strip {
+        .ornament {
             display: flex;
-            gap: 0.45rem;
+            justify-content: center;
         }
 
-        .life-strip img {
-            width: 2.2rem;
-            height: 2.2rem;
+        .ornament svg {
+            width: 14rem;
+            height: auto;
         }
 
+        .ready-text {
+            margin: 0;
+            font-size: 64px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-align: center;
+            color: #1a1008;
+        }
+
+        .ready-btns {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+        }
+
+        .ready-btn {
+            border: none;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 68px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 0.7rem 2rem;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .ready-btn-yes {
+            background: #22b14c;
+        }
+
+        .ready-btn-yes:hover {
+            background: #1a9040;
+        }
+
+        .ready-btn-no {
+            background: #d94040;
+        }
+
+        .ready-btn-no:hover {
+            background: #b83232;
+        }
+
+        /* Icon rail */
         .icon-rail {
             display: grid;
             align-content: start;
@@ -119,7 +126,7 @@
             height: 4.5rem;
             border-radius: 0 1.3rem 1.3rem 0;
             overflow: visible;
-            box-shadow: 0 12px 18px -16px rgba(0, 0, 0, 0.55);
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
             position: relative;
             text-decoration: none;
         }
@@ -147,30 +154,62 @@
     </style>
 </head>
 <body class="story-diary-body">
-    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Minigame Layout">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Minigame">
         <section class="book-shell book-shell-tight book-shell-stack-mobile">
-            <section class="page page-left page-seam-right" aria-label="Minigame summary preview">
-                <article class="game-card">
-                    <img src="images/story-preview-870x975.svg" class="game-bg-img" alt="" aria-hidden="true">
-                    <h1 class="game-card-title">Minigame</h1>
-                </article>
+
+            <!-- Left: doodle illustration -->
+            <section class="page page-left page-seam-right" aria-label="ภาพประกอบมินิเกม">
+                <div class="doodle-wrap" aria-hidden="true">
+                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Sparkle stars -->
+                        <path d="M60 60 L63 70 L73 73 L63 76 L60 86 L57 76 L47 73 L57 70 Z" fill="#b06ac0" opacity="0.85"/>
+                        <path d="M330 80 L332 88 L340 90 L332 92 L330 100 L328 92 L320 90 L328 88 Z" fill="#b06ac0" opacity="0.7"/>
+                        <path d="M55 300 L57 307 L64 309 L57 311 L55 318 L53 311 L46 309 L53 307 Z" fill="#b06ac0" opacity="0.75"/>
+                        <path d="M350 260 L352 268 L360 270 L352 272 L350 280 L348 272 L340 270 L348 268 Z" fill="#55c8ce" opacity="0.7"/>
+                        <!-- Outer spiral ring 1 — teal -->
+                        <path d="M200 40 C300 40 360 100 360 200 C360 300 300 360 200 360 C100 360 40 300 40 200 C40 100 100 40 200 40"
+                              stroke="#55c8ce" stroke-width="8" stroke-linecap="round" fill="none"/>
+                        <!-- Outer spiral ring 2 — purple -->
+                        <path d="M200 60 C290 60 340 110 340 200 C340 290 290 340 200 340 C110 340 60 290 60 200 C60 110 110 70 185 62"
+                              stroke="#b06ac0" stroke-width="7" stroke-linecap="round" fill="none"/>
+                        <!-- Mid spiral — teal -->
+                        <path d="M200 90 C270 90 310 130 310 200 C310 270 270 310 200 310 C130 310 90 270 90 200 C90 140 130 100 195 92"
+                              stroke="#55c8ce" stroke-width="7" stroke-linecap="round" fill="none"/>
+                        <!-- Inner spiral — purple -->
+                        <path d="M200 120 C255 120 280 155 280 200 C280 245 245 280 200 280 C155 280 120 245 120 200 C120 160 150 130 196 122"
+                              stroke="#b06ac0" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+                        <!-- Core swirl — teal -->
+                        <path d="M200 150 C235 150 250 170 250 200 C250 230 230 250 200 250 C170 250 150 230 150 200 C150 175 168 155 197 152"
+                              stroke="#55c8ce" stroke-width="6" stroke-linecap="round" fill="none"/>
+                        <!-- Innermost curl -->
+                        <path d="M200 175 C218 175 225 188 225 200 C225 215 214 224 200 222 C188 220 178 210 180 198 C182 188 193 182 202 185"
+                              stroke="#b06ac0" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                        <!-- Wisp tail coming out -->
+                        <path d="M202 185 C220 170 240 165 255 175"
+                              stroke="#55c8ce" stroke-width="5" stroke-linecap="round" fill="none"/>
+                        <!-- Dot accent -->
+                        <circle cx="255" cy="175" r="7" fill="#b06ac0" opacity="0.8"/>
+                        <circle cx="110" cy="310" r="9" fill="#b06ac0" opacity="0.65"/>
+                    </svg>
+                </div>
             </section>
 
-            <section class="page page-right" aria-label="Minigame actions and progress">
-                <div class="minigame-dashboard">
-                    <section class="minigame-card">
-                        <h2>เกมคำศัพท์</h2>
-                        <span class="badge-pill">เริ่มเล่น</span>
-                    </section>
+            <!-- Right: story intro + ready prompt -->
+            <section class="page page-right" aria-label="บทนำมินิเกม">
+                <p class="intro-text">พ่อมดแห่งหอคอย<br>ได้ส่งคุณเข้ามายัง<br>เมือง ๆ หนึ่ง</p>
 
-                    <section class="minigame-card">
-                        <h2>พลังชีวิต</h2>
-                        <div class="life-strip" aria-hidden="true">
-                            <img src="assets/icons/heart.svg" alt="">
-                            <img src="assets/icons/heart.svg" alt="">
-                            <img src="assets/icons/heart.svg" alt="">
-                        </div>
-                    </section>
+                <div class="ornament" aria-hidden="true">
+                    <svg viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 40 C30 10 50 50 70 25 C90 0 110 50 130 25 C150 0 170 45 190 20 C200 10 208 30 210 38"
+                              stroke="#b07a3a" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </div>
+
+                <p class="ready-text">คุณพร้อมสำหรับบททดสอบ<br>แล้วใช่หรือไม่</p>
+
+                <div class="ready-btns">
+                    <button class="ready-btn ready-btn-yes" type="button" data-navigate="s017-minigame-quiz.html">พร้อมแล้ว</button>
+                    <button class="ready-btn ready-btn-no" type="button" data-navigate="s004-home.html">เอาไว้ก่อน</button>
                 </div>
             </section>
 
@@ -181,14 +220,16 @@
                 <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
                     <img src="assets/icons/book.svg" alt="">
                 </a>
-                <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้าสร้างตัวละคร">
+                <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker">
                     <img src="assets/icons/edit.svg" alt="">
                 </a>
                 <a class="icon-rail-link is-active" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม" aria-current="page">
                     <img src="assets/icons/game.svg" alt="">
                 </a>
             </nav>
+
         </section>
     </main>
+    <script src="assets/common.js"></script>
 </body>
 </html>

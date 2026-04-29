@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Diary - Minigame Quiz Summary</title>
+    <link rel="stylesheet" href="assets/common.css">
+    <style>
+        .book-shell {
+            gap: 0;
+            grid-template-columns: 1fr 1fr auto;
+        }
+
+        .page {
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.8rem;
+            text-align: center;
+        }
+
+        .page-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            padding: 5% 8% 6%;
+        }
+
+        .summary-title {
+            margin: 0;
+            font-size: 86px;
+            font-weight: 600;
+            line-height: 1.3;
+            color: #111;
+        }
+
+        .summary-smoke {
+            width: 13rem;
+            opacity: 0.85;
+        }
+
+        .summary-score-text {
+            margin: 0;
+            font-size: 74px;
+            font-weight: 500;
+            line-height: 1.35;
+            text-align: center;
+            color: #111;
+        }
+
+        .summary-stars {
+            position: absolute;
+            top: 6%;
+            right: 5%;
+            width: 16rem;
+            pointer-events: none;
+        }
+
+        .summary-continue-btn {
+            border: none;
+            border-radius: 999px;
+            background: #10c25a;
+            color: #fff;
+            font-family: inherit;
+            font-size: 66px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 0.7rem 2rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .summary-continue-btn:hover {
+            background: #0da14b;
+        }
+
+        .icon-rail {
+            display: grid;
+            align-content: start;
+            gap: 0.9rem;
+            padding: 1.8rem 1.4rem 1.8rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-rail-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 0 1.3rem 1.3rem 0;
+            overflow: visible;
+            box-shadow: 0 12px 18px -16px rgba(0,0,0,0.55);
+            position: relative;
+            text-decoration: none;
+        }
+
+        .icon-rail-link img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 0 1.3rem 1.3rem 0;
+        }
+
+        .icon-rail-link.is-active::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 0;
+            width: calc(100% + 3rem);
+            height: 100%;
+            border-radius: 0 1.3rem 1.3rem 0;
+            background: #c771e8;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="story-diary-body">
+    <main class="screen screen-landscape screen-book-mobile" aria-label="Story Diary Minigame Quiz Summary">
+        <section class="book-shell book-shell-tight book-shell-stack-mobile">
+
+            <section class="page page-left page-seam-right" aria-label="การทดสอบเสร็จสิ้น">
+                <h1 class="summary-title">การทดสอบ<br>เสร็จสิ้น</h1>
+
+                <svg class="summary-smoke" viewBox="0 0 220 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M110 410 C125 390 125 375 112 362 C95 345 99 328 120 315 C145 299 145 278 120 262 C92 244 92 220 122 202 C150 185 152 163 126 145 C94 124 95 101 132 83 C160 69 163 47 145 20"
+                          stroke="#f3ba66" stroke-width="8" stroke-linecap="round" fill="none"/>
+                    <path d="M98 382 C115 368 114 352 100 341 C82 327 84 309 106 296 C130 282 130 264 107 248 C82 231 81 210 108 194"
+                          stroke="#f3ba66" stroke-width="5.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <path d="M130 360 C148 349 150 335 138 323 C125 310 128 295 146 285 C166 274 171 260 159 245 C148 231 149 216 165 205"
+                          stroke="#f3ba66" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+                </svg>
+            </section>
+
+            <section class="page page-right" aria-label="สรุปคะแนน">
+                <svg class="summary-stars" viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <g fill="#f5e441">
+                        <path d="M52 10 L56 42 L88 46 L56 50 L52 82 L48 50 L16 46 L48 42 Z"/>
+                        <path d="M152 24 L155 45 L176 48 L155 51 L152 72 L149 51 L128 48 L149 45 Z"/>
+                        <path d="M118 78 L123 116 L161 121 L123 126 L118 164 L113 126 L75 121 L113 116 Z"/>
+                        <path d="M12 90 L15 110 L35 113 L15 116 L12 136 L9 116 L-11 113 L9 110 Z"/>
+                        <circle cx="196" cy="12" r="5"/>
+                        <circle cx="183" cy="86" r="4"/>
+                        <circle cx="38" cy="148" r="4"/>
+                        <circle cx="82" cy="118" r="3.5"/>
+                    </g>
+                </svg>
+
+                <p class="summary-score-text">คุณสะสมแต้มได้<br>ทั้งหมด x แต้ม</p>
+
+                <a class="summary-continue-btn" href="s004-home.html" aria-label="เดินทางต่อ กลับหน้าหลัก">เดินทางต่อ</a>
+            </section>
+
+            <nav class="icon-rail" aria-label="Main navigation">
+                <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
+                    <img src="assets/icons/home.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s005-chapters.html" aria-label="ไปหน้าอ่านเนื้อเรื่อง">
+                    <img src="assets/icons/book.svg" alt="">
+                </a>
+                <a class="icon-rail-link" href="s006-habit-tracker.html" aria-label="ไปหน้า habit tracker">
+                    <img src="assets/icons/edit.svg" alt="">
+                </a>
+                <a class="icon-rail-link is-active" href="s007-minigame.html" aria-label="ไปหน้ามินิเกม" aria-current="page">
+                    <img src="assets/icons/game.svg" alt="">
+                </a>
+            </nav>
+
+        </section>
+    </main>
+    <script src="assets/common.js"></script>
+</body>
+</html>
