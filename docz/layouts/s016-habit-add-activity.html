@@ -15,44 +15,13 @@
             padding: 0;
         }
 
-        /* Left page: dimmed daily-today backdrop */
-        .page-left {
-            padding: 7% 6% 6% 7%;
-            display: grid;
-            grid-template-rows: auto 1fr;
-            gap: 2rem;
-            opacity: 0.38;
-            pointer-events: none;
-        }
-
-        .backdrop-title {
-            margin: 0;
-            font-size: 72px;
-            font-weight: 700;
-            color: var(--panel-blue-deep);
-        }
-
-        .backdrop-entries {
-            display: flex;
-            flex-direction: column;
-            gap: 1.4rem;
-        }
-
-        .backdrop-entry {
-            border-radius: 24px;
-            background: #edf9fa;
-            border-left: 10px solid #59d6dc;
-            padding: 1.2rem 1.6rem;
-            font-size: 40px;
-            font-weight: 600;
-        }
-
         /* Right page: form modal */
         .page-right {
             padding: 5% 6% 5%;
             display: flex;
             flex-direction: column;
             gap: 0;
+            grid-column: 1 / 3;
         }
 
         /* ── Form card ── */
@@ -68,8 +37,8 @@
         }
 
         .form-card-header {
-            background: #59d6dc;
-            padding: 1.2rem 1.6rem;
+            background: transparent;
+            padding: 1.2rem 1.8rem 0.8rem;
             display: flex;
             align-items: center;
             gap: 1.4rem;
@@ -84,6 +53,7 @@
             display: grid;
             place-items: center;
             flex-shrink: 0;
+            display: none;
         }
 
         .form-btn-cancel { background: #ff4d4d; }
@@ -102,67 +72,64 @@
             font-size: 52px;
             font-weight: 700;
             flex: 1;
-            text-align: center;
+            text-align: left;
+            border-bottom: 6px solid var(--ink);
+            padding-bottom: 0.2rem;
+            max-width: 560px;
         }
 
         /* ── Category tabs ── */
         .category-tabs {
-            display: flex;
-            gap: 0;
-            padding: 1.2rem 1.6rem;
-            border-bottom: 3px solid #edf9fa;
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.2rem;
+            padding: 1rem 1.8rem 1.8rem;
+            border-bottom: none;
         }
 
         .cat-tab {
-            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem 0.6rem;
-            border-radius: 20px;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1.2rem 1rem;
+            border-radius: 24px;
             cursor: pointer;
             border: none;
-            background: transparent;
+            color: #fff;
             font-family: inherit;
         }
 
         .cat-tab.is-active {
-            background: #edf9fa;
+            box-shadow: inset 0 0 0 6px rgba(255,255,255,0.35);
         }
 
         .cat-tab-icon {
-            width: 4.4rem;
-            height: 4.4rem;
-            border-radius: 50%;
+            width: 14rem;
+            height: 14rem;
             display: grid;
             place-items: center;
         }
 
         .cat-tab-icon svg {
-            width: 2.6rem;
-            height: 2.6rem;
+            width: 100%;
+            height: 100%;
+            stroke: #fff !important;
         }
 
         .cat-tab-label {
-            font-size: 30px;
+            font-size: 72px;
             font-weight: 600;
-            color: var(--ink);
+            color: #fff;
+            line-height: 1.05;
+            text-align: center;
         }
 
-        .cat-med   .cat-tab-icon { background: #f0e6ff; }
-        .cat-food  .cat-tab-icon { background: #fff4e6; }
-        .cat-body  .cat-tab-icon { background: #e6f7f4; }
-
-        /* ── Form body ── */
-        .form-body {
-            flex: 1;
-            padding: 1.4rem 1.8rem 1.8rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.4rem;
-            overflow: hidden;
-        }
+        .cat-med  { background: #57a8db; }
+        .cat-food { background: #2eb563; }
+        .cat-body { background: #ee8a4a; }
 
         .form-field {
             display: flex;
@@ -279,16 +246,6 @@
     <main class="screen" aria-label="Story Diary Add Activity">
         <section class="book-shell book-shell-tight">
 
-            <!-- Left page: dimmed backdrop of daily today -->
-            <section class="page page-left page-seam-right" aria-hidden="true">
-                <p class="backdrop-title">today</p>
-                <div class="backdrop-entries">
-                    <div class="backdrop-entry">กินยา xxx</div>
-                    <div class="backdrop-entry">รับประทานอาหารครบ 5 หมู่</div>
-                    <div class="backdrop-entry">ท่าออกกำลังกาย</div>
-                </div>
-            </section>
-
             <!-- Right page: add-activity form -->
             <section class="page page-right" aria-label="เพิ่มกิจกรรม">
                 <div class="form-card" role="dialog" aria-modal="true" aria-labelledby="form-title">
@@ -306,7 +263,7 @@
 
                     <!-- Category tabs -->
                     <div class="category-tabs" role="tablist" aria-label="ประเภทกิจกรรม">
-                        <button class="cat-tab cat-med is-active" role="tab" aria-selected="true" aria-label="ยา">
+                        <button class="cat-tab cat-med is-active" role="tab" aria-selected="true" aria-label="ยา" data-navigate="s020-create-activity.html">
                             <div class="cat-tab-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#9b5de5" stroke-width="2">
                                     <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
@@ -338,57 +295,6 @@
                             </div>
                             <span class="cat-tab-label">กิจกรรมทางกาย</span>
                         </button>
-                    </div>
-
-                    <!-- Form body: ยา (medication) tab active -->
-                    <div class="form-body" role="tabpanel">
-                        <div class="form-field">
-                            <span class="form-label">ชื่อยา</span>
-                            <input class="form-input" type="text" placeholder="ระบุชื่อยา" aria-label="ชื่อยา">
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-field">
-                                <span class="form-label">มื้อ</span>
-                                <div class="form-chip-row">
-                                    <button class="form-chip is-selected">เช้า</button>
-                                    <button class="form-chip">กลางวัน</button>
-                                    <button class="form-chip">เย็น</button>
-                                </div>
-                            </div>
-                            <div class="form-field">
-                                <span class="form-label">เวลา</span>
-                                <div class="form-chip-row">
-                                    <button class="form-chip">ก่อนอาหาร</button>
-                                    <button class="form-chip is-selected">หลังอาหาร</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <span class="form-label">เป้าหมาย</span>
-                            <div class="form-chip-row">
-                                <button class="form-chip is-selected">ครั้งเดียว</button>
-                                <button class="form-chip">หลายจำนวนครั้ง</button>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <span class="form-label">ความถี่</span>
-                            <div class="form-chip-row">
-                                <button class="form-chip is-selected">ทุกวัน</button>
-                                <button class="form-chip">สัปดาห์</button>
-                                <button class="form-chip">เลือกวัน</button>
-                            </div>
-                        </div>
-
-                        <div class="form-field">
-                            <span class="form-label">ความสำคัญ</span>
-                            <div class="form-chip-row">
-                                <button class="form-chip is-selected">ทั่วไป</button>
-                                <button class="form-chip">นาน มาก</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>

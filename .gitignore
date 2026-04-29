@@ -41,3 +41,6 @@ temp/
 
 # Generated PDF files (optional)
 *.pdf
+
+# Claude worktrees (optional)
+.claude/worktrees/
