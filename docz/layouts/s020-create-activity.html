@@ -111,14 +111,94 @@
             background: #aa85e5;
             display: grid;
             place-items: center;
+            border: none;
+            cursor: pointer;
+            padding: 0;
         }
 
         .name-icon svg {
             width: 2.9rem;
             height: 2.9rem;
-            stroke: #fff;
+            stroke: var(--name-icon-stroke, #fff);
             stroke-width: 2.3;
             fill: none;
+        }
+
+        .color-dialog {
+            border: none;
+            border-radius: 20px;
+            padding: 1rem 1.1rem;
+            width: min(90vw, 340px);
+            box-shadow: 0 18px 38px -14px rgba(0, 0, 0, 0.45);
+        }
+
+        .color-dialog::backdrop {
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .color-dialog-title {
+            margin: 0 0 0.8rem;
+            font-size: 30px;
+            line-height: 1.1;
+        }
+
+        .swatch-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.55rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .swatch {
+            border: 2px solid #e2ddd6;
+            border-radius: 999px;
+            min-height: 2rem;
+            cursor: pointer;
+        }
+
+        .color-custom-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .color-custom-row label {
+            font-size: 24px;
+        }
+
+        .color-custom {
+            width: 3.2rem;
+            height: 2.2rem;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .color-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .dialog-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 0.45rem 0.9rem;
+            font-family: inherit;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .dialog-btn-primary {
+            background: #aa85e5;
+            color: #fff;
+        }
+
+        .dialog-btn-secondary {
+            background: #ddd8d1;
+            color: #111;
         }
 
         .chip-line {
@@ -325,12 +405,12 @@
                     <div class="form-panel">
                         <div class="name-row">
                             <input class="name-field" type="text" aria-label="ชื่อยา" placeholder="ชื่อยา :">
-                            <div class="name-icon" aria-hidden="true">
+                            <button class="name-icon" type="button" aria-label="เปลี่ยนสีไอคอน" id="open-icon-color-dialog">
                                 <svg viewBox="0 0 24 24">
                                     <rect x="3" y="10" width="10" height="6" rx="3" transform="rotate(-45 8 13)"/>
                                     <rect x="11" y="8" width="10" height="6" rx="3" transform="rotate(45 16 11)"/>
                                 </svg>
-                            </div>
+                            </button>
                         </div>
 
                         <div class="chip-line">
@@ -401,6 +481,26 @@
                 </div>
             </section>
 
+            <dialog class="color-dialog" id="icon-color-dialog" aria-label="เลือกสีไอคอน">
+                <p class="color-dialog-title">เลือกสีไอคอน</p>
+                <div class="swatch-row">
+                    <button class="swatch" type="button" style="background:#ffffff" data-color="#ffffff" aria-label="สีขาว"></button>
+                    <button class="swatch" type="button" style="background:#111111" data-color="#111111" aria-label="สีดำ"></button>
+                    <button class="swatch" type="button" style="background:#ff6b6b" data-color="#ff6b6b" aria-label="สีแดง"></button>
+                    <button class="swatch" type="button" style="background:#f4a261" data-color="#f4a261" aria-label="สีส้ม"></button>
+                    <button class="swatch" type="button" style="background:#2a9d8f" data-color="#2a9d8f" aria-label="สีเขียว"></button>
+                    <button class="swatch" type="button" style="background:#4d8dff" data-color="#4d8dff" aria-label="สีน้ำเงิน"></button>
+                </div>
+                <div class="color-custom-row">
+                    <label for="custom-icon-color">กำหนดเอง</label>
+                    <input class="color-custom" id="custom-icon-color" type="color" value="#ffffff">
+                </div>
+                <div class="color-actions">
+                    <button class="dialog-btn dialog-btn-secondary" type="button" id="cancel-icon-color">ปิด</button>
+                    <button class="dialog-btn dialog-btn-primary" type="button" id="apply-icon-color">ใช้สี</button>
+                </div>
+            </dialog>
+
             <nav class="icon-rail" aria-label="Main navigation">
                 <a class="icon-rail-link" href="s004-home.html" aria-label="ไปหน้าแรก">
                     <img src="assets/icons/home.svg" alt="">
@@ -420,10 +520,84 @@
     </main>
     <script src="assets/common.js"></script>
     <script>
+        const typeToName = {
+            nutrition_5_groups: "รับประทานอาหารครบ 5 หมู่",
+            nutrition_clean_cooked: "รับประทานอาหารปรุงสุก สะอาด",
+            nutrition_mild_taste: "รับประทานอาหารรสไม่จัด",
+            nutrition_order_low_seasoning: "ซื้ออาหารตามสั่งจากร้าน บอกแม่ค้าปรุงรสอ่อน"
+        };
+
+        const query = new URLSearchParams(window.location.search);
+        const source = query.get("source");
+        const selectedType = query.get("type");
+        const nameField = document.querySelector(".name-field");
+
+        if (nameField instanceof HTMLInputElement) {
+            // Medicine flow from s016 keeps the field empty for manual typing.
+            if (source === "medicine") {
+                nameField.value = "";
+            } else if (selectedType && !nameField.value.trim()) {
+                const presetName = typeToName[selectedType];
+
+                if (presetName) {
+                    nameField.value = presetName;
+                }
+            }
+        }
+
         const frequencyChips = document.querySelectorAll(".frequency-chip");
         const optionPanels = document.querySelectorAll(".option-panel");
         const chipTracks = document.querySelectorAll(".chip-track");
         const weekdayRows = document.querySelectorAll(".weekday-row");
+        const openIconColorDialogBtn = document.getElementById("open-icon-color-dialog");
+        const iconColorDialog = document.getElementById("icon-color-dialog");
+        const customIconColorInput = document.getElementById("custom-icon-color");
+        const applyIconColorBtn = document.getElementById("apply-icon-color");
+        const cancelIconColorBtn = document.getElementById("cancel-icon-color");
+        const swatches = document.querySelectorAll(".swatch");
+
+        let pendingIconColor = "#ffffff";
+
+        function setIconColor(color) {
+            document.documentElement.style.setProperty("--name-icon-stroke", color);
+        }
+
+        if (
+            openIconColorDialogBtn instanceof HTMLButtonElement &&
+            iconColorDialog instanceof HTMLDialogElement &&
+            customIconColorInput instanceof HTMLInputElement &&
+            applyIconColorBtn instanceof HTMLButtonElement &&
+            cancelIconColorBtn instanceof HTMLButtonElement
+        ) {
+            openIconColorDialogBtn.addEventListener("click", () => {
+                pendingIconColor = customIconColorInput.value || "#ffffff";
+                iconColorDialog.showModal();
+            });
+
+            swatches.forEach((swatch) => {
+                swatch.addEventListener("click", () => {
+                    const color = swatch.getAttribute("data-color");
+
+                    if (color) {
+                        pendingIconColor = color;
+                        customIconColorInput.value = color;
+                    }
+                });
+            });
+
+            customIconColorInput.addEventListener("input", () => {
+                pendingIconColor = customIconColorInput.value;
+            });
+
+            applyIconColorBtn.addEventListener("click", () => {
+                setIconColor(pendingIconColor);
+                iconColorDialog.close();
+            });
+
+            cancelIconColorBtn.addEventListener("click", () => {
+                iconColorDialog.close();
+            });
+        }
 
         frequencyChips.forEach((chip) => {
             chip.addEventListener("click", () => {

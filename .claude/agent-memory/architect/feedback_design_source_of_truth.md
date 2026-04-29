@@ -4,7 +4,7 @@ description: When designing features for story-diary, derive field names, enums,
 type: feedback
 ---
 
-The HTML prototypes in `docz/layouts/` (s001–s019) are the **design source of
+The HTML prototypes in `docz/layouts/` (s001–s021) are the **design source of
 truth** for story-diary, per `CLAUDE.md`. Form `name=` and `value=` attributes
 in those files dictate the API field names and enum values.
 

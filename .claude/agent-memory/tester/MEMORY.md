@@ -1,0 +1,2 @@
+- [Test framework setup](feedback_test_framework.md) — Jest 30 + ts-jest 29 configured for this Next.js 16 / Node 24 frontend
+- [Route handler test patterns](feedback_route_handler_patterns.md) — How to test Next.js App Router route handlers with mocked DB and auth
