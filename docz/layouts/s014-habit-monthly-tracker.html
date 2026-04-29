@@ -27,7 +27,10 @@
         .monthly-content {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr) auto;
+            gap: 1rem;
             overflow: hidden;
+            height: 100%;
             min-height: 0;
         }
 
@@ -74,6 +77,7 @@
             background: #edf9fa;
             display: grid;
             grid-template-rows: auto 1fr;
+            min-height: 0;
         }
 
         .monthly-col-header {
@@ -101,7 +105,9 @@
         .monthly-body {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
         }
 
         .monthly-row {
@@ -141,6 +147,61 @@
         .m-dot.done  { background: #08c65a; border-color: #08c65a; }
         .m-dot.skip  { background: #f4a261; border-color: #f4a261; }
         .m-dot.today { border-color: #6a24f2; border-width: 3px; }
+
+        /* ── Monthly summary (same pattern as s013) ── */
+        .monthly-summary-column {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .monthly-summary-card {
+            border-radius: 32px;
+            background: #59d6dc;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .monthly-summary-card h3 {
+            margin: 0;
+            font-size: 34px;
+            font-weight: 600;
+        }
+
+        .monthly-summary-badge {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .monthly-legend {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 1.2rem;
+        }
+
+        .monthly-legend-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .monthly-legend-dot {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .monthly-legend-label {
+            font-size: 28px;
+        }
 
         /* ── Nav rail ── */
         .icon-rail {
@@ -307,6 +368,33 @@
                                 <div class="monthly-cell"><div class="m-dot done"></div></div>
                                 <div class="monthly-cell"><div class="m-dot today"></div></div>
                                 <div class="monthly-cell"><div class="m-dot"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="monthly-summary-column" aria-label="สรุปรายเดือน">
+                        <div class="monthly-summary-card">
+                            <h3>ทำได้แล้ว</h3>
+                            <span class="monthly-summary-badge">74</span>
+                        </div>
+
+                        <div class="monthly-summary-card">
+                            <h3>เป้าหมายเดือน</h3>
+                            <span class="monthly-summary-badge">120</span>
+                        </div>
+
+                        <div class="monthly-legend">
+                            <div class="monthly-legend-row">
+                                <div class="monthly-legend-dot" style="background:#08c65a;"></div>
+                                <span class="monthly-legend-label">ทำเสร็จ</span>
+                            </div>
+                            <div class="monthly-legend-row">
+                                <div class="monthly-legend-dot" style="background:#f4a261;"></div>
+                                <span class="monthly-legend-label">ข้ามไป</span>
+                            </div>
+                            <div class="monthly-legend-row">
+                                <div class="monthly-legend-dot" style="background:#fff; border:3px solid #59d6dc;"></div>
+                                <span class="monthly-legend-label">ยังไม่ถึง</span>
                             </div>
                         </div>
                     </div>
