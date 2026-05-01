@@ -50,8 +50,9 @@ body {
 
 /* ── Screen frame (1920×1080) ────────────────────────── */
 .screen {
-  width: 1920px;
-  height: 1080px;
+  width: min(1920px, calc(100vw - 32px), calc((100vh - 32px) * (16 / 9)));
+  aspect-ratio: 16 / 9;
+  height: auto;
   flex: 0 0 auto;
   position: relative;
   overflow: hidden;
@@ -208,6 +209,78 @@ input:focus-visible,
   border-radius: 0 1.3rem 1.3rem 0;
   background: var(--rail-accent, #ff3131);
   z-index: 0;
+}
+
+@media (max-width: 900px) {
+  body {
+    display: block;
+    padding: 8px;
+  }
+
+  .screen {
+    width: 100%;
+    min-height: calc(100dvh - 16px);
+    border-radius: 10px;
+    aspect-ratio: auto;
+  }
+
+  .book-shell,
+  .book-shell[style*="grid-template-columns"] {
+    position: relative;
+    inset: auto;
+    min-height: calc(100dvh - 32px);
+    border-radius: 24px;
+    padding: 12px;
+    gap: 12px;
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "right"
+      "left"
+      "rail";
+  }
+
+  .page {
+    border-radius: 24px;
+  }
+
+  .page-left {
+    grid-area: left;
+  }
+
+  .page-right {
+    grid-area: right;
+  }
+
+  .icon-rail {
+    grid-area: rail;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.2rem 0.8rem;
+  }
+
+  .icon-rail-link {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 0.9rem;
+  }
+
+  .icon-rail-link img {
+    border-radius: 0.9rem;
+  }
+
+  .icon-rail-link.is-active::before {
+    left: 0;
+    width: 100%;
+    border-radius: 0.9rem;
+  }
+
+  .page-seam-right::after {
+    display: none;
+  }
 }
 
 /* ── Landing start button ────────────────────────────── */
