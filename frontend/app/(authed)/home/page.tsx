@@ -22,32 +22,43 @@ export default function HomePage() {
 function StoryCardPanel() {
   return (
     <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
-      <article
+      <Link
+        href="/chapters"
+        aria-label="ไปหน้าเนื้อเรื่อง"
         style={{
           width: "72%",
           height: "86%",
-          borderRadius: "38% 38% 9% 9% / 20% 20% 9% 9%",
-          background: "#55d0d7",
-          position: "relative",
-          overflow: "hidden",
+          textDecoration: "none",
+          color: "inherit",
         }}
       >
-        <h1
+        <article
           style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: "10%",
-            margin: 0,
-            textAlign: "center",
-            fontSize: "56px",
-            fontWeight: 500,
-            zIndex: 1,
+            width: "100%",
+            height: "100%",
+            borderRadius: "38% 38% 9% 9% / 20% 20% 9% 9%",
+            background: "#55d0d7",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          เนื้อเรื่อง
-        </h1>
-      </article>
+          <h1
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: "10%",
+              margin: 0,
+              textAlign: "center",
+              fontSize: "56px",
+              fontWeight: 500,
+              zIndex: 1,
+            }}
+          >
+            เนื้อเรื่อง
+          </h1>
+        </article>
+      </Link>
     </div>
   );
 }
@@ -79,7 +90,14 @@ function DashboardPanel() {
           display: "block",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: "40px", fontWeight: 500, lineHeight: 1.05 }}>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: "40px",
+            fontWeight: 500,
+            lineHeight: 1.05,
+          }}
+        >
           Habit tracker
         </h2>
       </Link>
@@ -113,10 +131,23 @@ function DashboardPanel() {
           }}
         >
           {[0, 1, 2].map((i) => (
-            <Image key={i} src="/icons/heart.svg" alt="" width={48} height={48} />
+            <Image
+              key={i}
+              src="/icons/heart.svg"
+              alt=""
+              width={48}
+              height={48}
+            />
           ))}
         </div>
-        <h2 style={{ margin: 0, fontSize: "40px", fontWeight: 500, lineHeight: 1.05 }}>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: "40px",
+            fontWeight: 500,
+            lineHeight: 1.05,
+          }}
+        >
           Minigame
         </h2>
       </Link>
