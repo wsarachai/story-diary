@@ -30,7 +30,7 @@ export type ChapterId = number;
  */
 export type ChapterLockState = "unlocked" | "locked";
 /**
- * Read/play progress for a chapter scene.
+ * Read/play progress for a chapter scene flow.
  */
 export type ChapterProgressState = "not-started" | "in-progress" | "completed";
 /**
@@ -44,12 +44,15 @@ export interface ChapterSummary {
     progress: ChapterProgressState;
 }
 /**
- * One scene/dialogue line within a chapter, as rendered by s010.
+ * One scene/dialogue step within a chapter, as rendered by s010.
  *
  * The wireframe shows a single placeholder dialogue with the character's name
  * in a label badge ("ชื่อตัวละคร") and the body text ("บทสนทนา"). A real
  * chapter is a sequence of these scenes; tapping the bottom-right next arrow
  * advances to the next scene or back to the chapter menu (s008) when done.
+ *
+ * Active Story Diary fixtures should seed roughly 5-6 scenes per chapter so
+ * the reader flow can exercise repeated scene advancement.
  */
 export interface ChapterScene {
     /** Stable id within a chapter; may be a numeric index. */
@@ -75,6 +78,7 @@ export interface Chapter {
     backgroundImageUrl?: string;
     lockState: ChapterLockState;
     progress: ChapterProgressState;
+    /** Ordered scene flow; fixtures should typically provide 5-6 scenes. */
     scenes: ChapterScene[];
 }
 /**

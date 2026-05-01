@@ -63,9 +63,34 @@ const CHAPTER_1: Chapter = {
     {
       id: "1-0",
       index: 0,
+      speakerName: "ผู้บรรยาย",
+      text: "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ",
+    },
+    {
+      id: "1-1",
+      index: 1,
       speakerName: "ชื่อตัวละคร",
       speakerImageUrl: "/images/chapter-speaker-girl-transparent.png",
-      text: "บทสนทนา",
+      text: "สวัสดี! ฉันพร้อมแล้วที่จะเริ่มดูแลสุขภาพของตัวเอง",
+    },
+    {
+      id: "1-2",
+      index: 2,
+      speakerName: "ผู้บรรยาย",
+      text: "วันนี้เป็นวันแรกของการเดินทางที่เต็มไปด้วยการเรียนรู้",
+    },
+    {
+      id: "1-3",
+      index: 3,
+      speakerName: "ชื่อตัวละคร",
+      speakerImageUrl: "/images/chapter-speaker-girl-transparent.png",
+      text: "ฉันจะเริ่มจากการสร้างนิสัยเล็ก ๆ ที่ทำได้ทุกวัน",
+    },
+    {
+      id: "1-4",
+      index: 4,
+      speakerName: "ผู้บรรยาย",
+      text: "ทุกก้าวเล็ก ๆ จะค่อย ๆ พาเราไปสู่เป้าหมายใหญ่",
     },
   ],
 };
@@ -270,7 +295,7 @@ describe("chaptersSlice — fetchChapter lifecycle", () => {
     );
     const chapter = selectChapter(root(state), 1)!;
     expect(Array.isArray(chapter.scenes)).toBe(true);
-    expect(chapter.scenes.length).toBeGreaterThan(0);
+    expect(chapter.scenes).toHaveLength(5);
     expect(chapter.scenes[0]).toMatchObject({
       id: expect.any(String),
       index: expect.any(Number),

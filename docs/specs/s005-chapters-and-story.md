@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Owner:** Architect (handoff to frontend implementer + tester)
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-02
 **Scope:** UI architecture for the "เนื้อเรื่อง" (Story) feature accessed
 via the icon-rail "book" item. Covers the chapters hub, chapter list,
 chapter intro, scene-by-scene reading, and the video-clips collection.
@@ -12,13 +12,17 @@ chapter intro, scene-by-scene reading, and the video-clips collection.
 ## Summary
 
 The Story area lets the user browse a fixed sequence of chapters (5 in the
-wireframe), read each chapter as a series of scene/dialogue cards, and
+wireframe), read each chapter as a multi-scene dialogue flow, and
 watch supporting video clips ("ดาวแห่งการเรียนรู้"). The hub (s005) is a
 two-card surface that branches to either the chapter menu (s008) or the
 video clips collection (s011); the chapter list links into a 2-screen
 reader (s009 intro + s010 dialogue), and the dialogue closes back to the
 chapter list. Chapter-gating is encoded by a lock-key icon on later
 chapters.
+
+For implementation fixtures and backend mock data, **every chapter should
+carry 5-6 ordered scenes** so the reader flow exercises repeated next-arrow
+navigation instead of a single placeholder dialogue.
 
 This spec maps the wireframes onto a `chapters` Redux slice, a small
 chapter-content client (assumed CMS-backed), and four Next.js routes under
@@ -68,7 +72,10 @@ Neighbours that affect navigation:
    (chapter list) on next-tap, regardless of chapter length. The spec
    formalises a "scene cursor" so that next-tap advances to the next scene
    and only the **final** scene routes to s008.
-4. **Video-clip player.** s011 shows a play-icon on each thumbnail but no
+4. **Fixture depth.** A single scene per chapter is not enough to verify the
+   s010 reader flow. Mock/API seed content must provide **5-6 scenes per
+   chapter** in ascending `index` order.
+5. **Video-clip player.** s011 shows a play-icon on each thumbnail but no
    player surface. The wireframe is silent on what tapping the thumbnail
    does. Spec assumes a future video player (out of scope) and records the
    tap as a no-op for v1. **DS-3.**
@@ -308,7 +315,7 @@ selectVideoClipsCollection(state): VideoClipsCollection | null
 
 | Element                                  | Wireframe behaviour                | React/Redux mapping                                                                 |
 | ---------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------- |
-| `.dialog-next-link[href=s008]`           | Hard nav back to chapter menu      | onClick: if `currentScene < scenes.length - 1` → `router.push("/chapters/{id}/explain/{n+1}")`; else `router.push("/chapters/menu")` and dispatch `chapters/markCompleted(id)`. |
+| `.dialog-next-link[href=s008]`           | Hard nav back to chapter menu      | onClick: if `currentScene < chapter.scenes.length - 1` → `router.push("/chapters/{id}/explain/{n+1}")`; else `router.push("/chapters/menu")` and dispatch `chapters/markCompleted(id)`. |
 | `.dialog-text`                           | Static                             | Render `scene.text` with `\n` → `<br/>`.                                            |
 | `.speaker-name`                          | Static                             | Render `scene.speakerName`.                                                          |
 
@@ -328,7 +335,7 @@ selectVideoClipsCollection(state): VideoClipsCollection | null
 | `s005-chapters.html`                     | `/chapters`                         | Protected     | Rail `chapters`; defaults from `s004` icon rail.                     |
 | `s008-chapters-menu.html`                | `/chapters/menu`                    | Protected     | List view.                                                           |
 | `s009-chapters-explain.html`             | `/chapters/[id]/explain`            | Protected     | `id` is `ChapterId`. 404 unknown id; redirect to `/chapters/menu`.   |
-| `s010-chapters-explain-details.html`     | `/chapters/[id]/explain/[scene]`    | Protected     | `scene` is 0-based index; out-of-range → `/chapters/menu`.           |
+| `s010-chapters-explain-details.html`     | `/chapters/[id]/explain/[scene]`    | Protected     | `scene` is the 0-based index into `chapter.scenes`; mock content should provide 5-6 scenes per chapter. |
 | `s011-video-clips.html`                  | `/video-clips`                      | Protected     | Rail `chapters` (shares the green accent).                           |
 
 Next.js dynamic route segments use bracket syntax (`[id]`, `[scene]`) per
@@ -343,6 +350,11 @@ UI prop shapes are listed in **Component Tree**. Domain shapes
 (`Chapter`, `ChapterScene`, `VideoClip`, `VideoClipsCollection`,
 `ChapterId`, `ChapterLockState`, `ChapterProgressState`,
 `ChapterSummary`) live in `src/types/chapters.ts`.
+
+`Chapter.scenes` is the canonical ordered reader flow. During active
+development, fixtures and backend mock responses should populate each
+chapter with **5-6 scenes** so `/chapters/[id]/explain/[scene]` can be
+exercised across multiple next transitions.
 
 Assumed API endpoints (full backend spec out of scope):
 
@@ -491,8 +503,10 @@ Dependencies: 1 unblocks 2; 5 needs 3; 7 needs 6.
    s009 layout with the bg image, "บทบรรยาย" panel, and orange next
    arrow.
 5. Tapping the panel/arrow navigates to `/chapters/1/explain/0` (first
-   scene); the dialog panel shows the speaker name and copy.
-6. Repeated next-arrow taps advance the scene cursor; the final scene's
+   scene); the dialog panel shows the speaker name and copy, and the loaded
+   chapter data contains 5-6 ordered scenes.
+6. Repeated next-arrow taps advance the scene cursor through the remaining
+   scenes; the final scene's
    tap routes to `/chapters/menu` and the chapter row's lock state for
    chapter 2 flips to "unlocked".
 7. From `/chapters`, tapping "ดาวแห่งการเรียนรู้" navigates to

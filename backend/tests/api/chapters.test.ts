@@ -97,7 +97,7 @@ describe("GET /api/chapters/:id", () => {
     expect(res.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  it("200 + chapter detail with scenes for chapter 1", async () => {
+  it("200 + chapter detail with 5 seeded scenes for chapter 1", async () => {
     const agent = await loginAgent();
     const res = await agent.get("/api/chapters/1").expect(200);
 
@@ -105,7 +105,7 @@ describe("GET /api/chapters/:id", () => {
     expect(res.body.id).toBe(1);
     expect(typeof res.body.title).toBe("string");
     expect(Array.isArray(res.body.scenes)).toBe(true);
-    expect(res.body.scenes.length).toBeGreaterThan(0);
+    expect(res.body.scenes).toHaveLength(5);
   });
 
   it("each scene has required shape (spec s005 scene contract)", async () => {
