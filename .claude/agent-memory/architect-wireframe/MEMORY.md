@@ -1,0 +1,6 @@
+- [Wireframes location](project_wireframes_location.md) — wireframes live under docz/wireframes/, not docz/layouts/ (the latter was deleted)
+- [Shared types location](project_shared_types_location.md) — cross-agent TypeScript contracts live at project-root src/types/, not under frontend/
+- [Frontend not yet scaffolded](project_frontend_status.md) — frontend/ is empty as of 2026-05-01; specs reference Next.js 16 paths anticipatorily
+- [Icon rail accent colors](project_icon_rail_accents.md) — each authenticated screen uses a distinct active rail color; encoded in src/types/navigation.ts RAIL_ITEMS
+- [Common.js navigation pattern](project_common_js_navigation.md) — wireframes use a shared delegated click handler reading data-navigate; this MUST NOT port to React
+- [User-profile API spec is canonical](reference_user_profile_spec.md) — docs/specs/user-profile.md predates this work; new API specs must align with its error envelope and UserProfile shape
