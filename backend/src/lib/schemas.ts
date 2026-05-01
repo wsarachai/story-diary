@@ -11,7 +11,8 @@ import { z } from "zod";
 
 export const RegisterSchema = z.object({
   name: z.string().trim().min(1, "REQUIRED").max(80, "TOO_LONG"),
-  email: z.string().trim().min(1, "REQUIRED").email("INVALID_FORMAT"),
+  /** Thai phone number: 10 digits starting with 0, e.g. "0812345678". */
+  tel: z.string().trim().regex(/^0[0-9]{9}$/, "INVALID_FORMAT"),
   password: z.string().min(8, "TOO_SHORT").max(128, "TOO_LONG"),
   characterName: z.string().trim().min(1, "REQUIRED").max(40, "TOO_LONG"),
   gender: z.enum(["male", "female"]),
@@ -25,7 +26,8 @@ export const LoginSchema = z.object({
 export const UpdateUserSchema = z
   .object({
     name: z.string().trim().min(1, "REQUIRED").max(80, "TOO_LONG").optional(),
-    email: z.string().trim().email("INVALID_FORMAT").optional(),
+    /** Thai phone number: 10 digits starting with 0, e.g. "0812345678". */
+    tel: z.string().trim().regex(/^0[0-9]{9}$/, "INVALID_FORMAT").optional(),
     characterName: z.string().trim().min(1, "REQUIRED").max(40, "TOO_LONG").optional(),
     gender: z.enum(["male", "female"]).optional(),
   })

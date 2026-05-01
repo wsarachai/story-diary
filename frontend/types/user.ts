@@ -28,8 +28,8 @@ export interface UserProfile {
     id: string;
     /** Display name from s003-register.html "ชื่อ" field. 1..80 chars, trimmed. */
     name: string;
-    /** Lowercased canonical email. Unique. */
-    email: string;
+    /** Thai phone number, 10 digits starting with 0 (e.g. "0812345678"). Unique. */
+    tel: string;
     /** In-app character name from s003-register.html "ชื่อตัวละคร". 1..40 chars. */
     characterName: string;
     /** "male" | "female" — see ./auth.ts. */
@@ -52,7 +52,8 @@ export interface UserProfile {
  */
 export interface UpdateUserRequest {
     name?: string;
-    email?: string;
+    /** Thai phone number, 10 digits starting with 0. */
+    tel?: string;
     characterName?: string;
     gender?: Gender;
 }

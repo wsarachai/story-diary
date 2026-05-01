@@ -30,15 +30,15 @@ export type { UserProfile as User } from "./user";
 
 /**
  * Login form payload. Mirrors the two fields on s002-Login-Screen.html:
- *   - <input id="username" name="username" type="text">          → identifier
+ *   - <input id="username" name="username" type="tel">           → phone number
  *   - <input id="password" name="password" type="password">      → password
  *
- * The wireframe labels the field "ชื่อผู้ใช้" (username). v1 backend accepts
- * either the registered email or the display `name` here — UI does not need
- * to disambiguate. Server normalises (trim + lowercase email) before lookup.
+ * The login identifier is the registered Thai phone number (`tel`). The field
+ * key `username` is kept for API stability; the server looks up the user by
+ * `tel` column. Trimmed client-side before dispatch.
  */
 export interface LoginInput {
-    /** Either email or display name as typed by the user. Trimmed client-side. */
+    /** Registered Thai phone number (e.g. "0812345678"). Trimmed client-side. */
     username: string;
     /** Plain text in transit (TLS); never logged, never persisted client-side. */
     password: string;
@@ -47,7 +47,7 @@ export interface LoginInput {
 /**
  * Register form payload. Mirrors all six fields across the two pages of
  * s003-register.html:
- *   left page  — name, email, password, confirmPassword
+ *   left page  — name, tel, password, confirmPassword
  *   right page — characterName, gender
  *
  * `confirmPassword` is a CLIENT-SIDE-ONLY field for parity-validation. It MUST
@@ -56,7 +56,8 @@ export interface LoginInput {
  */
 export interface RegisterInput {
     name: string;
-    email: string;
+    /** Thai phone number, 10 digits starting with 0 (e.g. "0812345678"). */
+    tel: string;
     password: string;
     /** Local-only; stripped before POST. */
     confirmPassword: string;

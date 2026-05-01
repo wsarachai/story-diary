@@ -19,12 +19,12 @@ import type { ApiErrorCode } from "@/types/error";
 
 interface FormState {
   name: string;
-  email: string;
+  tel: string;
   password: string;
   confirmPassword: string;
   characterName: string;
   gender: Gender | null;
-  errors: Partial<Record<"name" | "email" | "password" | "confirmPassword" | "characterName" | "gender", string>>;
+  errors: Partial<Record<"name" | "tel" | "password" | "confirmPassword" | "characterName" | "gender", string>>;
 }
 
 type FormAction =
@@ -50,7 +50,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 const initialForm: FormState = {
   name: "",
-  email: "",
+  tel: "",
   password: "",
   confirmPassword: "",
   characterName: "",
@@ -65,8 +65,8 @@ const initialForm: FormState = {
 function apiErrorCopy(code: ApiErrorCode | null): string | null {
   if (!code) return null;
   switch (code) {
-    case "EMAIL_TAKEN":
-      return "อีเมลนี้ถูกใช้งานแล้ว";
+    case "PHONE_TAKEN":
+      return "เบอร์โทรนี้ถูกใช้งานแล้ว";
     case "INTERNAL_ERROR":
       return "ระบบขัดข้อง โปรดลองอีกครั้ง";
     default:
@@ -100,7 +100,11 @@ export default function RegisterPage() {
   function validate(): boolean {
     const errors: FormState["errors"] = {};
     if (!form.name.trim()) errors.name = "กรุณากรอกชื่อ";
-    if (!form.email.trim()) errors.email = "กรุณากรอกอีเมล";
+    if (!form.tel.trim()) {
+      errors.tel = "กรุณากรอกเบอร์โทร";
+    } else if (!/^0[0-9]{9}$/.test(form.tel.trim())) {
+      errors.tel = "เบอร์โทรไม่ถูกต้อง (ต้องเป็นตัวเลข 10 หลัก เริ่มต้นด้วย 0)";
+    }
     if (!form.password) errors.password = "กรุณากรอกรหัสผ่าน";
     if (!form.confirmPassword) errors.confirmPassword = "กรุณายืนยันรหัสผ่าน";
     if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
@@ -119,7 +123,7 @@ export default function RegisterPage() {
     const result = await dispatch(
       register({
         name: form.name.trim(),
-        email: form.email.trim(),
+        tel: form.tel.trim(),
         password: form.password,
         characterName: form.characterName.trim(),
         gender: form.gender!,
@@ -177,23 +181,24 @@ export default function RegisterPage() {
               </div>
               {form.errors.name && <span id="err-name" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.name}</span>}
 
-              {/* Email */}
+              {/* Phone number (tel) */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
-                <label htmlFor="email" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
-                  e-mail
+                <label htmlFor="tel" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
+                  เบอร์โทร
                 </label>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={form.email}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "email", value: e.target.value }); dispatch(clearSubmitError()); }}
-                  aria-describedby={form.errors.email ? "err-email" : undefined}
-                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.email ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
+                  id="tel"
+                  name="tel"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  value={form.tel}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "tel", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  aria-describedby={form.errors.tel ? "err-tel" : undefined}
+                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.tel ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
               </div>
-              {form.errors.email && <span id="err-email" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.email}</span>}
+              {form.errors.tel && <span id="err-tel" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.tel}</span>}
 
               {/* Password */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>

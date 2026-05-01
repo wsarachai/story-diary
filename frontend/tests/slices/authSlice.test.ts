@@ -35,7 +35,7 @@ import type { RootState } from "@/store/index";
 const MOCK_USER = {
   id: "usr-001",
   name: "สมชาย ใจดี",
-  email: "somchai@example.com",
+  tel: "0812345678",
   characterName: "นักสำรวจ",
   gender: "male" as const,
   createdAt: "2026-01-01T00:00:00Z",
@@ -102,7 +102,7 @@ describe("authSlice — probeSession (DS-1: session probe)", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("authSlice — login (DS-3: login form states)", () => {
-  const LOGIN_INPUT = { username: "somchai@example.com", password: "pass123" };
+  const LOGIN_INPUT = { username: "0812345678", password: "pass123" };
 
   it("pending → status 'authenticating', clears any prior submitError", () => {
     // Start with a prior error to verify it is cleared
@@ -150,13 +150,13 @@ describe("authSlice — login (DS-3: login form states)", () => {
 // register thunk
 // spec: register/pending  → "authenticating"
 //       register/fulfilled → "authenticated"
-//       register/rejected(EMAIL_TAKEN) → "unauthenticated", submitError set
+//       register/rejected(PHONE_TAKEN) → "unauthenticated", submitError set
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("authSlice — register (DS-4: register form states)", () => {
   const REGISTER_INPUT = {
     name: "สมหญิง",
-    email: "somying@example.com",
+    tel: "0898765432",
     password: "secret99",
     characterName: "นักผจญภัย",
     gender: "female" as const,
@@ -180,13 +180,13 @@ describe("authSlice — register (DS-4: register form states)", () => {
     expect(state.user).toEqual(MOCK_USER);
   });
 
-  it("rejected with EMAIL_TAKEN → 'unauthenticated', submitError = EMAIL_TAKEN", () => {
+  it("rejected with PHONE_TAKEN → 'unauthenticated', submitError = PHONE_TAKEN", () => {
     const state = reducer(
       undefined,
-      register.rejected(null, "req-4", REGISTER_INPUT, "EMAIL_TAKEN")
+      register.rejected(null, "req-4", REGISTER_INPUT, "PHONE_TAKEN")
     );
     expect(state.status).toBe<AuthStatus>("unauthenticated");
-    expect(state.submitError).toBe<ApiErrorCode>("EMAIL_TAKEN");
+    expect(state.submitError).toBe<ApiErrorCode>("PHONE_TAKEN");
   });
 });
 
@@ -294,7 +294,7 @@ describe("isApiError type guard (src/types/error.ts)", () => {
   });
 
   it("returns false when error.message is missing", () => {
-    expect(isApiError({ error: { code: "EMAIL_TAKEN" } })).toBe(false);
+    expect(isApiError({ error: { code: "PHONE_TAKEN" } })).toBe(false);
   });
 
   it("returns false for null", () => {
@@ -311,7 +311,7 @@ describe("isApiError type guard (src/types/error.ts)", () => {
       error: {
         code: "VALIDATION_ERROR",
         message: "invalid",
-        details: [{ field: "email", code: "INVALID_FORMAT", message: "bad email" }],
+        details: [{ field: "tel", code: "INVALID_FORMAT", message: "bad phone number" }],
       },
     };
     expect(isApiError(err)).toBe(true);
@@ -320,8 +320,8 @@ describe("isApiError type guard (src/types/error.ts)", () => {
   // Spec rule: frontend maps code → Thai copy. Verify the expected code-to-copy mapping
   // exists as a vocabulary contract (these are NOT UI tests — just vocabulary coverage).
   const ERROR_COPY: Record<string, string> = {
-    INVALID_CREDENTIALS: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
-    EMAIL_TAKEN: "อีเมลนี้ถูกใช้งานแล้ว",
+    INVALID_CREDENTIALS: "เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง",
+    PHONE_TAKEN: "เบอร์โทรนี้ถูกใช้งานแล้ว",
     UNAUTHENTICATED: "กรุณาเข้าสู่ระบบ",
   };
 

@@ -17,7 +17,7 @@ function errorCopy(code: ApiErrorCode | null): string | null {
   if (!code) return null;
   switch (code) {
     case "INVALID_CREDENTIALS":
-      return "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      return "เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง";
     case "INTERNAL_ERROR":
       return "ระบบขัดข้อง โปรดลองอีกครั้ง";
     default:
@@ -79,7 +79,7 @@ function LoginForm() {
         เข้าสู่ระบบ
       </h1>
 
-      {/* Username field */}
+      {/* Phone number field */}
       <label
         htmlFor="username"
         style={{
@@ -95,13 +95,14 @@ function LoginForm() {
         }}
       >
         <span style={{ fontSize: "30px", fontWeight: 600, whiteSpace: "nowrap" }}>
-          ชื่อผู้ใช้
+          เบอร์โทร
         </span>
         <input
           id="username"
           name="username"
-          type="text"
-          autoComplete="username"
+          type="tel"
+          autoComplete="tel"
+          inputMode="numeric"
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);

@@ -33,6 +33,11 @@ for `UserProfile` and adds two new endpoints (`POST /api/auth/login`,
 keep the UI specifiable. These are the minimum implementation-safe
 assumptions; concrete backend design lives in a separate spec.
 
+**v2 change:** Registration uses a **Thai phone number (`tel`)** as the
+primary account identifier instead of email. Login accepts the phone number
+as the credential key. The field `email` no longer exists in `UserProfile`,
+`RegisterInput`, or the backend DB; it is replaced throughout by `tel`.
+
 ---
 
 ## Source Wireframes
@@ -42,7 +47,7 @@ Primary, in flow order:
 | Screen ID                      | File                                    | Role                                                |
 | ------------------------------ | --------------------------------------- | --------------------------------------------------- |
 | `s001-landing`                 | `docz/wireframes/s001-Landing-Screen.html` | Public entry. Single CTA → `s002`.               |
-| `s002-login`                   | `docz/wireframes/s002-Login-Screen.html`   | Login form (ชื่อผู้ใช้ + รหัสผ่าน) → `s004`.    |
+| `s002-login`                   | `docz/wireframes/s002-Login-Screen.html`   | Login form (เบอร์โทร + รหัสผ่าน) → `s004`.      |
 | `s003-register`                | `docz/wireframes/s003-register.html`       | Register form (6 fields, 2 pages) → `s004`.      |
 | `s004-home`                    | `docz/wireframes/s004-home.html`           | Authenticated home hub.                          |
 
@@ -190,7 +195,7 @@ app/
 │
 ├── register/page.tsx             ← s003 (route "/register")
 │   └── <BookShellLayout tight>
-│       ├── <RegisterAccountForm> (left page — name / email / password / confirm)
+│       ├── <RegisterAccountForm> (left page — name / tel / password / confirm)
 │       │   └── <LineField />  × 4
 │       └── <RegisterCharacterForm> (right page)
 │           ├── <CharacterNameField />
@@ -237,9 +242,9 @@ interface FieldRowProps {
 
 // <LineField> — s003 line-underline label+input pair (left page).
 interface LineFieldProps {
-    name: "name" | "email" | "password" | "confirmPassword";
+    name: "name" | "tel" | "password" | "confirmPassword";
     label: string;
-    type?: "text" | "email" | "password";
+    type?: "text" | "tel" | "password";
     autoComplete?: string;
     value: string;
     onChange: (next: string) => void;
@@ -364,7 +369,7 @@ local state setter, or a `router.push` / `router.replace`. The shared
 
 | Wireframe element                                       | Wireframe behaviour                            | React/Redux mapping                                                                                  |
 | ------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `<input id="username">`                                 | uncontrolled                                   | Controlled, local `useState`. Trim on blur. Clear `submitError` on change.                           |
+| `<input id="username" type="tel">`                      | uncontrolled                                   | Controlled, local `useState`. Trim on blur. Clear `submitError` on change. Accepts phone number.     |
 | `<input id="password">`                                 | uncontrolled                                   | Controlled, local. NEVER serialise to localStorage / Redux.                                          |
 | `.login-button[data-navigate="s004-home.html"]`         | common.js → home                               | `onClick` dispatches `auth/login` thunk; on `fulfilled`, `router.replace("/home")`. DS-3 in flight.  |
 | `<a href="s003-register.html">สร้างบัญชี</a>`           | hard navigate                                  | `<Link href="/register">`.                                                                           |
@@ -374,7 +379,7 @@ local state setter, or a `router.push` / `router.replace`. The shared
 
 | Wireframe element                                                              | Wireframe behaviour      | React/Redux mapping                                                                                            |
 | ------------------------------------------------------------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| 4× `.line-field input` on left page (`name`, `email`, `password`, `confirmPassword`) | uncontrolled         | Controlled, single `useReducer` form state. Per-field validators run on blur and on submit.                    |
+| 4× `.line-field input` on left page (`name`, `tel`, `password`, `confirmPassword`) | uncontrolled           | Controlled, single `useReducer` form state. Per-field validators run on blur and on submit.                    |
 | `.character-name input`                                                        | uncontrolled             | Controlled, joins same form state.                                                                             |
 | `.gender-grid` radios `[name="gender"]`                                        | native radio behaviour   | `<GenderRadioGroup>` controlled by form state. `value: Gender \| null`. Required at submit.                    |
 | `.confirm-button[data-navigate="s004-home.html"]`                              | common.js → home         | `onClick` validates locally → dispatches `auth/register` (sends `Omit<RegisterInput,"confirmPassword">`) → on `fulfilled`, `router.replace("/home")`. DS-4 in flight. |
@@ -447,7 +452,7 @@ type LoginResponse = AuthResponse;                 // src/types/auth.ts
 // POST /api/auth/register
 type RegisterApiRequest = RegisterRequest;         // omits confirmPassword
 type RegisterApiResponse = AuthResponse;
-// 200 → AuthResponse; 409 → ApiError{code:"EMAIL_TAKEN"}; 400 → VALIDATION_ERROR
+// 200 → AuthResponse; 409 → ApiError{code:"PHONE_TAKEN"}; 400 → VALIDATION_ERROR
 
 // POST /api/auth/logout    → 204 No Content
 // GET  /api/auth/me        → 200 UserProfile | 401 ApiError{code:"UNAUTHENTICATED"}
@@ -567,13 +572,13 @@ Preserve these transitions; do not replace them with Tailwind defaults.
    `selectIsAuthed` once the probe resolves and DS-2 redirects to `/home`
    if needed. No race-condition handling required in s001.
 3. **Login: invalid credentials (`INVALID_CREDENTIALS`).** Show DS-3 with
-   localized copy "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" below the submit
+   localized copy "เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง" below the submit
    button. Do NOT clear the username field; do clear the password field.
 4. **Login: server unreachable / 5xx.** Treat as `INTERNAL_ERROR`; render
    the same DS-3 line with copy "ระบบขัดข้อง โปรดลองอีกครั้ง". Re-enable
    submit. Never auto-retry.
-5. **Register: email already taken (`EMAIL_TAKEN`).** Map onto
-   `<LineField name="email">` as a per-field error "อีเมลนี้ถูกใช้งานแล้ว".
+5. **Register: phone number already taken (`PHONE_TAKEN`).** Map onto
+   `<LineField name="tel">` as a per-field error "เบอร์โทรนี้ถูกใช้งานแล้ว".
 6. **Register: passwords do not match (client validation).** Block submit;
    render `error="รหัสผ่านไม่ตรงกัน"` on the `confirmPassword` field with
    `code: "PASSWORDS_DO_NOT_MATCH"` (see `ValidationFieldCode`). No API
@@ -646,14 +651,14 @@ The spec is implemented when **all** of the following are observable:
    sets `state.auth.status = "authenticated"`, and `router.replace`s to
    `/home`. Browser back does NOT return to `/login`.
 5. Submitting wrong credentials renders DS-3 with the copy
-   "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" within the s002 layout. The
+   "เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง" within the s002 layout. The
    submit button re-enables. The password field clears; the username
    does not.
 6. Clicking "สร้างบัญชี" navigates to `/register`.
 7. Submitting `/register` with mismatched passwords blocks the API call
    and renders an inline error on the `confirmPassword` field.
-8. Submitting `/register` with a duplicate email surfaces an inline
-   `EMAIL_TAKEN` error on the `email` field.
+8. Submitting `/register` with a duplicate phone number surfaces an inline
+   `PHONE_TAKEN` error on the `tel` field.
 9. Successful registration ends in `/home` with the rail's "home" item
    active and accented `#ff3131`.
 10. The 4 rail items on `/home` link to `/home`, `/chapters`, `/habit`,
@@ -682,7 +687,7 @@ import from here — do NOT redeclare these shapes in app code.
 | ----------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `src/types/auth.ts`           | `Gender`, `User` (re-export), `LoginInput`, `RegisterInput`, `RegisterRequest`, `AuthResponse`, `AuthStatus` | New for this spec. `User` is a re-export of `UserProfile` from `./user.ts` so auth-flow code never imports `user.ts` directly. |
 | `src/types/user.ts`           | `UserProfile`, `UpdateUserRequest`, `GetUserResponse`, `UpdateUserResponse`                              | New file; promotes the inline types in `docs/specs/user-profile.md` to a real module. The API spec must import from here going forward. |
-| `src/types/error.ts`          | `ApiError`, `ApiErrorDetail`, `ApiErrorCode`, `ValidationFieldCode`, `isApiError`                        | New file; canonicalises the error envelope from `user-profile.md`. Adds `INVALID_CREDENTIALS` and `RATE_LIMITED` codes for auth flow. |
+| `src/types/error.ts`          | `ApiError`, `ApiErrorDetail`, `ApiErrorCode`, `ValidationFieldCode`, `isApiError`                        | New file; canonicalises the error envelope from `user-profile.md`. Adds `INVALID_CREDENTIALS`, `RATE_LIMITED`, and `PHONE_TAKEN` codes for auth flow. |
 | `src/types/navigation.ts`     | `ScreenId`, `NavRailKey`, `AppRoute`, `NavRailItem`, `RAIL_ITEMS`                                        | New file; encodes the wireframe's icon-rail (order, icons, accents, Thai aria-labels) as a constant.                 |
 
 Future contracts that will live alongside these (out of scope here, listed

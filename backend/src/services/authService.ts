@@ -14,7 +14,7 @@ const SALT_ROUNDS = 12;
 interface UserRow {
   id: string;
   name: string;
-  email: string;
+  tel: string;
   password_hash: string;
   character_name: string;
   gender: string;
@@ -26,7 +26,7 @@ function rowToProfile(row: UserRow): UserProfile {
   return {
     id: row.id,
     name: row.name,
-    email: row.email,
+    tel: row.tel,
     characterName: row.character_name,
     gender: row.gender as UserProfile["gender"],
     createdAt: row.created_at,
@@ -35,16 +35,16 @@ function rowToProfile(row: UserRow): UserProfile {
 }
 
 export async function registerUser(input: RegisterRequest): Promise<UserProfile> {
-  // Check email uniqueness
-  const email = input.email.toLowerCase().trim();
+  // Check phone number uniqueness
+  const tel = input.tel.trim();
   const existing = db
-    .prepare("SELECT id FROM users WHERE email = ?")
-    .get(email) as { id: string } | undefined;
+    .prepare("SELECT id FROM users WHERE tel = ?")
+    .get(tel) as { id: string } | undefined;
 
-  console.log(`REGISTER ATTEMPT: ${email}, EXISTING: ${existing?.id}`);
+  console.log(`REGISTER ATTEMPT: tel=${tel}, EXISTING: ${existing?.id}`);
 
   if (existing) {
-    throw Errors.conflict("EMAIL_TAKEN", "Email address is already registered");
+    throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
   }
 
   const hash = await bcrypt.hash(input.password, SALT_ROUNDS);
@@ -52,21 +52,21 @@ export async function registerUser(input: RegisterRequest): Promise<UserProfile>
   const id = uuidv4();
 
   db.prepare(
-    `INSERT INTO users (id, name, email, password_hash, character_name, gender, created_at, updated_at)
+    `INSERT INTO users (id, name, tel, password_hash, character_name, gender, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, input.name.trim(), input.email.toLowerCase().trim(), hash, input.characterName.trim(), input.gender, now, now);
+  ).run(id, input.name.trim(), tel, hash, input.characterName.trim(), input.gender, now, now);
 
   const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow;
   return rowToProfile(row);
 }
 
 export async function loginUser(username: string, password: string): Promise<UserProfile> {
-  const normalised = username.trim().toLowerCase();
+  // Login by phone number (tel)
+  const tel = username.trim();
 
-  // Accept either email or display name
   const row = db
-    .prepare("SELECT * FROM users WHERE email = ? OR LOWER(name) = ?")
-    .get(normalised, normalised) as UserRow | undefined;
+    .prepare("SELECT * FROM users WHERE tel = ?")
+    .get(tel) as UserRow | undefined;
 
   if (!row) {
     throw Errors.invalidCredentials();
@@ -90,19 +90,19 @@ export function getUserById(id: string): UserProfile {
 
 export async function updateUser(
   id: string,
-  patch: Partial<{ name: string; email: string; characterName: string; gender: string }>
+  patch: Partial<{ name: string; tel: string; characterName: string; gender: string }>
 ): Promise<UserProfile> {
   const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
   if (!row) {
     throw Errors.notFound("USER_NOT_FOUND", "User not found");
   }
 
-  if (patch.email) {
+  if (patch.tel) {
     const conflict = db
-      .prepare("SELECT id FROM users WHERE email = ? AND id != ?")
-      .get(patch.email.toLowerCase().trim(), id) as { id: string } | undefined;
+      .prepare("SELECT id FROM users WHERE tel = ? AND id != ?")
+      .get(patch.tel.trim(), id) as { id: string } | undefined;
     if (conflict) {
-      throw Errors.conflict("EMAIL_TAKEN", "Email address is already registered");
+      throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
     }
   }
 
@@ -111,7 +111,7 @@ export async function updateUser(
   const values: unknown[] = [];
 
   if (patch.name !== undefined) { updates.push("name = ?"); values.push(patch.name.trim()); }
-  if (patch.email !== undefined) { updates.push("email = ?"); values.push(patch.email.toLowerCase().trim()); }
+  if (patch.tel !== undefined) { updates.push("tel = ?"); values.push(patch.tel.trim()); }
   if (patch.characterName !== undefined) { updates.push("character_name = ?"); values.push(patch.characterName.trim()); }
   if (patch.gender !== undefined) { updates.push("gender = ?"); values.push(patch.gender); }
 

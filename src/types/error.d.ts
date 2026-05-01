@@ -52,8 +52,8 @@ export type ApiErrorCode =
  | "UNAUTHENTICATED"
 /** Authenticated but caller is not allowed to access this resource. */
  | "FORBIDDEN"
-/** A unique key collision — used for email-already-registered on register/PATCH. */
- | "EMAIL_TAKEN"
+/** A unique key collision — used for phone-number-already-registered on register/PATCH. */
+ | "PHONE_TAKEN"
 /** :id is a valid UUID but no row exists. */
  | "USER_NOT_FOUND"
 /** PATCH/POST without `Content-Type: application/json`. */

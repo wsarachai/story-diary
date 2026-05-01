@@ -28,7 +28,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id           TEXT PRIMARY KEY,
     name         TEXT NOT NULL,
-    email        TEXT NOT NULL UNIQUE,
+    tel          TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     character_name TEXT NOT NULL,
     gender       TEXT NOT NULL CHECK(gender IN ('male', 'female')),
@@ -146,6 +146,17 @@ db.exec(`
     created_at    TEXT NOT NULL
   );
 `);
+
+// ──────────────────────────────────────────────────────────────────────────
+// Schema migrations
+// Rename `email` → `tel` on existing databases (SQLite 3.35+).
+// Safe to run on fresh DBs (column `email` simply won't exist).
+// ──────────────────────────────────────────────────────────────────────────
+
+const userColumns = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+if (userColumns.some((col) => col.name === "email")) {
+  db.exec("ALTER TABLE users RENAME COLUMN email TO tel");
+}
 
 // ──────────────────────────────────────────────────────────────────────────
 // Seed data
