@@ -53,11 +53,13 @@ body {
     );
 }
 
-/* ── Screen frame (1920×1080) ────────────────────────── */
+/* ── Screen frame (1366×768 target, scales with viewport) */
 .screen {
-  width: min(1920px, calc(100vw - 32px), calc((100vh - 32px) * (16 / 9)));
+  width: min(1366px, calc(100vw - 32px), calc((100vh - 32px) * (16 / 9)));
   aspect-ratio: 16 / 9;
   height: auto;
+  /* 1em = 16px at 1366px viewport, scales proportionally below */
+  font-size: min(1rem, calc(100vw / 85.375), calc(100vh / 48));
   flex: 0 0 auto;
   position: relative;
   overflow: hidden;
@@ -152,7 +154,7 @@ input:focus-visible,
   left: 1rem;
   bottom: 0.75rem;
   margin: 0;
-  font-size: 14px;
+  font-size: 0.6em;
   color: rgba(17, 21, 29, 0.72);
   z-index: 4;
   background: rgba(255, 255, 255, 0.45);
@@ -209,11 +211,11 @@ input:focus-visible,
 .icon-rail-link.is-active::before {
   content: "";
   position: absolute;
-  left: -3rem;
+  left: -1rem;
   top: 0;
-  width: calc(100% + 3rem);
+  width: calc(100% + 1rem);
   height: 100%;
-  border-radius: 0 1.3rem 1.3rem 0;
+  border-radius: 1.3rem 1.3rem 1.3rem 1.3rem;
   background: var(--rail-accent, #ff3131);
   z-index: 0;
 }
@@ -338,7 +340,7 @@ input:focus-visible,
 
 .chapter-diamond h1 {
   margin: 0;
-  font-size: 66px;
+  font-size: 3em;
   font-weight: 500;
   line-height: 1;
 }
@@ -347,7 +349,7 @@ input:focus-visible,
   margin: 2.2rem auto 0;
   width: 72%;
   color: rgba(67, 126, 172, 0.9);
-  font-size: 1.85rem;
+  font-size: 1.3em;
   letter-spacing: 0.15rem;
   white-space: nowrap;
   opacity: 0.9;
@@ -393,7 +395,7 @@ input:focus-visible,
 
 .chapter-card h2 {
   margin: 0;
-  font-size: 66px;
+  font-size: 3em;
   font-weight: 500;
   line-height: 0.95;
   position: relative;
@@ -418,7 +420,7 @@ input:focus-visible,
 }
 
 .learning-logo h2 {
-  font-size: 56px;
+  font-size: 2.5em;
 }
 
 .learning-logo::before,
@@ -481,7 +483,7 @@ input:focus-visible,
 }
 
 .chapter-card-bottom h2 {
-  font-size: 74px;
+  font-size: 3.3em;
   margin-right: 1.4rem;
 }
 
@@ -497,7 +499,7 @@ input:focus-visible,
 
 .chapter-title {
   margin: 0;
-  font-size: 48px;
+  font-size: 2.1em;
   font-weight: 500;
   line-height: 1;
 }
@@ -550,7 +552,7 @@ input:focus-visible,
   background: #fbf3e6;
   display: grid;
   place-items: center;
-  font-size: 2.6rem;
+  font-size: 1.85em;
   line-height: 1;
   color: #ff3131;
   font-weight: 500;
@@ -602,7 +604,7 @@ input:focus-visible,
 }
 
 .chapter-pill-text {
-  font-size: 42px;
+  font-size: 1.9em;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -643,7 +645,7 @@ input:focus-visible,
 }
 
 .chapter-lock-hint {
-  font-size: 1rem;
+  font-size: 0.7em;
   color: #d44;
   padding: 0.3rem 0 0 6.4rem;
 }
@@ -685,7 +687,7 @@ input:focus-visible,
 
 .chapter-explain-panel h1 {
   margin: 0;
-  font-size: 98px;
+  font-size: 4.35em;
   font-weight: 500;
   line-height: 1;
   color: #101419;
@@ -773,14 +775,14 @@ input:focus-visible,
   border-radius: 20px;
   background: #cb7b2b;
   color: #fff7ec;
-  font-size: 50px;
+  font-size: 2.2em;
   font-weight: 500;
   line-height: 1;
 }
 
 .dialog-text {
   margin: 0;
-  font-size: 44px;
+  font-size: 2em;
   line-height: 1.55;
   color: #080b10;
   font-weight: 500;
@@ -837,7 +839,7 @@ input:focus-visible,
   background: #59d6dc;
   border-radius: 1.4rem;
   padding: 0.5rem 1.4rem 0.6rem;
-  font-size: 2.2rem;
+  font-size: 1.55em;
   font-weight: 600;
   color: #fff;
   text-decoration: none;
@@ -877,7 +879,7 @@ input:focus-visible,
 }
 
 .clip-caption {
-  font-size: 2.6rem;
+  font-size: 1.85em;
   font-weight: 600;
   color: #2e7aaa;
 }
@@ -919,14 +921,14 @@ input:focus-visible,
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .tracker-title {
   margin: 0 0 0.3rem;
-  font-size: 3.6rem;
+  font-size: 2.55em;
   font-weight: 700;
   border-bottom: 3px solid #111;
   padding-bottom: 0.5rem;
 }
 
 .section-label {
-  font-size: 2.2rem;
+  font-size: 1.55em;
   font-weight: 700;
   margin: 0.8rem 0 1rem;
 }
@@ -1007,7 +1009,7 @@ input:focus-visible,
 }
 
 .weekly-day-name {
-  font-size: 1.05rem;
+  font-size: 0.75em;
   font-weight: 600;
   min-width: 2.6rem;
 }
@@ -1020,7 +1022,7 @@ input:focus-visible,
 }
 
 .weekly-label {
-  font-size: 2.2rem;
+  font-size: 1.55em;
   font-weight: 700;
   line-height: 1.15;
   flex-shrink: 0;
@@ -1034,7 +1036,7 @@ input:focus-visible,
 }
 
 .monthly-label {
-  font-size: 2.2rem;
+  font-size: 1.55em;
   font-weight: 700;
   line-height: 1.15;
   flex-shrink: 0;
@@ -1057,7 +1059,7 @@ input:focus-visible,
   text-align: center;
   color: #fff;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.67em;
   padding: 0.3rem 0;
 }
 
@@ -1068,7 +1070,7 @@ input:focus-visible,
 
 .cal-cell {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.6em;
   font-weight: 600;
   padding: 0.22rem 0;
   border: 1px solid #111;
@@ -1093,7 +1095,7 @@ input:focus-visible,
 
 .today-header-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   color: var(--panel-blue-deep);
 }
@@ -1161,14 +1163,14 @@ input:focus-visible,
 
 .habit-entry-name {
   margin: 0;
-  font-size: 44px;
+  font-size: 2em;
   font-weight: 600;
   line-height: 1.1;
 }
 
 .habit-entry-sub {
   margin: 0.3rem 0 0;
-  font-size: 34px;
+  font-size: 1.5em;
   color: rgba(13, 18, 23, 0.58);
 }
 
@@ -1194,7 +1196,7 @@ input:focus-visible,
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .tracker-section-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   color: var(--panel-blue-deep);
   line-height: 1;
@@ -1209,7 +1211,7 @@ input:focus-visible,
 .tracker-tab {
   border-radius: 999px;
   padding: 0.55rem 1.8rem;
-  font-size: 38px;
+  font-size: 1.7em;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -1261,7 +1263,7 @@ input:focus-visible,
 
 .weekly-day-header span {
   text-align: center;
-  font-size: 36px;
+  font-size: 1.6em;
   font-weight: 700;
   color: #fff;
 }
@@ -1293,7 +1295,7 @@ input:focus-visible,
 }
 
 .weekly-row-label {
-  font-size: 36px;
+  font-size: 1.6em;
   font-weight: 600;
   padding-left: 0.5rem;
   color: var(--ink);
@@ -1346,12 +1348,12 @@ input:focus-visible,
 
 .weekly-summary-card h3 {
   margin: 0;
-  font-size: 34px;
+  font-size: 1.5em;
   font-weight: 600;
 }
 
 .weekly-summary-badge {
-  font-size: 48px;
+  font-size: 2.1em;
   font-weight: 700;
   color: #fff;
   line-height: 1;
@@ -1371,7 +1373,7 @@ input:focus-visible,
 }
 
 .legend-label {
-  font-size: 28px;
+  font-size: 1.25em;
 }
 
 /* ── s014 Monthly grid ── */
@@ -1405,7 +1407,7 @@ input:focus-visible,
 
 .monthly-col-header span {
   text-align: center;
-  font-size: 21px;
+  font-size: 0.95em;
   font-weight: 700;
   color: #fff;
   padding: 0.2rem 0;
@@ -1438,7 +1440,7 @@ input:focus-visible,
 }
 
 .monthly-row-label {
-  font-size: 24px;
+  font-size: 1.05em;
   font-weight: 600;
   padding-left: 0.4rem;
   overflow: hidden;
@@ -1491,12 +1493,12 @@ input:focus-visible,
 
 .monthly-summary-card h3 {
   margin: 0;
-  font-size: 34px;
+  font-size: 1.5em;
   font-weight: 600;
 }
 
 .monthly-summary-badge {
-  font-size: 48px;
+  font-size: 2.1em;
   font-weight: 700;
   color: #fff;
   line-height: 1;
@@ -1521,7 +1523,7 @@ input:focus-visible,
   flex-shrink: 0;
 }
 .monthly-legend-label {
-  font-size: 28px;
+  font-size: 1.25em;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1553,14 +1555,14 @@ input:focus-visible,
 
 .goal-card-name {
   margin: 0;
-  font-size: 46px;
+  font-size: 2em;
   font-weight: 600;
   line-height: 1.1;
 }
 
 .goal-card-sub {
   margin: 0.4rem 0 0;
-  font-size: 34px;
+  font-size: 1.5em;
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -1583,7 +1585,7 @@ input:focus-visible,
   stroke-dasharray: 157;
 }
 .ring-label {
-  font-size: 24px;
+  font-size: 1.05em;
   font-weight: 700;
   fill: #fff;
   dominant-baseline: middle;
@@ -1592,7 +1594,7 @@ input:focus-visible,
 
 .results-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   color: var(--panel-blue-deep);
   line-height: 1;
@@ -1617,21 +1619,21 @@ input:focus-visible,
 
 .result-stat-label {
   margin: 0;
-  font-size: 36px;
+  font-size: 1.6em;
   color: rgba(13, 18, 23, 0.6);
   font-weight: 600;
 }
 
 .result-stat-value {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   color: var(--panel-blue-deep);
   line-height: 1;
 }
 
 .result-stat-unit {
-  font-size: 36px;
+  font-size: 1.6em;
   font-weight: 400;
 }
 
@@ -1674,7 +1676,7 @@ input:focus-visible,
 
 .intro-text {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 600;
   line-height: 1.35;
   text-align: center;
@@ -1690,7 +1692,7 @@ input:focus-visible,
 }
 .ready-text {
   margin: 0;
-  font-size: 64px;
+  font-size: 2.85em;
   font-weight: 500;
   line-height: 1.4;
   text-align: center;
@@ -1705,7 +1707,7 @@ input:focus-visible,
   border: none;
   border-radius: 999px;
   font-family: inherit;
-  font-size: 68px;
+  font-size: 1.8em;
   font-weight: 700;
   line-height: 1;
   padding: 0.7rem 2rem;
@@ -1735,7 +1737,7 @@ input:focus-visible,
 }
 .quiz-counter {
   margin: 0;
-  font-size: 44px;
+  font-size: 2em;
   font-weight: 700;
   color: var(--panel-blue-deep);
   white-space: nowrap;
@@ -1756,7 +1758,7 @@ input:focus-visible,
 /* Quiz question */
 .quiz-question-label {
   margin: 0;
-  font-size: 40px;
+  font-size: 1.8em;
   font-weight: 600;
   color: rgba(13, 18, 23, 0.55);
   text-transform: uppercase;
@@ -1773,7 +1775,7 @@ input:focus-visible,
 }
 .quiz-question-text {
   margin: 0;
-  font-size: 54px;
+  font-size: 2.4em;
   font-weight: 600;
   line-height: 1.35;
   color: #fff;
@@ -1829,13 +1831,13 @@ input:focus-visible,
   background: #59d6dc;
   display: grid;
   place-items: center;
-  font-size: 40px;
+  font-size: 1.8em;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
 .option-text {
-  font-size: 44px;
+  font-size: 2em;
   font-weight: 600;
   color: var(--ink);
   line-height: 1.2;
@@ -1852,7 +1854,7 @@ input:focus-visible,
   color: #fff;
   border: none;
   padding: 1rem 3.6rem;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -1898,7 +1900,7 @@ input:focus-visible,
 }
 .feedback-text {
   flex: 1;
-  font-size: 50px;
+  font-size: 2.2em;
   font-weight: 700;
   color: #fff;
   line-height: 1.2;
@@ -1909,7 +1911,7 @@ input:focus-visible,
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.5);
   padding: 0.6rem 2rem;
-  font-size: 46px;
+  font-size: 2em;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -1935,14 +1937,14 @@ input:focus-visible,
 }
 .score-complete-title {
   margin: 0;
-  font-size: 80px;
+  font-size: 3.55em;
   font-weight: 700;
   line-height: 1.25;
   color: #111;
 }
 .score-complete-sub {
   margin: 0;
-  font-size: 48px;
+  font-size: 2.1em;
   color: #555;
 }
 .score-box {
@@ -1954,19 +1956,19 @@ input:focus-visible,
 }
 .score-box-label {
   margin: 0;
-  font-size: 44px;
+  font-size: 2em;
   font-weight: 500;
   color: #fff;
 }
 .score-box-value {
   margin: 0.4rem 0 0;
-  font-size: 100px;
+  font-size: 4.45em;
   font-weight: 700;
   color: #fff;
   line-height: 1;
 }
 .score-box-unit {
-  font-size: 60px;
+  font-size: 2.65em;
 }
 .score-detail-row {
   display: flex;
@@ -1977,7 +1979,7 @@ input:focus-visible,
   border-radius: 999px;
   background: var(--panel-blue);
   padding: 0.6rem 2rem;
-  font-size: 46px;
+  font-size: 2em;
   font-weight: 600;
   color: #fff;
 }
@@ -1987,7 +1989,7 @@ input:focus-visible,
   color: #fff;
   border: none;
   padding: 0.7rem 2rem;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -2001,7 +2003,7 @@ input:focus-visible,
 /* Summary page (s031) */
 .summary-title {
   margin: 0;
-  font-size: 86px;
+  font-size: 3.82em;
   font-weight: 600;
   line-height: 1.3;
   color: #111;
@@ -2012,7 +2014,7 @@ input:focus-visible,
 }
 .summary-score-text {
   margin: 0;
-  font-size: 74px;
+  font-size: 3.3em;
   font-weight: 500;
   line-height: 1.35;
   text-align: center;
@@ -2031,7 +2033,7 @@ input:focus-visible,
   background: #10c25a;
   color: #fff;
   font-family: inherit;
-  font-size: 66px;
+  font-size: 3em;
   font-weight: 700;
   line-height: 1;
   padding: 0.7rem 2rem;
@@ -2072,13 +2074,13 @@ input:focus-visible,
 }
 .abandon-dialog h2 {
   margin: 0 0 1rem;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 700;
   color: #111;
 }
 .abandon-dialog p {
   margin: 0 0 2.4rem;
-  font-size: 48px;
+  font-size: 2.1em;
   color: #555;
 }
 .abandon-dialog-btns {
@@ -2092,7 +2094,7 @@ input:focus-visible,
   color: #fff;
   border: none;
   padding: 0.6rem 2.4rem;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -2103,7 +2105,7 @@ input:focus-visible,
   color: #d94040;
   border: 3px solid #d94040;
   padding: 0.6rem 2.4rem;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -2130,7 +2132,7 @@ input:focus-visible,
 }
 .form-card-title {
   margin: 0;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   flex: 1;
   text-align: left;
@@ -2174,7 +2176,7 @@ input:focus-visible,
   stroke: #fff;
 }
 .cat-tab-label {
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 600;
   color: #fff;
   line-height: 1.05;
@@ -2239,7 +2241,7 @@ input:focus-visible,
 .create-title {
   margin: 0;
   text-align: center;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   border-bottom: 6px solid #1a1a1a;
   line-height: 1;
@@ -2262,7 +2264,7 @@ input:focus-visible,
   background: #aa85e5;
   min-height: 5.2rem;
   display: block;
-  font-size: 64px;
+  font-size: 2.85em;
   line-height: 1;
   width: 100%;
   border: none;
@@ -2309,7 +2311,7 @@ input:focus-visible,
   min-height: 5rem;
 }
 .chip-label {
-  font-size: 68px;
+  font-size: 3em;
   line-height: 1;
   color: #111;
   min-width: 8.6rem;
@@ -2330,7 +2332,7 @@ input:focus-visible,
   background: transparent;
   color: #f5f2ea;
   font-family: inherit;
-  font-size: 58px;
+  font-size: 2.6em;
   line-height: 1;
   padding: 0.55rem 1rem 0.65rem;
   cursor: pointer;
@@ -2345,7 +2347,7 @@ input:focus-visible,
   background: transparent;
   color: #111;
   font-family: inherit;
-  font-size: 64px;
+  font-size: 2.85em;
   padding: 0;
   line-height: 1;
   cursor: pointer;
@@ -2360,7 +2362,7 @@ input:focus-visible,
   border: none;
   border-radius: 18px;
   font-family: inherit;
-  font-size: 62px;
+  font-size: 2.75em;
   line-height: 1;
   background: #b4b7bc;
   color: #f5f2ea;
@@ -2392,7 +2394,7 @@ input:focus-visible,
   color: #a785e6;
   background: #f2ede5;
   display: block;
-  font-size: 64px;
+  font-size: 2.85em;
   line-height: 1;
   text-align: center;
   font-family: inherit;
@@ -2408,7 +2410,7 @@ input:focus-visible,
 }
 .count-unit {
   color: #f5f2ea;
-  font-size: 62px;
+  font-size: 2.75em;
   line-height: 1;
 }
 .importance-line {
@@ -2417,7 +2419,7 @@ input:focus-visible,
   gap: 1.1rem;
 }
 .field-error {
-  font-size: 36px;
+  font-size: 1.6em;
   color: #ff4d4d;
   margin-top: 0.2rem;
 }
@@ -2435,7 +2437,7 @@ input:focus-visible,
 }
 .color-dialog-title {
   margin: 0 0 0.8rem;
-  font-size: 30px;
+  font-size: 1.35em;
   line-height: 1.1;
 }
 .swatch-row {
@@ -2457,7 +2459,7 @@ input:focus-visible,
   margin-bottom: 0.9rem;
 }
 .color-custom-row label {
-  font-size: 24px;
+  font-size: 1.05em;
 }
 .color-custom {
   width: 3.2rem;
@@ -2477,7 +2479,7 @@ input:focus-visible,
   border-radius: 12px;
   padding: 0.45rem 0.9rem;
   font-family: inherit;
-  font-size: 22px;
+  font-size: 1em;
   cursor: pointer;
 }
 .dialog-btn-primary {
@@ -2503,7 +2505,7 @@ input:focus-visible,
 }
 .nutrition-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   border-bottom: 6px solid #1a1a1a;
   padding-bottom: 0.4rem;
@@ -2525,7 +2527,7 @@ input:focus-visible,
   background: #cfcac3;
   padding: 1rem 1.8rem;
   font-family: inherit;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 500;
   cursor: pointer;
   color: #111;
@@ -2549,7 +2551,7 @@ input:focus-visible,
 }
 .activity-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   border-bottom: 6px solid #1a1a1a;
   padding-bottom: 0.4rem;
@@ -2577,7 +2579,7 @@ input:focus-visible,
   background: #cfcac3;
   padding: 1rem 1.8rem;
   font-family: inherit;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 500;
   cursor: pointer;
   color: #111;
@@ -2590,7 +2592,7 @@ input:focus-visible,
 .activity-item.small {
   flex: 0 0 auto;
   background: #e2ddd6;
-  font-size: 52px;
+  font-size: 2.3em;
 }
 
 /* Shared sub-menu (s025/s026/s030) */
@@ -2611,7 +2613,7 @@ input:focus-visible,
 .sunlight-title,
 .infection-title {
   margin: 0;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   border-bottom: 6px solid #1a1a1a;
   padding-bottom: 0.4rem;
@@ -2637,7 +2639,7 @@ input:focus-visible,
   background: #cfcac3;
   padding: 1rem 1.8rem;
   font-family: inherit;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 500;
   cursor: pointer;
   color: #111;
@@ -2670,7 +2672,7 @@ input:focus-visible,
 .checkin-title {
   margin: 0;
   text-align: center;
-  font-size: 72px;
+  font-size: 3.2em;
   font-weight: 700;
   border-bottom: 6px solid #1a1a1a;
   line-height: 1;
@@ -2678,7 +2680,7 @@ input:focus-visible,
 }
 .medicine-name {
   margin: 0;
-  font-size: 64px;
+  font-size: 2.85em;
   font-weight: 600;
   background: #aa85e5;
   color: #fff;
@@ -2688,7 +2690,7 @@ input:focus-visible,
 }
 .detail-line {
   margin: 0;
-  font-size: 58px;
+  font-size: 2.6em;
   color: #444;
 }
 .spacer {
@@ -2696,7 +2698,7 @@ input:focus-visible,
 }
 .checklist-title {
   margin: 0;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 600;
   color: #333;
 }
@@ -2731,11 +2733,11 @@ input:focus-visible,
 .check-item-btn.is-selected::after {
   content: "✓";
   color: #fff;
-  font-size: 2.4rem;
+  font-size: 1.7em;
 }
 .check-item-text {
   margin: 0;
-  font-size: 56px;
+  font-size: 2.5em;
 }
 
 /* s023 nutrition check-in */
@@ -2746,7 +2748,7 @@ input:focus-visible,
 }
 .nutrition-name {
   margin: 0;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 600;
   background: #f26f5a;
   color: #fff;
@@ -2766,7 +2768,7 @@ input:focus-visible,
 }
 .meal-label {
   margin: 0;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -2775,7 +2777,7 @@ input:focus-visible,
   border: 3px solid #59d6dc;
   background: #edf9fa;
   padding: 0.7rem 1.2rem;
-  font-size: 56px;
+  font-size: 2.5em;
   font-family: inherit;
   color: var(--ink);
   outline: none;
@@ -2797,7 +2799,7 @@ input:focus-visible,
   gap: 1rem;
 }
 .activity-badge {
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 600;
   background: #ee8a4a;
   color: #fff;
@@ -2808,7 +2810,7 @@ input:focus-visible,
   background: transparent;
   border: 3px solid #ee8a4a;
   color: #111;
-  font-size: 64px;
+  font-size: 2.85em;
   outline: none;
   min-width: 20rem;
   font-family: inherit;
@@ -2821,13 +2823,13 @@ input:focus-visible,
   background: #ee8a4a;
 }
 .badge-icon {
-  font-size: 4rem;
+  font-size: 2.85em;
 }
 
 /* s028 mood / emotion explore */
 .mood-label {
   margin: 0;
-  font-size: 64px;
+  font-size: 2.85em;
   font-weight: 600;
 }
 .emoji-row {
@@ -2840,7 +2842,7 @@ input:focus-visible,
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  font-size: 3.2rem;
+  font-size: 2.25em;
   display: grid;
   place-items: center;
 }
@@ -2853,7 +2855,7 @@ input:focus-visible,
   gap: 1.2rem;
 }
 .slider-sign {
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 700;
   line-height: 1;
   flex-shrink: 0;
@@ -2920,7 +2922,7 @@ input:focus-visible,
   border: 4px solid #a785e6;
   color: #a785e6;
   background: #f2ede5;
-  font-size: 64px;
+  font-size: 2.85em;
   line-height: 1;
   text-align: center;
   font-family: inherit;
@@ -2957,7 +2959,7 @@ input:focus-visible,
   border: 4px solid #a785e6;
   color: #a785e6;
   background: #f2ede5;
-  font-size: 64px;
+  font-size: 2.85em;
   line-height: 1;
   text-align: center;
   font-family: inherit;
@@ -2973,7 +2975,7 @@ input:focus-visible,
 }
 .freq-count-unit {
   color: #f5f2ea;
-  font-size: 62px;
+  font-size: 2.75em;
   line-height: 1;
 }
 
@@ -2992,13 +2994,13 @@ input:focus-visible,
 }
 .discard-dialog h2 {
   margin: 0 0 1rem;
-  font-size: 60px;
+  font-size: 2.65em;
   font-weight: 700;
   color: #111;
 }
 .discard-dialog p {
   margin: 0 0 2.4rem;
-  font-size: 48px;
+  font-size: 2.1em;
   color: #555;
 }
 .discard-dialog-btns {
@@ -3012,7 +3014,7 @@ input:focus-visible,
   color: #fff;
   border: none;
   padding: 0.6rem 2.4rem;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -3023,7 +3025,7 @@ input:focus-visible,
   color: #d94040;
   border: 3px solid #d94040;
   padding: 0.6rem 2.4rem;
-  font-size: 52px;
+  font-size: 2.3em;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
