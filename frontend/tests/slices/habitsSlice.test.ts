@@ -104,7 +104,7 @@ const WEEKLY_PAYLOAD = {
 };
 
 // Minimal monthly payload (31 cells)
-const MONTHLY_CELLS = Array.from<HabitOccurrenceStatus>({ length: 31 }, (_, i) =>
+const MONTHLY_CELLS = Array.from({ length: 31 }, (_, i): HabitOccurrenceStatus =>
   i < 15 ? "done" : "pending"
 );
 
@@ -439,12 +439,12 @@ describe("habitsSlice — toggleOccurrence (DS-2 optimistic)", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("habitsSlice — createActivity", () => {
-  const NEW_ACTIVITY_INPUT = {
-    category: "medicine" as const,
+  const NEW_ACTIVITY_INPUT: Omit<HabitActivity, "id" | "createdAt" | "updatedAt"> = {
+    category: "medicine",
     name: "ยาใหม่",
-    schedule: { frequency: "daily" as const, weekdays: [1, 2, 3, 4, 5] as const },
-    mealRelation: "before" as const,
-    mealSlots: ["breakfast"] as const,
+    schedule: { frequency: "daily", weekdays: [1, 2, 3, 4, 5] },
+    mealRelation: "before",
+    mealSlots: ["breakfast"],
   };
 
   const CREATED_ACTIVITY: HabitActivity = {

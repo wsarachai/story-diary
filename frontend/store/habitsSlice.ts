@@ -166,12 +166,16 @@ export const fetchToday = createAsyncThunk("habits/fetchToday", async () => {
   return { activities: MOCK_ACTIVITIES, todayByActivity: MOCK_TODAY_OCCURRENCES };
 });
 
-export const fetchWeekly = createAsyncThunk("habits/fetchWeekly", async () => {
+export const fetchWeekly = createAsyncThunk<
+  { weekStartDate: string; rowsByActivity: Record<string, HabitOccurrenceStatus[]>; summary: PeriodSummary }
+>("habits/fetchWeekly", async () => {
   await new Promise((r) => setTimeout(r, 200));
   return MOCK_WEEKLY;
 });
 
-export const fetchMonthly = createAsyncThunk("habits/fetchMonthly", async () => {
+export const fetchMonthly = createAsyncThunk<
+  { month: string; rowsByActivity: Record<string, HabitOccurrenceStatus[]>; summary: PeriodSummary }
+>("habits/fetchMonthly", async () => {
   await new Promise((r) => setTimeout(r, 200));
   return MOCK_MONTHLY;
 });
