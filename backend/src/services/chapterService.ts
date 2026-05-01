@@ -53,7 +53,7 @@ export function getChapter(userId: string, chapterId: number): Chapter {
     .get(chapterId) as ChapterRow | undefined;
 
   if (!row) {
-    throw Errors.validation(`Chapter ${chapterId} not found`);
+    throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${chapterId} not found`);
   }
 
   const scenes = db
@@ -85,7 +85,7 @@ export function setChapterProgress(
   // Verify chapter exists
   const row = db.prepare("SELECT id FROM chapters WHERE id = ?").get(chapterId);
   if (!row) {
-    throw Errors.validation(`Chapter ${chapterId} not found`);
+    throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${chapterId} not found`);
   }
 
   db.prepare(`

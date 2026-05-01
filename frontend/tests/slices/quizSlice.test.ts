@@ -31,7 +31,7 @@ import reducer, {
   selectQuizScore,
   selectQuizPhase,
 } from "@/store/quizSlice";
-import type { Quiz, QuizQuestion, QuizScore, AnswerLetter } from "@/types/minigame";
+import type { Quiz, QuizQuestion, AnswerLetter } from "@/types/minigame";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fixtures — deterministic, minimal quiz with known correct answers
@@ -358,7 +358,6 @@ describe("quizSlice — selectors", () => {
   });
 
   it("selectCurrentQuestion returns Q2 after advancing once", () => {
-    const afterFirst = fullyPlayedState(["B", "C", "A"]);
     // We need an intermediate state at index 1
     const s0 = startedState();
     const s1 = reducer(s0, selectOption("B"));

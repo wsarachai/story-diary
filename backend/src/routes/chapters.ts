@@ -12,6 +12,7 @@ import {
   setChapterProgress,
   getVideoClips,
 } from "../services/chapterService";
+import { Errors } from "../lib/errors";
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.get("/:id", requireAuth, (req, res, next) => {
   try {
     const id = parseInt(String(req.params.id), 10);
     if (isNaN(id)) {
-      return next({ statusCode: 400, code: "VALIDATION_ERROR", message: "Chapter id must be a number" });
+      return next(Errors.validation("Chapter id must be a number"));
     }
     const chapter = getChapter(req.session.userId!, id);
     res.status(200).json(chapter);
@@ -44,7 +45,7 @@ router.post("/:id/progress", requireAuth, (req, res, next) => {
   try {
     const id = parseInt(String(req.params.id), 10);
     if (isNaN(id)) {
-      return next({ statusCode: 400, code: "VALIDATION_ERROR", message: "Chapter id must be a number" });
+      return next(Errors.validation("Chapter id must be a number"));
     }
     const { progress } = validate(ChapterProgressSchema, req.body);
     setChapterProgress(req.session.userId!, id, progress);

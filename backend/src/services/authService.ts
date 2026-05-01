@@ -36,9 +36,12 @@ function rowToProfile(row: UserRow): UserProfile {
 
 export async function registerUser(input: RegisterRequest): Promise<UserProfile> {
   // Check email uniqueness
+  const email = input.email.toLowerCase().trim();
   const existing = db
     .prepare("SELECT id FROM users WHERE email = ?")
-    .get(input.email.toLowerCase().trim()) as { id: string } | undefined;
+    .get(email) as { id: string } | undefined;
+
+  console.log(`REGISTER ATTEMPT: ${email}, EXISTING: ${existing?.id}`);
 
   if (existing) {
     throw Errors.conflict("EMAIL_TAKEN", "Email address is already registered");

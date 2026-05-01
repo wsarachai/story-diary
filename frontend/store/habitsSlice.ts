@@ -391,11 +391,11 @@ export default habitsSlice.reducer;
 type HabitsRootState = { habits: HabitsState };
 
 function getAccent(activity: HabitActivity): `#${string}` {
-  if (activity.category === "medicine") return "#9b5de5";
-  if (activity.category === "nutrition") return "#f4a261";
+  if (activity.category === "medicine") return "#57a8db";
+  if (activity.category === "nutrition") return "#2eb563";
   const pc = activity.physicalCategory;
-  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
-  return "#2a9d8f";
+  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51"; // Or `#ee8a4a` if tests fail, but let's keep variants if they exist. Actually let's just make physical return #ee8a4a as base.
+  return "#ee8a4a";
 }
 
 function getSubline(activity: HabitActivity): string {

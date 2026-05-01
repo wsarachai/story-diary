@@ -31,7 +31,6 @@ import reducer, {
   selectMonthlyRows,
   selectMonthlyGoalsSummary,
   selectIsToggling,
-  selectFetchStatus,
   selectActivitySaveStatus,
   selectActivityFieldError,
 } from "@/store/habitsSlice";

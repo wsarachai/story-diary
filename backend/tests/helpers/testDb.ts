@@ -11,6 +11,7 @@
 import Database from "better-sqlite3";
 
 const db = new Database(":memory:");
+console.log("TEST DB INITIALIZED");
 
 // Match pragmas in production db.ts
 db.pragma("foreign_keys = ON");
@@ -235,6 +236,7 @@ if (quizCount === 0) {
  * Call in `beforeEach` to guarantee test isolation.
  */
 export function clearTestData(): void {
+  console.log("CLEARING TEST DATA");
   // Use prepare().run() (not exec()) for FK-safe clearing without nesting issues
   db.prepare("DELETE FROM medicine_checkins").run();
   db.prepare("DELETE FROM nutrition_checkins").run();

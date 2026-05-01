@@ -35,13 +35,13 @@ export default function MinigamePage() {
               <path d="M330 80 L332 88 L340 90 L332 92 L330 100 L328 92 L320 90 L328 88 Z" fill="#b06ac0" opacity="0.7"/>
               <path d="M55 300 L57 307 L64 309 L57 311 L55 318 L53 311 L46 309 L53 307 Z" fill="#b06ac0" opacity="0.75"/>
               <path d="M350 260 L352 268 L360 270 L352 272 L350 280 L348 272 L340 270 L348 268 Z" fill="#55c8ce" opacity="0.7"/>
-              <path d="M200 40 C300 40 360 100 360 200 C360 300 300 360 200 360 C100 360 40 300 40 200 C40 100 100 40 200 40" stroke="#55c8ce" stroke-width="8" stroke-linecap="round" fill="none"/>
-              <path d="M200 60 C290 60 340 110 340 200 C340 290 290 340 200 340 C110 340 60 290 60 200 C60 110 110 70 185 62" stroke="#b06ac0" stroke-width="7" stroke-linecap="round" fill="none"/>
-              <path d="M200 90 C270 90 310 130 310 200 C310 270 270 310 200 310 C130 310 90 270 90 200 C90 140 130 100 195 92" stroke="#55c8ce" stroke-width="7" stroke-linecap="round" fill="none"/>
-              <path d="M200 120 C255 120 280 155 280 200 C280 245 245 280 200 280 C155 280 120 245 120 200 C120 160 150 130 196 122" stroke="#b06ac0" stroke-width="6.5" stroke-linecap="round" fill="none"/>
-              <path d="M200 150 C235 150 250 170 250 200 C250 230 230 250 200 250 C170 250 150 230 150 200 C150 175 168 155 197 152" stroke="#55c8ce" stroke-width="6" stroke-linecap="round" fill="none"/>
-              <path d="M200 175 C218 175 225 188 225 200 C225 215 214 224 200 222 C188 220 178 210 180 198 C182 188 193 182 202 185" stroke="#b06ac0" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-              <path d="M202 185 C220 170 240 165 255 175" stroke="#55c8ce" stroke-width="5" stroke-linecap="round" fill="none"/>
+              <path d="M200 40 C300 40 360 100 360 200 C360 300 300 360 200 360 C100 360 40 300 40 200 C40 100 100 40 200 40" stroke="#55c8ce" strokeWidth="8" strokeLinecap="round" fill="none"/>
+              <path d="M200 60 C290 60 340 110 340 200 C340 290 290 340 200 340 C110 340 60 290 60 200 C60 110 110 70 185 62" stroke="#b06ac0" strokeWidth="7" strokeLinecap="round" fill="none"/>
+              <path d="M200 90 C270 90 310 130 310 200 C310 270 270 310 200 310 C130 310 90 270 90 200 C90 140 130 100 195 92" stroke="#55c8ce" strokeWidth="7" strokeLinecap="round" fill="none"/>
+              <path d="M200 120 C255 120 280 155 280 200 C280 245 245 280 200 280 C155 280 120 245 120 200 C120 160 150 130 196 122" stroke="#b06ac0" strokeWidth="6.5" strokeLinecap="round" fill="none"/>
+              <path d="M200 150 C235 150 250 170 250 200 C250 230 230 250 200 250 C170 250 150 230 150 200 C150 175 168 155 197 152" stroke="#55c8ce" strokeWidth="6" strokeLinecap="round" fill="none"/>
+              <path d="M200 175 C218 175 225 188 225 200 C225 215 214 224 200 222 C188 220 178 210 180 198 C182 188 193 182 202 185" stroke="#b06ac0" strokeWidth="5.5" strokeLinecap="round" fill="none"/>
+              <path d="M202 185 C220 170 240 165 255 175" stroke="#55c8ce" strokeWidth="5" strokeLinecap="round" fill="none"/>
               <circle cx="255" cy="175" r="7" fill="#b06ac0" opacity="0.8"/>
               <circle cx="110" cy="310" r="9" fill="#b06ac0" opacity="0.65"/>
             </svg>
