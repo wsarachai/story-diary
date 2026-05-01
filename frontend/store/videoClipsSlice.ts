@@ -1,0 +1,49 @@
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import type { VideoClipsCollection } from "@/types/chapters";
+
+interface VideoClipsState {
+  collection: VideoClipsCollection | null;
+  status: "idle" | "loading" | "ready" | "error";
+}
+
+const MOCK_COLLECTION: VideoClipsCollection = {
+  badge: "ดาวแห่งการเรียนรู้",
+  clips: [
+    { id: "clip-1", caption: "คลิป 1" },
+    { id: "clip-2", caption: "คลิป 2" },
+  ],
+};
+
+export const fetchCollection = createAsyncThunk(
+  "videoClips/fetchCollection",
+  async () => {
+    await new Promise((r) => setTimeout(r, 200));
+    return MOCK_COLLECTION;
+  }
+);
+
+const videoClipsSlice = createSlice({
+  name: "videoClips",
+  initialState: { collection: null, status: "idle" } as VideoClipsState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchCollection.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCollection.fulfilled, (state, action) => {
+        state.status = "ready";
+        state.collection = action.payload;
+      })
+      .addCase(fetchCollection.rejected, (state) => {
+        state.status = "error";
+      });
+  },
+});
+
+export default videoClipsSlice.reducer;
+
+export const selectVideoClipsCollection = (state: { videoClips: VideoClipsState }) =>
+  state.videoClips.collection;
+export const selectVideoClipsStatus = (state: { videoClips: VideoClipsState }) =>
+  state.videoClips.status;

@@ -1,0 +1,125 @@
+import Link from "next/link";
+import BookShellLayout from "@/components/BookShellLayout";
+import IconRail from "@/components/IconRail";
+import Image from "next/image";
+
+/**
+ * s004 Home Screen — authenticated entry hub.
+ * Left page: story card preview.
+ * Right page: feature cards for habit tracker + minigame.
+ */
+export default function HomePage() {
+  return (
+    <BookShellLayout
+      tight
+      rail={<IconRail />}
+      left={<StoryCardPanel />}
+      right={<DashboardPanel />}
+    />
+  );
+}
+
+function StoryCardPanel() {
+  return (
+    <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+      <article
+        style={{
+          width: "72%",
+          height: "86%",
+          borderRadius: "38% 38% 9% 9% / 20% 20% 9% 9%",
+          background: "#55d0d7",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <h1
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: "10%",
+            margin: 0,
+            textAlign: "center",
+            fontSize: "56px",
+            fontWeight: 500,
+            zIndex: 1,
+          }}
+        >
+          เนื้อเรื่อง
+        </h1>
+      </article>
+    </div>
+  );
+}
+
+function DashboardPanel() {
+  return (
+    <div
+      style={{
+        height: "100%",
+        display: "grid",
+        gridTemplateRows: "auto 1fr",
+        gap: "3rem",
+        paddingTop: "8%",
+        padding: "7% 7% 6%",
+      }}
+    >
+      {/* Habit tracker card */}
+      <Link
+        href="/habit"
+        aria-label="ไปหน้า Habit tracker"
+        style={{
+          position: "relative",
+          borderRadius: "48px",
+          background: "#59d6dc",
+          padding: "1.6rem 1.8rem",
+          minHeight: "210px",
+          textDecoration: "none",
+          color: "var(--ink)",
+          display: "block",
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: "40px", fontWeight: 500, lineHeight: 1.05 }}>
+          Habit tracker
+        </h2>
+      </Link>
+
+      {/* Minigame card */}
+      <Link
+        href="/minigame"
+        aria-label="ไปหน้ามินิเกม"
+        style={{
+          position: "relative",
+          borderRadius: "48px",
+          background: "#59d6dc",
+          padding: "2.3rem 1.8rem 1.6rem",
+          minHeight: "200px",
+          textDecoration: "none",
+          color: "var(--ink)",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "flex-end",
+          alignSelf: "end",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "1.88rem",
+            top: "1.5rem",
+            display: "flex",
+            gap: "0.45rem",
+          }}
+        >
+          {[0, 1, 2].map((i) => (
+            <Image key={i} src="/icons/heart.svg" alt="" width={48} height={48} />
+          ))}
+        </div>
+        <h2 style={{ margin: 0, fontSize: "40px", fontWeight: 500, lineHeight: 1.05 }}>
+          Minigame
+        </h2>
+      </Link>
+    </div>
+  );
+}

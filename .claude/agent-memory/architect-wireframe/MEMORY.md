@@ -4,3 +4,5 @@
 - [Icon rail accent colors](project_icon_rail_accents.md) — each authenticated screen uses a distinct active rail color; encoded in src/types/navigation.ts RAIL_ITEMS
 - [Common.js navigation pattern](project_common_js_navigation.md) — wireframes use a shared delegated click handler reading data-navigate; this MUST NOT port to React
 - [User-profile API spec is canonical](reference_user_profile_spec.md) — docs/specs/user-profile.md predates this work; new API specs must align with its error envelope and UserProfile shape
+- [Spec cluster map](project_spec_cluster_map.md) — five specs partition the 31 wireframes by Redux slice / rail destination
+- [Shared type files inventory](project_shared_type_files_inventory.md) — what each src/types/*.ts file holds and which spec it backs
