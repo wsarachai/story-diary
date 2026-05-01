@@ -27,7 +27,7 @@ const app = createTestApp();
 
 const VALID_USER = {
   name: "ผู้ใช้ทดสอบ",
-  email: "habits@example.com",
+  tel: "0812345678",
   password: "password123",
   characterName: "ตัวละคร",
   gender: "female" as const,
@@ -357,7 +357,7 @@ describe("POST /api/habits/activities", () => {
     const agent2 = request.agent(app);
     await agent2
       .post("/api/auth/register")
-      .send({ ...VALID_USER, email: "user2@example.com" })
+      .send({ ...VALID_USER, tel: "0888888888" })
       .expect(201);
 
     await agent1.post("/api/habits/activities").send(MED_ACTIVITY).expect(201);

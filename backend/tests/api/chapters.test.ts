@@ -21,7 +21,7 @@ const app = createTestApp();
 
 const VALID_USER = {
   name: "นักเดินทาง",
-  email: "traveler@example.com",
+  tel: "0812345678",
   password: "password123",
   characterName: "ฮีโร่",
   gender: "male" as const,

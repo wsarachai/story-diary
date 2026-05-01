@@ -24,7 +24,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id           TEXT PRIMARY KEY,
     name         TEXT NOT NULL,
-    email        TEXT NOT NULL UNIQUE,
+    tel          TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     character_name TEXT NOT NULL,
     gender       TEXT NOT NULL CHECK(gender IN ('male', 'female')),

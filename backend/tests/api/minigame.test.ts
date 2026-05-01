@@ -22,7 +22,7 @@ const app = createTestApp();
 
 const VALID_USER = {
   name: "นักเล่นเกม",
-  email: "gamer@example.com",
+  tel: "0812345678",
   password: "password123",
   characterName: "นักสู้",
   gender: "male" as const,
