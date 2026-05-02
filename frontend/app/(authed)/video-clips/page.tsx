@@ -14,17 +14,16 @@ import type { VideoClip } from "@/types/chapters";
 
 function PlayButton({ clip }: { clip: VideoClip }) {
   return (
-    <button
+    <Link
+      href={`/video-clips/${clip.id}`}
       className="clip-play-button"
-      aria-disabled="true"
-      aria-label={`เล่นวิดีโอ ${clip.caption} — เร็ว ๆ นี้`}
-      title="เร็ว ๆ นี้"
-      onClick={(e) => e.preventDefault()}
+      aria-label={`เล่นวิดีโอ ${clip.caption}`}
+      title={`เล่นวิดีโอ ${clip.caption}`}
     >
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M8 5v14l11-7z" />
       </svg>
-    </button>
+    </Link>
   );
 }
 

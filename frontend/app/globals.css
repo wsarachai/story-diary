@@ -92,6 +92,23 @@ body {
   overflow: hidden;
 }
 
+.book-shell-merged-layer {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  z-index: 4;
+  border-radius: 45px;
+  overflow: hidden;
+}
+
+.book-shell-merged-layer > * {
+  width: 100%;
+  height: 100%;
+}
+
+.page-merged-only {
+  grid-column: 1 / 3;
+}
+
 .page-seam-right::after {
   content: "";
   position: absolute;
@@ -254,6 +271,17 @@ input:focus-visible,
 
   .page-right {
     grid-area: right;
+  }
+
+  .book-shell-merged-layer {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    border-radius: 24px;
+  }
+
+  .page-merged-only {
+    grid-column: 1;
+    grid-row: 1 / span 2;
   }
 
   .icon-rail {
@@ -906,6 +934,69 @@ input:focus-visible,
   font-size: 1.85em;
   font-weight: 600;
   color: #2e7aaa;
+}
+
+.clip-player-page {
+  height: 100%;
+  padding: 2.2rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.75) 0 12%, transparent 13%),
+    linear-gradient(165deg, #e7f7ff 0%, #d3eef9 55%, #cbe8f5 100%);
+}
+
+.clip-player-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.clip-player-back {
+  text-decoration: none;
+  color: #ffffff;
+  background: #2e7aaa;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-weight: 700;
+}
+
+.clip-player-title {
+  margin: 0;
+  font-size: 1.55em;
+  font-weight: 700;
+  color: #1f5f85;
+}
+
+.clip-player-frame-wrap {
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: #10212d;
+  min-height: 0;
+}
+
+.clip-player-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.clip-player-fallback {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.clip-player-caption {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1f5f85;
+  text-align: center;
 }
 
 .sparkle-group {
