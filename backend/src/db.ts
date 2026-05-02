@@ -162,6 +162,8 @@ if (userColumns.some((col) => col.name === "email")) {
 // Seed data
 // ──────────────────────────────────────────────────────────────────────────
 
+const CHAR_IMG = "/images/chapter-speaker-girl-transparent.png";
+
 const chapterCount = (db.prepare("SELECT COUNT(*) as c FROM chapters").get() as { c: number }).c;
 
 if (chapterCount === 0) {
@@ -170,7 +172,7 @@ if (chapterCount === 0) {
     "INSERT INTO chapters (id, title, intro_title, lock_state, sort_order) VALUES (?, ?, ?, ?, ?)"
   );
   const insertScene = db.prepare(
-    "INSERT INTO chapter_scenes (id, chapter_id, idx, speaker_name, text) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO chapter_scenes (id, chapter_id, idx, speaker_name, speaker_image_url, text) VALUES (?, ?, ?, ?, ?, ?)"
   );
 
   const seedChapters = db.transaction(() => {
@@ -181,63 +183,63 @@ if (chapterCount === 0) {
     insertChapter.run(5, "บทที่ 5: บทสรุป", "บทบรรยาย", "locked", 5);
 
     // Chapter 1 — เริ่มต้นการเดินทาง
-    insertScene.run("c1s0", 1, 0, "ผู้บรรยาย",
+    insertScene.run("c1s0", 1, 0, "ผู้บรรยาย", NARRATOR_IMG,
       "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน");
-    insertScene.run("c1s1", 1, 1, "ชื่อตัวละคร",
+    insertScene.run("c1s1", 1, 1, "ชื่อตัวละคร", CHAR_IMG,
       "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ");
-    insertScene.run("c1s2", 1, 2, "ผู้บรรยาย",
+    insertScene.run("c1s2", 1, 2, "ผู้บรรยาย", null,
       "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้");
-    insertScene.run("c1s3", 1, 3, "ชื่อตัวละคร",
+    insertScene.run("c1s3", 1, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน");
-    insertScene.run("c1s4", 1, 4, "ผู้บรรยาย",
+    insertScene.run("c1s4", 1, 4, "ผู้บรรยาย", null,
       "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้");
 
     // Chapter 2 — การเรียนรู้
-    insertScene.run("c2s0", 2, 0, "ผู้บรรยาย",
+    insertScene.run("c2s0", 2, 0, "ผู้บรรยาย", null,
       "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร");
-    insertScene.run("c2s1", 2, 1, "ชื่อตัวละคร",
+    insertScene.run("c2s1", 2, 1, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?");
-    insertScene.run("c2s2", 2, 2, "ผู้บรรยาย",
+    insertScene.run("c2s2", 2, 2, "ผู้บรรยาย", null,
       "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ");
-    insertScene.run("c2s3", 2, 3, "ชื่อตัวละคร",
+    insertScene.run("c2s3", 2, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน");
-    insertScene.run("c2s4", 2, 4, "ผู้บรรยาย",
+    insertScene.run("c2s4", 2, 4, "ผู้บรรยาย", null,
       "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด");
 
     // Chapter 3 — ความท้าทาย
-    insertScene.run("c3s0", 3, 0, "ผู้บรรยาย",
+    insertScene.run("c3s0", 3, 0, "ผู้บรรยาย", null,
       "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต");
-    insertScene.run("c3s1", 3, 1, "ชื่อตัวละคร",
+    insertScene.run("c3s1", 3, 1, "ชื่อตัวละคร", CHAR_IMG,
       "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย");
-    insertScene.run("c3s2", 3, 2, "ผู้บรรยาย",
+    insertScene.run("c3s2", 3, 2, "ผู้บรรยาย", null,
       "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่");
-    insertScene.run("c3s3", 3, 3, "ชื่อตัวละคร",
+    insertScene.run("c3s3", 3, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร");
-    insertScene.run("c3s4", 3, 4, "ผู้บรรยาย",
+    insertScene.run("c3s4", 3, 4, "ผู้บรรยาย", null,
       "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง");
 
     // Chapter 4 — การเติบโต
-    insertScene.run("c4s0", 4, 0, "ผู้บรรยาย",
+    insertScene.run("c4s0", 4, 0, "ผู้บรรยาย", null,
       "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น");
-    insertScene.run("c4s1", 4, 1, "ชื่อตัวละคร",
-      "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย");
-    insertScene.run("c4s2", 4, 2, "ผู้บรรยาย",
+    insertScene.run("c4s1", 4, 1, "ชื่อตัวละคร", CHAR_IMG,
+      "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื้อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย");
+    insertScene.run("c4s2", 4, 2, "ผู้บรรยาย", null,
       "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม");
-    insertScene.run("c4s3", 4, 3, "ชื่อตัวละคร",
+    insertScene.run("c4s3", 4, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง");
-    insertScene.run("c4s4", 4, 4, "ผู้บรรยาย",
+    insertScene.run("c4s4", 4, 4, "ผู้บรรยาย", null,
       "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป");
 
     // Chapter 5 — บทสรุป
-    insertScene.run("c5s0", 5, 0, "ผู้บรรยาย",
+    insertScene.run("c5s0", 5, 0, "ผู้บรรยาย", null,
       "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน");
-    insertScene.run("c5s1", 5, 1, "ชื่อตัวละคร",
+    insertScene.run("c5s1", 5, 1, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้");
-    insertScene.run("c5s2", 5, 2, "ผู้บรรยาย",
+    insertScene.run("c5s2", 5, 2, "ผู้บรรยาย", null,
       "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว");
-    insertScene.run("c5s3", 5, 3, "ชื่อตัวละคร",
+    insertScene.run("c5s3", 5, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง");
-    insertScene.run("c5s4", 5, 4, "ผู้บรรยาย",
+    insertScene.run("c5s4", 5, 4, "ผู้บรรยาย", null,
       "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้");
   });
 
@@ -254,68 +256,68 @@ const sceneCount = (db.prepare("SELECT COUNT(*) as c FROM chapter_scenes").get()
 
 if (sceneCount < 25) {
   const insertSceneIgnore = db.prepare(
-    "INSERT OR IGNORE INTO chapter_scenes (id, chapter_id, idx, speaker_name, text) VALUES (?, ?, ?, ?, ?)"
+    "INSERT OR IGNORE INTO chapter_scenes (id, chapter_id, idx, speaker_name, speaker_image_url, text) VALUES (?, ?, ?, ?, ?, ?)"
   );
 
   const backfillScenes = db.transaction(() => {
     // Chapter 1 — เริ่มต้นการเดินทาง
-    insertSceneIgnore.run("c1s0", 1, 0, "ผู้บรรยาย",
+    insertSceneIgnore.run("c1s0", 1, 0, "ผู้บรรยาย", null,
       "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน");
-    insertSceneIgnore.run("c1s1", 1, 1, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c1s1", 1, 1, "ชื่อตัวละคร", CHAR_IMG,
       "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ");
-    insertSceneIgnore.run("c1s2", 1, 2, "ผู้บรรยาย",
+    insertSceneIgnore.run("c1s2", 1, 2, "ผู้บรรยาย", null,
       "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้");
-    insertSceneIgnore.run("c1s3", 1, 3, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c1s3", 1, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน");
-    insertSceneIgnore.run("c1s4", 1, 4, "ผู้บรรยาย",
+    insertSceneIgnore.run("c1s4", 1, 4, "ผู้บรรยาย", null,
       "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้");
 
     // Chapter 2 — การเรียนรู้
-    insertSceneIgnore.run("c2s0", 2, 0, "ผู้บรรยาย",
+    insertSceneIgnore.run("c2s0", 2, 0, "ผู้บรรยาย", null,
       "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร");
-    insertSceneIgnore.run("c2s1", 2, 1, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c2s1", 2, 1, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?");
-    insertSceneIgnore.run("c2s2", 2, 2, "ผู้บรรยาย",
+    insertSceneIgnore.run("c2s2", 2, 2, "ผู้บรรยาย", null,
       "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ");
-    insertSceneIgnore.run("c2s3", 2, 3, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c2s3", 2, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน");
-    insertSceneIgnore.run("c2s4", 2, 4, "ผู้บรรยาย",
+    insertSceneIgnore.run("c2s4", 2, 4, "ผู้บรรยาย", null,
       "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด");
 
     // Chapter 3 — ความท้าทาย
-    insertSceneIgnore.run("c3s0", 3, 0, "ผู้บรรยาย",
+    insertSceneIgnore.run("c3s0", 3, 0, "ผู้บรรยาย", null,
       "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต");
-    insertSceneIgnore.run("c3s1", 3, 1, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c3s1", 3, 1, "ชื่อตัวละคร", CHAR_IMG,
       "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย");
-    insertSceneIgnore.run("c3s2", 3, 2, "ผู้บรรยาย",
+    insertSceneIgnore.run("c3s2", 3, 2, "ผู้บรรยาย", null,
       "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่");
-    insertSceneIgnore.run("c3s3", 3, 3, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c3s3", 3, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร");
-    insertSceneIgnore.run("c3s4", 3, 4, "ผู้บรรยาย",
+    insertSceneIgnore.run("c3s4", 3, 4, "ผู้บรรยาย", null,
       "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง");
 
     // Chapter 4 — การเติบโต
-    insertSceneIgnore.run("c4s0", 4, 0, "ผู้บรรยาย",
+    insertSceneIgnore.run("c4s0", 4, 0, "ผู้บรรยาย", null,
       "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น");
-    insertSceneIgnore.run("c4s1", 4, 1, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c4s1", 4, 1, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย");
-    insertSceneIgnore.run("c4s2", 4, 2, "ผู้บรรยาย",
+    insertSceneIgnore.run("c4s2", 4, 2, "ผู้บรรยาย", null,
       "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม");
-    insertSceneIgnore.run("c4s3", 4, 3, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c4s3", 4, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง");
-    insertSceneIgnore.run("c4s4", 4, 4, "ผู้บรรยาย",
+    insertSceneIgnore.run("c4s4", 4, 4, "ผู้บรรยาย", null,
       "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป");
 
     // Chapter 5 — บทสรุป
-    insertSceneIgnore.run("c5s0", 5, 0, "ผู้บรรยาย",
+    insertSceneIgnore.run("c5s0", 5, 0, "ผู้บรรยาย", null,
       "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน");
-    insertSceneIgnore.run("c5s1", 5, 1, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c5s1", 5, 1, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้");
-    insertSceneIgnore.run("c5s2", 5, 2, "ผู้บรรยาย",
+    insertSceneIgnore.run("c5s2", 5, 2, "ผู้บรรยาย", null,
       "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว");
-    insertSceneIgnore.run("c5s3", 5, 3, "ชื่อตัวละคร",
+    insertSceneIgnore.run("c5s3", 5, 3, "ชื่อตัวละคร", CHAR_IMG,
       "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง");
-    insertSceneIgnore.run("c5s4", 5, 4, "ผู้บรรยาย",
+    insertSceneIgnore.run("c5s4", 5, 4, "ผู้บรรยาย", null,
       "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้");
   });
 
@@ -404,5 +406,15 @@ if (quizCount === 0) {
 
   seedQuiz();
 }
+
+const NARRATOR_IMG = "/images/chapter-speaker-narrator-transparent.svg";
+
+// Backfill speaker_image_url for any scenes that are still missing their avatar.
+db.prepare(
+  "UPDATE chapter_scenes SET speaker_image_url = ? WHERE speaker_name = 'ชื่อตัวละคร' AND speaker_image_url IS NULL"
+).run(CHAR_IMG);
+db.prepare(
+  "UPDATE chapter_scenes SET speaker_image_url = ? WHERE speaker_name = 'ผู้บรรยาย' AND speaker_image_url IS NULL"
+).run(NARRATOR_IMG);
 
 export default db;

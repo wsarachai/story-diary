@@ -12,6 +12,7 @@ import {
   selectChapter,
   selectChapterDetailStatus,
 } from "@/store/chaptersSlice";
+import { selectCurrentUser } from "@/store/authSlice";
 
 /** Milliseconds between each revealed character — tuned to natural speech pace. */
 const TYPEWRITER_SPEED_MS = 60;
@@ -99,6 +100,7 @@ export default function ChapterScenePage() {
   const dispatch = useAppDispatch();
   const chapter = useAppSelector((s) => selectChapter(s, id));
   const detailStatus = useAppSelector((s) => selectChapterDetailStatus(s, id));
+  const currentUser = useAppSelector(selectCurrentUser);
 
   // Track which scene index typing has been completed for, so the "done" state
   // automatically resets when sceneIndex changes (no setState-in-effect needed).
@@ -199,7 +201,11 @@ export default function ChapterScenePage() {
       )}
 
       <section className="dialog-panel" aria-label="บทสนทนา">
-        <h1 className="speaker-name">{scene.speakerName}</h1>
+        <h1 className="speaker-name">
+          {scene.speakerName === "ชื่อตัวละคร"
+            ? (currentUser?.characterName ?? scene.speakerName)
+            : scene.speakerName}
+        </h1>
         <p className="dialog-text">
           {typingDone ? (
             // Typing skipped — render full text directly

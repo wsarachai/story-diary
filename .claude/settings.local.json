@@ -10,7 +10,8 @@
       "Bash(pip install *)",
       "Bash(python -m playwright install chromium)",
       "Bash(python *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(cmd /c \"dir /s /b D:\\\\workspaces\\\\projects\\\\story-diary\\\\backend\\\\*.ts 2>&1\")"
     ]
   }
 }

@@ -95,25 +95,16 @@ export function setChapterProgress(
   `).run(userId, chapterId, progress);
 }
 
+const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=Ktxam4bHrTo";
+
 // Static video clips collection (no DB backing in v1)
 export function getVideoClips(): VideoClipsCollection {
   return {
     badge: "ดาวแห่งการเรียนรู้",
-    clips: [
-      {
-        id: "clip-1",
-        caption: "คลิป 1",
-        thumbnailUrl: undefined,
-        sourceUrl: undefined,
-        durationSec: undefined,
-      },
-      {
-        id: "clip-2",
-        caption: "คลิป 2",
-        thumbnailUrl: undefined,
-        sourceUrl: undefined,
-        durationSec: undefined,
-      },
-    ],
+    clips: [1, 2, 3, 4, 5].map((n) => ({
+      id: `clip-${n}`,
+      caption: `คลิป ${n}`,
+      sourceUrl: TEST_VIDEO_URL,
+    })),
   };
 }
