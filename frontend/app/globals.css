@@ -767,6 +767,57 @@ input:focus-visible,
   z-index: -2;
 }
 
+.chapter-scene-exit {
+  position: absolute;
+  top: 1.35rem;
+  left: 1.35rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.8rem 0.45rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 247, 236, 0.94);
+  border: 3px solid rgba(203, 123, 43, 0.95);
+  color: #8d5417;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 12px 22px -12px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.chapter-scene-exit:hover {
+  background: #fff7ec;
+}
+
+.chapter-scene-exit-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #cb7b2b;
+  box-shadow: inset 0 -2px 0 rgba(120, 65, 14, 0.25);
+  flex: 0 0 auto;
+}
+
+.chapter-scene-exit-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke: #fff7ec;
+  stroke-width: 2.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chapter-scene-exit-label {
+  display: inline-block;
+  transform: translateY(-0.02rem);
+}
+
 .speaker-figure {
   position: absolute;
   right: 22%;

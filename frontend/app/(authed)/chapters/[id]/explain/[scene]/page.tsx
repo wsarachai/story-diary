@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
@@ -152,6 +153,19 @@ export default function ChapterScenePage() {
       className="screen chapter-details-screen"
       aria-label="Story Diary Chapters Explain Details"
     >
+      <Link
+        href="/chapters/menu"
+        className="chapter-scene-exit"
+        aria-label="กลับไปหน้าเลือกบท"
+      >
+        <span className="chapter-scene-exit-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.5 5L7.5 12L14.5 19" />
+          </svg>
+        </span>
+        <span className="chapter-scene-exit-label">กลับ</span>
+      </Link>
+
       {bgUrl ? (
         <Image
           className="chapter-details-bg"
@@ -194,8 +208,8 @@ export default function ChapterScenePage() {
             !isTypingDone
               ? "แสดงข้อความทั้งหมด"
               : sceneIndex < chapter.scenes.length - 1
-              ? "ไปฉากถัดไป"
-              : "กลับไปหน้าเลือกบท"
+                ? "ไปฉากถัดไป"
+                : "กลับไปหน้าเลือกบท"
           }
         />
       </section>
