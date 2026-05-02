@@ -153,3 +153,6 @@ export const selectQuizPhase = (state: QuizRootState) =>
 
 export const selectQuizFetchStatus = (state: QuizRootState) =>
   state.quiz.fetchStatus;
+
+export const selectCurrentIndex = (state: QuizRootState): number =>
+  state.quiz.attempt?.currentIndex ?? 0;
