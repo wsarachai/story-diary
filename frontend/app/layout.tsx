@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="th"
       className={`${baloo2.variable} ${notoSansThai.variable}`}
     >
-      <body>
+      <body suppressHydrationWarning>
         <Providers>
           <AuthProbe />
           {children}

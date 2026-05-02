@@ -2,14 +2,14 @@
  * Auth routes: /api/auth/*
  * POST /register, POST /login, POST /logout, GET /me
  */
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import "../lib/session"; // session type augmentation
 import { validate } from "../lib/validate";
 import { LoginSchema, RegisterSchema } from "../lib/schemas";
 import { registerUser, loginUser, getUserById } from "../services/authService";
 import { requireAuth } from "../middleware/auth";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // POST /api/auth/register
 router.post("/register", async (req, res, next) => {
