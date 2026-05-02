@@ -63,7 +63,7 @@ function FeedbackInner() {
         <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
           <div className="quiz-progress-row">
             <p className="quiz-counter">
-              บทถดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
             </p>
             <div className="quiz-progress-bar" aria-hidden="true">
               <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
@@ -92,8 +92,8 @@ function FeedbackInner() {
                 letter === feedback.correct
                   ? `ตัวเลือก ${letter} ถูกต้อง`
                   : letter === feedback.selected
-                  ? `ตัวเลือก ${letter} ตอบผิด`
-                  : `ตัวเลือก ${letter}`;
+                    ? `ตัวเลือก ${letter} ตอบผิด`
+                    : `ตัวเลือก ${letter}`;
               return (
                 <div key={letter} className={cls} aria-label={ariaLabel}>
                   <span className="option-letter">{letter}</span>

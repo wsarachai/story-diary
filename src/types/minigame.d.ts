@@ -45,7 +45,7 @@ export interface QuizQuestion {
 }
 /**
  * Full quiz set — the user works through these in order. The wireframe
- * counter "บทถดสอบที่ 3/13" implies a fixed-length set of 13.
+ * counter "บททดสอบที่ 3/13" implies a fixed-length set of 13.
  */
 export interface Quiz {
     id: string;

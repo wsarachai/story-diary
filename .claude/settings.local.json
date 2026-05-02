@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm lint *)",
+      "Bash(pnpm build *)",
+      "Bash(npx tsx *)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(kill %1)"
+    ]
+  }
+}

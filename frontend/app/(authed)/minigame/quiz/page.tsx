@@ -81,7 +81,7 @@ function QuizInner() {
         <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
           <div className="quiz-progress-row">
             <p className="quiz-counter">
-              บทถดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
             </p>
             <div className="quiz-progress-bar" aria-hidden="true">
               <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />

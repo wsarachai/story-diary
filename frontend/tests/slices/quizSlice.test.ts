@@ -10,7 +10,7 @@
  *
  * Key invariants verified:
  *   - 7 points per correct answer  (spec: "Default scoring rule: 7 points / correct")
- *   - 13 questions in the canonical quiz (spec: "บทถดสอบที่ 3/13")
+ *   - 13 questions in the canonical quiz (spec: "บททดสอบที่ 3/13")
  *   - selectIsLastQuestion correctly identifies the final question
  *   - DS-1: pendingSelection must be non-null before submitAnswer can commit
  */
@@ -144,13 +144,15 @@ describe("quizSlice — fetchQuiz thunk", () => {
 
   it("spec requirement: canonical quiz has exactly 13 questions", () => {
     // Verify the mock in the slice itself has 13 questions per the spec
-    // "บทถดสอบที่ 3/13" — the counter denominator is 13
+    // "บททดสอบที่ 3/13" — the counter denominator is 13
     const fullState = reducer(
       undefined,
       fetchQuiz.fulfilled(
-        { id: "quiz-1", questions: Array.from({ length: 13 }, (_, i) =>
-          makeQuestion(`q${i + 1}`, i + 1, "A")
-        ) },
+        {
+          id: "quiz-1", questions: Array.from({ length: 13 }, (_, i) =>
+            makeQuestion(`q${i + 1}`, i + 1, "A")
+          )
+        },
         "req-1",
         undefined
       )
@@ -178,9 +180,11 @@ describe("quizSlice — start", () => {
 
   it("resets score to null on start", () => {
     // Start from a state that has a score from a prior round
-    const stateWithScore: SliceState = { ...stateWithQuiz, score: {
-      quizId: "quiz-test", total: 3, correctCount: 3, wrongCount: 0, points: 21
-    }};
+    const stateWithScore: SliceState = {
+      ...stateWithQuiz, score: {
+        quizId: "quiz-test", total: 3, correctCount: 3, wrongCount: 0, points: 21
+      }
+    };
     const state = reducer(stateWithScore, start());
     expect(state.score).toBeNull();
   });

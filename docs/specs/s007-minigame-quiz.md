@@ -12,7 +12,7 @@ per-answer feedback, and final summary.
 ## Summary
 
 The Minigame is a fixed-length multiple-choice quiz (the wireframe
-counter is "บทถดสอบที่ 3/13" → 13 questions). Tapping the "Minigame"
+counter is "บททดสอบที่ 3/13" → 13 questions). Tapping the "Minigame"
 card on the home dashboard or the rail "game" icon opens the intro
 (s007). Answering "พร้อมแล้ว" enters the quiz (s017); each submitted
 answer reveals correct/wrong feedback (s018) and advances to the next
@@ -222,7 +222,7 @@ import type {
 } from "@/types/minigame";
 
 interface QuizProgressBarProps {
-    /** "บทถดสอบที่ 3/13" → counter = "3/13". */
+    /** "บททดสอบที่ 3/13" → counter = "3/13". */
     counter: string;
     /** 0..100, controls `.quiz-progress-fill` width. */
     percent: number;
