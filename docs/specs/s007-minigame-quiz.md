@@ -386,7 +386,7 @@ UI prop shapes are listed above. Domain shapes (`Quiz`,
 `QuizAnswer`, `QuizScore`, `FeedbackVariant`) live in
 `src/types/minigame.ts`. UI must not redeclare them.
 
-Assumed API endpoints (full backend spec out of scope):
+API endpoints — see `docs/specs/backend-architecture.md` for the full spec:
 
 ```ts
 // GET /api/minigame/quiz                    → Quiz
@@ -394,8 +394,10 @@ Assumed API endpoints (full backend spec out of scope):
 //   Body: QuizAttempt   (server validates and computes points)
 ```
 
-When the backend spec lands, add `QUIZ_NOT_FOUND` and
-`QUIZ_ATTEMPT_INVALID` to `src/types/error.ts#ApiErrorCode`.
+`QUIZ_NOT_FOUND` and `QUIZ_ATTEMPT_INVALID` are not yet emitted by the backend
+(the minigame route serves a single built-in quiz). Add these codes to
+`src/types/error.ts#ApiErrorCode` when the service supports multiple quizzes or
+server-side attempt validation errors.
 
 ---
 
@@ -544,4 +546,4 @@ Dependencies: 1 unblocks 2; 5 must precede 6; 7 must precede 8.
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `src/types/minigame.ts`       | `AnswerLetter`, `QuizOption`, `QuizQuestion`, `Quiz`, `QuizAnswer`, `QuizAttempt`, `QuizScore`, `FeedbackVariant`             | New file — created in this commit.                                                 |
 | `src/types/navigation.ts`     | `ScreenId` (s007/s017/s018/s019/s031), `AppRoute` (`/minigame/...`)                                                          | Updated in this commit.                                                            |
-| `src/types/error.ts`          | (future) `QUIZ_NOT_FOUND`, `QUIZ_ATTEMPT_INVALID`                                                                             | Add when backend spec lands.                                                       |
+| `src/types/error.ts`          | (future) `QUIZ_NOT_FOUND`, `QUIZ_ATTEMPT_INVALID`                                                                             | Not yet emitted by the backend. Add when the minigame service uses them.           |

@@ -356,7 +356,7 @@ development, fixtures and backend mock responses should populate each
 chapter with **5-6 scenes** so `/chapters/[id]/explain/[scene]` can be
 exercised across multiple next transitions.
 
-Assumed API endpoints (full backend spec out of scope):
+API endpoints — see `docs/specs/backend-architecture.md` for the full spec:
 
 ```ts
 // GET /api/chapters
@@ -372,8 +372,8 @@ type GetChapterResponse = Chapter;
 type GetVideoClipsResponse = VideoClipsCollection;
 ```
 
-Add `CHAPTER_NOT_FOUND` to `src/types/error.ts#ApiErrorCode` when the
-backend spec lands.
+Add `CHAPTER_NOT_FOUND` to `src/types/error.ts#ApiErrorCode` — this code is already
+returned by `chapterService.ts` and the type has been defined there.
 
 ---
 
@@ -527,4 +527,4 @@ Dependencies: 1 unblocks 2; 5 needs 3; 7 needs 6.
 | ----------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `src/types/chapters.ts`       | `ChapterId`, `ChapterLockState`, `ChapterProgressState`, `ChapterSummary`, `ChapterScene`, `Chapter`, `VideoClip`, `VideoClipsCollection` | New file — created in this commit.                                                                 |
 | `src/types/navigation.ts`     | `ScreenId`, `AppRoute`, `SCREEN_TO_RAIL`, `NavRailItem`, `RAIL_ITEMS`                                    | Extended in this commit with s008–s011 ids and `/chapters/...`, `/video-clips` routes.             |
-| `src/types/error.ts`          | (future) `CHAPTER_NOT_FOUND`                                                                              | Add when the backend spec lands.                                                                   |
+| `src/types/error.ts`          | `CHAPTER_NOT_FOUND`                                                                                       | Defined — used by `chapterService.ts`. See `docs/specs/backend-architecture.md`.                   |

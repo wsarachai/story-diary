@@ -1,420 +1,752 @@
-/**
- * SQLite database connection, schema migrations, and seed data.
- * Uses better-sqlite3 for synchronous access (safe in single-process Node).
- */
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import { MongoClient, ServerApiVersion, type Db } from "mongodb";
 
-const DB_DIR = path.join(__dirname, "..", "data");
-const DB_PATH = path.join(DB_DIR, "story-diary.db");
+type DatabaseMode = "memory" | "mongo";
 
-// Ensure the data directory exists
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
-
-const db: Database.Database = new Database(DB_PATH);
-
-// Enable WAL mode for better concurrent read performance
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
-
-// ──────────────────────────────────────────────────────────────────────────
-// Schema migrations
-// ──────────────────────────────────────────────────────────────────────────
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id           TEXT PRIMARY KEY,
-    name         TEXT NOT NULL,
-    tel          TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    character_name TEXT NOT NULL,
-    gender       TEXT NOT NULL CHECK(gender IN ('male', 'female')),
-    created_at   TEXT NOT NULL,
-    updated_at   TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS chapters (
-    id                   INTEGER PRIMARY KEY,
-    title                TEXT NOT NULL,
-    intro_title          TEXT NOT NULL DEFAULT 'บทบรรยาย',
-    background_image_url TEXT,
-    lock_state           TEXT NOT NULL DEFAULT 'locked'
-                         CHECK(lock_state IN ('unlocked', 'locked')),
-    sort_order           INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS chapter_scenes (
-    id               TEXT PRIMARY KEY,
-    chapter_id       INTEGER NOT NULL REFERENCES chapters(id),
-    idx              INTEGER NOT NULL,
-    speaker_name     TEXT NOT NULL,
-    speaker_image_url TEXT,
-    text             TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS user_chapter_progress (
-    user_id    TEXT NOT NULL REFERENCES users(id),
-    chapter_id INTEGER NOT NULL REFERENCES chapters(id),
-    progress   TEXT NOT NULL DEFAULT 'not-started'
-               CHECK(progress IN ('not-started', 'in-progress', 'completed')),
-    PRIMARY KEY (user_id, chapter_id)
-  );
-
-  CREATE TABLE IF NOT EXISTS habit_activities (
-    id               TEXT PRIMARY KEY,
-    user_id          TEXT NOT NULL REFERENCES users(id),
-    category         TEXT NOT NULL CHECK(category IN ('medicine', 'nutrition', 'physical')),
-    physical_category TEXT,
-    name             TEXT NOT NULL,
-    icon_color       TEXT,
-    schedule_json    TEXT NOT NULL,
-    meal_relation    TEXT CHECK(meal_relation IN ('before', 'after')),
-    meal_slots_json  TEXT,
-    created_at       TEXT NOT NULL,
-    updated_at       TEXT NOT NULL,
-    archived         INTEGER NOT NULL DEFAULT 0
-  );
-
-  CREATE TABLE IF NOT EXISTS habit_occurrences (
-    id           TEXT PRIMARY KEY,
-    activity_id  TEXT NOT NULL REFERENCES habit_activities(id),
-    date         TEXT NOT NULL,
-    status       TEXT NOT NULL DEFAULT 'pending'
-                 CHECK(status IN ('pending', 'done', 'skipped')),
-    completed_at TEXT,
-    UNIQUE(activity_id, date)
-  );
-
-  CREATE TABLE IF NOT EXISTS quiz_questions (
-    id             TEXT PRIMARY KEY,
-    number         INTEGER NOT NULL,
-    text           TEXT NOT NULL,
-    option_a       TEXT NOT NULL,
-    option_b       TEXT NOT NULL,
-    option_c       TEXT NOT NULL,
-    option_d       TEXT NOT NULL,
-    correct_answer TEXT NOT NULL CHECK(correct_answer IN ('A', 'B', 'C', 'D')),
-    explanation    TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS quiz_attempts (
-    id           TEXT PRIMARY KEY,
-    user_id      TEXT NOT NULL REFERENCES users(id),
-    quiz_id      TEXT NOT NULL,
-    started_at   TEXT NOT NULL,
-    completed_at TEXT,
-    score_points INTEGER,
-    score_correct INTEGER,
-    answers_json TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS medicine_checkins (
-    id              TEXT PRIMARY KEY,
-    occurrence_id   TEXT NOT NULL REFERENCES habit_occurrences(id),
-    medicine_name   TEXT NOT NULL,
-    meal_relation   TEXT NOT NULL,
-    meal_slots_json TEXT NOT NULL,
-    side_effects_json TEXT NOT NULL,
-    created_at      TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS nutrition_checkins (
-    id            TEXT PRIMARY KEY,
-    occurrence_id TEXT NOT NULL REFERENCES habit_occurrences(id),
-    activity_name TEXT NOT NULL,
-    breakfast     TEXT NOT NULL DEFAULT '',
-    lunch         TEXT NOT NULL DEFAULT '',
-    dinner        TEXT NOT NULL DEFAULT '',
-    created_at    TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS symptoms_checkins (
-    id            TEXT PRIMARY KEY,
-    occurrence_id TEXT NOT NULL REFERENCES habit_occurrences(id),
-    items_json    TEXT NOT NULL,
-    created_at    TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS mood_checkins (
-    id            TEXT PRIMARY KEY,
-    occurrence_id TEXT NOT NULL REFERENCES habit_occurrences(id),
-    mood          TEXT NOT NULL,
-    slider_value  INTEGER NOT NULL DEFAULT 0,
-    created_at    TEXT NOT NULL
-  );
-`);
-
-// ──────────────────────────────────────────────────────────────────────────
-// Schema migrations
-// Rename `email` → `tel` on existing databases (SQLite 3.35+).
-// Safe to run on fresh DBs (column `email` simply won't exist).
-// ──────────────────────────────────────────────────────────────────────────
-
-const userColumns = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
-if (userColumns.some((col) => col.name === "email")) {
-  db.exec("ALTER TABLE users RENAME COLUMN email TO tel");
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Seed data
-// ──────────────────────────────────────────────────────────────────────────
+const mode: DatabaseMode =
+  process.env.DB_MODE === "mongo"
+    ? "mongo"
+    : process.env.NODE_ENV === "test"
+      ? "memory"
+      : "mongo";
 
 const CHAR_IMG = "/images/chapter-speaker-girl-transparent.png";
-
-const chapterCount = (db.prepare("SELECT COUNT(*) as c FROM chapters").get() as { c: number }).c;
-
-if (chapterCount === 0) {
-  // Seed chapters 1–5 (chapter 1 unlocked, 2–5 locked)
-  const insertChapter = db.prepare(
-    "INSERT INTO chapters (id, title, intro_title, lock_state, sort_order) VALUES (?, ?, ?, ?, ?)"
-  );
-  const insertScene = db.prepare(
-    "INSERT INTO chapter_scenes (id, chapter_id, idx, speaker_name, speaker_image_url, text) VALUES (?, ?, ?, ?, ?, ?)"
-  );
-
-  const seedChapters = db.transaction(() => {
-    insertChapter.run(1, "บทที่ 1: เริ่มต้นการเดินทาง", "บทบรรยาย", "unlocked", 1);
-    insertChapter.run(2, "บทที่ 2: การเรียนรู้", "บทบรรยาย", "locked", 2);
-    insertChapter.run(3, "บทที่ 3: ความท้าทาย", "บทบรรยาย", "locked", 3);
-    insertChapter.run(4, "บทที่ 4: การเติบโต", "บทบรรยาย", "locked", 4);
-    insertChapter.run(5, "บทที่ 5: บทสรุป", "บทบรรยาย", "locked", 5);
-
-    // Chapter 1 — เริ่มต้นการเดินทาง
-    insertScene.run("c1s0", 1, 0, "ผู้บรรยาย", NARRATOR_IMG,
-      "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน");
-    insertScene.run("c1s1", 1, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ");
-    insertScene.run("c1s2", 1, 2, "ผู้บรรยาย", null,
-      "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้");
-    insertScene.run("c1s3", 1, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน");
-    insertScene.run("c1s4", 1, 4, "ผู้บรรยาย", null,
-      "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้");
-
-    // Chapter 2 — การเรียนรู้
-    insertScene.run("c2s0", 2, 0, "ผู้บรรยาย", null,
-      "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร");
-    insertScene.run("c2s1", 2, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?");
-    insertScene.run("c2s2", 2, 2, "ผู้บรรยาย", null,
-      "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ");
-    insertScene.run("c2s3", 2, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน");
-    insertScene.run("c2s4", 2, 4, "ผู้บรรยาย", null,
-      "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด");
-
-    // Chapter 3 — ความท้าทาย
-    insertScene.run("c3s0", 3, 0, "ผู้บรรยาย", null,
-      "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต");
-    insertScene.run("c3s1", 3, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย");
-    insertScene.run("c3s2", 3, 2, "ผู้บรรยาย", null,
-      "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่");
-    insertScene.run("c3s3", 3, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร");
-    insertScene.run("c3s4", 3, 4, "ผู้บรรยาย", null,
-      "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง");
-
-    // Chapter 4 — การเติบโต
-    insertScene.run("c4s0", 4, 0, "ผู้บรรยาย", null,
-      "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น");
-    insertScene.run("c4s1", 4, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื้อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย");
-    insertScene.run("c4s2", 4, 2, "ผู้บรรยาย", null,
-      "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม");
-    insertScene.run("c4s3", 4, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง");
-    insertScene.run("c4s4", 4, 4, "ผู้บรรยาย", null,
-      "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป");
-
-    // Chapter 5 — บทสรุป
-    insertScene.run("c5s0", 5, 0, "ผู้บรรยาย", null,
-      "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน");
-    insertScene.run("c5s1", 5, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้");
-    insertScene.run("c5s2", 5, 2, "ผู้บรรยาย", null,
-      "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว");
-    insertScene.run("c5s3", 5, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง");
-    insertScene.run("c5s4", 5, 4, "ผู้บรรยาย", null,
-      "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้");
-  });
-
-  seedChapters();
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Scene backfill migration
-// If chapters already exist but scenes are incomplete (< 25), insert any
-// missing scenes using INSERT OR IGNORE so it's safe to run repeatedly.
-// ──────────────────────────────────────────────────────────────────────────
-
-const sceneCount = (db.prepare("SELECT COUNT(*) as c FROM chapter_scenes").get() as { c: number }).c;
-
-if (sceneCount < 25) {
-  const insertSceneIgnore = db.prepare(
-    "INSERT OR IGNORE INTO chapter_scenes (id, chapter_id, idx, speaker_name, speaker_image_url, text) VALUES (?, ?, ?, ?, ?, ?)"
-  );
-
-  const backfillScenes = db.transaction(() => {
-    // Chapter 1 — เริ่มต้นการเดินทาง
-    insertSceneIgnore.run("c1s0", 1, 0, "ผู้บรรยาย", null,
-      "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน");
-    insertSceneIgnore.run("c1s1", 1, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ");
-    insertSceneIgnore.run("c1s2", 1, 2, "ผู้บรรยาย", null,
-      "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้");
-    insertSceneIgnore.run("c1s3", 1, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน");
-    insertSceneIgnore.run("c1s4", 1, 4, "ผู้บรรยาย", null,
-      "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้");
-
-    // Chapter 2 — การเรียนรู้
-    insertSceneIgnore.run("c2s0", 2, 0, "ผู้บรรยาย", null,
-      "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร");
-    insertSceneIgnore.run("c2s1", 2, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?");
-    insertSceneIgnore.run("c2s2", 2, 2, "ผู้บรรยาย", null,
-      "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ");
-    insertSceneIgnore.run("c2s3", 2, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน");
-    insertSceneIgnore.run("c2s4", 2, 4, "ผู้บรรยาย", null,
-      "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด");
-
-    // Chapter 3 — ความท้าทาย
-    insertSceneIgnore.run("c3s0", 3, 0, "ผู้บรรยาย", null,
-      "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต");
-    insertSceneIgnore.run("c3s1", 3, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย");
-    insertSceneIgnore.run("c3s2", 3, 2, "ผู้บรรยาย", null,
-      "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่");
-    insertSceneIgnore.run("c3s3", 3, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร");
-    insertSceneIgnore.run("c3s4", 3, 4, "ผู้บรรยาย", null,
-      "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง");
-
-    // Chapter 4 — การเติบโต
-    insertSceneIgnore.run("c4s0", 4, 0, "ผู้บรรยาย", null,
-      "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น");
-    insertSceneIgnore.run("c4s1", 4, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย");
-    insertSceneIgnore.run("c4s2", 4, 2, "ผู้บรรยาย", null,
-      "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม");
-    insertSceneIgnore.run("c4s3", 4, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง");
-    insertSceneIgnore.run("c4s4", 4, 4, "ผู้บรรยาย", null,
-      "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป");
-
-    // Chapter 5 — บทสรุป
-    insertSceneIgnore.run("c5s0", 5, 0, "ผู้บรรยาย", null,
-      "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน");
-    insertSceneIgnore.run("c5s1", 5, 1, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้");
-    insertSceneIgnore.run("c5s2", 5, 2, "ผู้บรรยาย", null,
-      "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว");
-    insertSceneIgnore.run("c5s3", 5, 3, "ชื่อตัวละคร", CHAR_IMG,
-      "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง");
-    insertSceneIgnore.run("c5s4", 5, 4, "ผู้บรรยาย", null,
-      "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้");
-  });
-
-  backfillScenes();
-}
-
-// Seed quiz questions
-const quizCount = (db.prepare("SELECT COUNT(*) as c FROM quiz_questions").get() as { c: number }).c;
-
-if (quizCount === 0) {
-  const insertQ = db.prepare(`
-    INSERT INTO quiz_questions (id, number, text, option_a, option_b, option_c, option_d, correct_answer, explanation)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const seedQuiz = db.transaction(() => {
-    insertQ.run("q1", 1,
-      "ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใดเพื่อป้องกันผิวหนังจากแสงยูวี?",
-      "06:00 – 09:00 น.", "10:00 – 16:00 น.", "16:00 – 18:00 น.", "18:00 – 20:00 น.",
-      "B", "แสงยูวีจะรุนแรงที่สุดในช่วง 10:00 – 16:00 น."
-    );
-    insertQ.run("q2", 2,
-      "อาหารประเภทใดมีประโยชน์ต่อสุขภาพหัวใจมากที่สุด?",
-      "อาหารทอดและไขมันสูง", "ผักและผลไม้สด", "ขนมหวานและน้ำตาล", "เครื่องดื่มแอลกอฮอล์",
-      "B", "ผักและผลไม้สดมีวิตามิน แร่ธาตุ และเส้นใยอาหารที่ดีต่อหัวใจ"
-    );
-    insertQ.run("q3", 3,
-      "ควรออกกำลังกายอย่างน้อยกี่นาทีต่อวันสำหรับผู้ใหญ่ที่มีสุขภาพดี?",
-      "10 นาที", "20 นาที", "30 นาที", "60 นาที",
-      "C", "WHO แนะนำให้ออกกำลังกายระดับปานกลางอย่างน้อย 30 นาทีต่อวัน"
-    );
-    insertQ.run("q4", 4,
-      "น้ำดื่มที่ร่างกายต้องการต่อวันโดยประมาณเท่าไร?",
-      "500 มล.", "1 ลิตร", "1.5 – 2 ลิตร", "3 ลิตร",
-      "C", "ร่างกายต้องการน้ำ 1.5–2 ลิตรต่อวัน หรือประมาณ 8 แก้ว"
-    );
-    insertQ.run("q5", 5,
-      "ข้อใดเป็นอาการเตือนของโรคเบาหวาน?",
-      "ปวดหัว และไข้", "ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลีย",
-      "ปวดข้อและผิวหนังอักเสบ", "ไอและเจ็บคอ",
-      "B", "อาการของโรคเบาหวาน ได้แก่ ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลียผิดปกติ"
-    );
-    insertQ.run("q6", 6,
-      "การนอนหลับที่เพียงพอสำหรับผู้ใหญ่คือกี่ชั่วโมงต่อคืน?",
-      "4 – 5 ชั่วโมง", "5 – 6 ชั่วโมง", "7 – 9 ชั่วโมง", "10 – 12 ชั่วโมง",
-      "C", "ผู้ใหญ่ควรนอนหลับ 7–9 ชั่วโมงต่อคืนเพื่อสุขภาพที่ดี"
-    );
-    insertQ.run("q7", 7,
-      "วิตามินดีได้รับจากแหล่งใดเป็นหลัก?",
-      "อาหารทะเล", "แสงแดด", "ผักใบเขียว", "นม",
-      "B", "ร่างกายสังเคราะห์วิตามินดีได้จากแสงแดด"
-    );
-    insertQ.run("q8", 8,
-      "ค่าดัชนีมวลกาย (BMI) ปกติสำหรับผู้ใหญ่คือเท่าใด?",
-      "น้อยกว่า 15", "15 – 17.9", "18.5 – 24.9", "25 – 30",
-      "C", "BMI ปกติอยู่ที่ 18.5 – 24.9 กก./ม²"
-    );
-    insertQ.run("q9", 9,
-      "การล้างมือที่ถูกวิธีควรใช้เวลานานเท่าใด?",
-      "5 วินาที", "10 วินาที", "20 วินาที", "1 นาที",
-      "C", "ควรล้างมือนาน 20 วินาที หรือร้องเพลงวันเกิดสองรอบ"
-    );
-    insertQ.run("q10", 10,
-      "ข้อใดเป็นสัญญาณเตือนของโรคหลอดเลือดสมอง (Stroke)?",
-      "ปวดท้องและคลื่นไส้", "ใบหน้าเบี้ยว แขนอ่อนแรง และพูดไม่ชัด",
-      "ผื่นคันตามผิวหนัง", "ไอเรื้อรังและเจ็บหน้าอก",
-      "B", "F.A.S.T.: ใบหน้า (Face) แขน (Arms) การพูด (Speech) และเวลา (Time)"
-    );
-    insertQ.run("q11", 11,
-      "ธาตุเหล็กพบมากในอาหารประเภทใด?",
-      "ข้าวและแป้ง", "เนื้อสัตว์สีแดงและผักใบเขียวเข้ม", "ผลไม้รสหวาน", "นมและผลิตภัณฑ์นม",
-      "B", "ธาตุเหล็กพบมากในเนื้อสัตว์สีแดง ตับ และผักใบเขียวเข้ม เช่น ผักโขม"
-    );
-    insertQ.run("q12", 12,
-      "ความดันโลหิตปกติสำหรับผู้ใหญ่ควรอยู่ที่เท่าใด?",
-      "น้อยกว่า 80/50 มม.ปรอท", "120/80 มม.ปรอท หรือต่ำกว่า",
-      "140/90 มม.ปรอท", "160/100 มม.ปรอท",
-      "B", "ความดันโลหิตปกติอยู่ที่ 120/80 มม.ปรอทหรือต่ำกว่า"
-    );
-    insertQ.run("q13", 13,
-      "การสูบบุหรี่เพิ่มความเสี่ยงต่อโรคใดมากที่สุด?",
-      "โรคผิวหนัง", "โรคปอดและโรคหัวใจ", "โรคข้อเข่าเสื่อม", "โรคกระดูกพรุน",
-      "B", "การสูบบุหรี่เป็นปัจจัยเสี่ยงหลักของมะเร็งปอด โรคปอดอุดกั้นเรื้อรัง และโรคหัวใจ"
-    );
-  });
-
-  seedQuiz();
-}
-
 const NARRATOR_IMG = "/images/chapter-speaker-narrator-transparent.svg";
 
-// Backfill speaker_image_url for any scenes that are still missing their avatar.
-db.prepare(
-  "UPDATE chapter_scenes SET speaker_image_url = ? WHERE speaker_name = 'ชื่อตัวละคร' AND speaker_image_url IS NULL"
-).run(CHAR_IMG);
-db.prepare(
-  "UPDATE chapter_scenes SET speaker_image_url = ? WHERE speaker_name = 'ผู้บรรยาย' AND speaker_image_url IS NULL"
-).run(NARRATOR_IMG);
+export interface UserDoc {
+  id: string;
+  name: string;
+  tel: string;
+  password_hash: string;
+  character_name: string;
+  gender: "male" | "female";
+  created_at: string;
+  updated_at: string;
+}
 
-export default db;
+export interface ChapterDoc {
+  id: number;
+  title: string;
+  intro_title: string;
+  background_image_url?: string | null;
+  lock_state: "unlocked" | "locked";
+  sort_order: number;
+}
+
+export interface ChapterSceneDoc {
+  id: string;
+  chapter_id: number;
+  idx: number;
+  speaker_name: string;
+  speaker_image_url?: string | null;
+  text: string;
+}
+
+export interface ChapterProgressDoc {
+  user_id: string;
+  chapter_id: number;
+  progress: "not-started" | "in-progress" | "completed";
+}
+
+export interface HabitActivityDoc {
+  id: string;
+  user_id: string;
+  category: "medicine" | "nutrition" | "physical";
+  physical_category?: string | null;
+  name: string;
+  name_normalized: string;
+  icon_color?: string | null;
+  schedule_json: string;
+  meal_relation?: "before" | "after" | null;
+  meal_slots_json?: string | null;
+  created_at: string;
+  updated_at: string;
+  archived: boolean;
+}
+
+export interface HabitOccurrenceDoc {
+  id: string;
+  activity_id: string;
+  date: string;
+  status: "pending" | "done" | "skipped";
+  completed_at?: string | null;
+}
+
+export interface QuizQuestionDoc {
+  id: string;
+  number: number;
+  text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: "A" | "B" | "C" | "D";
+  explanation?: string | null;
+}
+
+export interface QuizAttemptDoc {
+  id: string;
+  user_id: string;
+  quiz_id: string;
+  started_at: string;
+  completed_at: string;
+  score_points: number;
+  score_correct: number;
+  answers_json: string;
+}
+
+export interface MedicineCheckinDoc {
+  id: string;
+  occurrence_id: string;
+  medicine_name: string;
+  meal_relation: string;
+  meal_slots_json: string;
+  side_effects_json: string;
+  created_at: string;
+}
+
+export interface NutritionCheckinDoc {
+  id: string;
+  occurrence_id: string;
+  activity_name: string;
+  breakfast: string;
+  lunch: string;
+  dinner: string;
+  created_at: string;
+}
+
+export interface SymptomsCheckinDoc {
+  id: string;
+  occurrence_id: string;
+  items_json: string;
+  created_at: string;
+}
+
+export interface MoodCheckinDoc {
+  id: string;
+  occurrence_id: string;
+  mood: string;
+  slider_value: number;
+  created_at: string;
+}
+
+interface MemoryStore {
+  users: UserDoc[];
+  chapters: ChapterDoc[];
+  chapterScenes: ChapterSceneDoc[];
+  chapterProgress: ChapterProgressDoc[];
+  habitActivities: HabitActivityDoc[];
+  habitOccurrences: HabitOccurrenceDoc[];
+  quizQuestions: QuizQuestionDoc[];
+  quizAttempts: QuizAttemptDoc[];
+  medicineCheckins: MedicineCheckinDoc[];
+  nutritionCheckins: NutritionCheckinDoc[];
+  symptomsCheckins: SymptomsCheckinDoc[];
+  moodCheckins: MoodCheckinDoc[];
+}
+
+const CHAPTERS: ChapterDoc[] = [
+  { id: 1, title: "บทที่ 1: เริ่มต้นการเดินทาง", intro_title: "บทบรรยาย", lock_state: "unlocked", sort_order: 1 },
+  { id: 2, title: "บทที่ 2: การเรียนรู้", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 2 },
+  { id: 3, title: "บทที่ 3: ความท้าทาย", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 3 },
+  { id: 4, title: "บทที่ 4: การเติบโต", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 4 },
+  { id: 5, title: "บทที่ 5: บทสรุป", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 5 },
+];
+
+const CHAPTER_SCENES: ChapterSceneDoc[] = [
+  { id: "c1s0", chapter_id: 1, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน" },
+  { id: "c1s1", chapter_id: 1, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ" },
+  { id: "c1s2", chapter_id: 1, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้" },
+  { id: "c1s3", chapter_id: 1, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน" },
+  { id: "c1s4", chapter_id: 1, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้" },
+  { id: "c2s0", chapter_id: 2, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร" },
+  { id: "c2s1", chapter_id: 2, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?" },
+  { id: "c2s2", chapter_id: 2, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ" },
+  { id: "c2s3", chapter_id: 2, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน" },
+  { id: "c2s4", chapter_id: 2, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด" },
+  { id: "c3s0", chapter_id: 3, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต" },
+  { id: "c3s1", chapter_id: 3, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย" },
+  { id: "c3s2", chapter_id: 3, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่" },
+  { id: "c3s3", chapter_id: 3, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร" },
+  { id: "c3s4", chapter_id: 3, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง" },
+  { id: "c4s0", chapter_id: 4, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น" },
+  { id: "c4s1", chapter_id: 4, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย" },
+  { id: "c4s2", chapter_id: 4, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม" },
+  { id: "c4s3", chapter_id: 4, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง" },
+  { id: "c4s4", chapter_id: 4, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป" },
+  { id: "c5s0", chapter_id: 5, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน" },
+  { id: "c5s1", chapter_id: 5, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้" },
+  { id: "c5s2", chapter_id: 5, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว" },
+  { id: "c5s3", chapter_id: 5, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง" },
+  { id: "c5s4", chapter_id: 5, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้" },
+];
+
+const QUIZ_QUESTIONS: QuizQuestionDoc[] = [
+  { id: "q1", number: 1, text: "ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใดเพื่อป้องกันผิวหนังจากแสงยูวี?", option_a: "06:00 – 09:00 น.", option_b: "10:00 – 16:00 น.", option_c: "16:00 – 18:00 น.", option_d: "18:00 – 20:00 น.", correct_answer: "B", explanation: "แสงยูวีจะรุนแรงที่สุดในช่วง 10:00 – 16:00 น." },
+  { id: "q2", number: 2, text: "อาหารประเภทใดมีประโยชน์ต่อสุขภาพหัวใจมากที่สุด?", option_a: "อาหารทอดและไขมันสูง", option_b: "ผักและผลไม้สด", option_c: "ขนมหวานและน้ำตาล", option_d: "เครื่องดื่มแอลกอฮอล์", correct_answer: "B", explanation: "ผักและผลไม้สดมีวิตามิน แร่ธาตุ และเส้นใยอาหารที่ดีต่อหัวใจ" },
+  { id: "q3", number: 3, text: "ควรออกกำลังกายอย่างน้อยกี่นาทีต่อวันสำหรับผู้ใหญ่ที่มีสุขภาพดี?", option_a: "10 นาที", option_b: "20 นาที", option_c: "30 นาที", option_d: "60 นาที", correct_answer: "C", explanation: "WHO แนะนำให้ออกกำลังกายระดับปานกลางอย่างน้อย 30 นาทีต่อวัน" },
+  { id: "q4", number: 4, text: "น้ำดื่มที่ร่างกายต้องการต่อวันโดยประมาณเท่าไร?", option_a: "500 มล.", option_b: "1 ลิตร", option_c: "1.5 – 2 ลิตร", option_d: "3 ลิตร", correct_answer: "C", explanation: "ร่างกายต้องการน้ำ 1.5–2 ลิตรต่อวัน หรือประมาณ 8 แก้ว" },
+  { id: "q5", number: 5, text: "ข้อใดเป็นอาการเตือนของโรคเบาหวาน?", option_a: "ปวดหัว และไข้", option_b: "ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลีย", option_c: "ปวดข้อและผิวหนังอักเสบ", option_d: "ไอและเจ็บคอ", correct_answer: "B", explanation: "อาการของโรคเบาหวาน ได้แก่ ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลียผิดปกติ" },
+  { id: "q6", number: 6, text: "การนอนหลับที่เพียงพอสำหรับผู้ใหญ่คือกี่ชั่วโมงต่อคืน?", option_a: "4 – 5 ชั่วโมง", option_b: "5 – 6 ชั่วโมง", option_c: "7 – 9 ชั่วโมง", option_d: "10 – 12 ชั่วโมง", correct_answer: "C", explanation: "ผู้ใหญ่ควรนอนหลับ 7–9 ชั่วโมงต่อคืนเพื่อสุขภาพที่ดี" },
+  { id: "q7", number: 7, text: "วิตามินดีได้รับจากแหล่งใดเป็นหลัก?", option_a: "อาหารทะเล", option_b: "แสงแดด", option_c: "ผักใบเขียว", option_d: "นม", correct_answer: "B", explanation: "ร่างกายสังเคราะห์วิตามินดีได้จากแสงแดด" },
+  { id: "q8", number: 8, text: "ค่าดัชนีมวลกาย (BMI) ปกติสำหรับผู้ใหญ่คือเท่าใด?", option_a: "น้อยกว่า 15", option_b: "15 – 17.9", option_c: "18.5 – 24.9", option_d: "25 – 30", correct_answer: "C", explanation: "BMI ปกติอยู่ที่ 18.5 – 24.9 กก./ม²" },
+  { id: "q9", number: 9, text: "การล้างมือที่ถูกวิธีควรใช้เวลานานเท่าใด?", option_a: "5 วินาที", option_b: "10 วินาที", option_c: "20 วินาที", option_d: "1 นาที", correct_answer: "C", explanation: "ควรล้างมือนาน 20 วินาที หรือร้องเพลงวันเกิดสองรอบ" },
+  { id: "q10", number: 10, text: "ข้อใดเป็นสัญญาณเตือนของโรคหลอดเลือดสมอง (Stroke)?", option_a: "ปวดท้องและคลื่นไส้", option_b: "ใบหน้าเบี้ยว แขนอ่อนแรง และพูดไม่ชัด", option_c: "ผื่นคันตามผิวหนัง", option_d: "ไอเรื้อรังและเจ็บหน้าอก", correct_answer: "B", explanation: "F.A.S.T.: ใบหน้า (Face) แขน (Arms) การพูด (Speech) และเวลา (Time)" },
+  { id: "q11", number: 11, text: "ธาตุเหล็กพบมากในอาหารประเภทใด?", option_a: "ข้าวและแป้ง", option_b: "เนื้อสัตว์สีแดงและผักใบเขียวเข้ม", option_c: "ผลไม้รสหวาน", option_d: "นมและผลิตภัณฑ์นม", correct_answer: "B", explanation: "ธาตุเหล็กพบมากในเนื้อสัตว์สีแดง ตับ และผักใบเขียวเข้ม เช่น ผักโขม" },
+  { id: "q12", number: 12, text: "ความดันโลหิตปกติสำหรับผู้ใหญ่ควรอยู่ที่เท่าใด?", option_a: "น้อยกว่า 80/50 มม.ปรอท", option_b: "120/80 มม.ปรอท หรือต่ำกว่า", option_c: "140/90 มม.ปรอท", option_d: "160/100 มม.ปรอท", correct_answer: "B", explanation: "ความดันโลหิตปกติอยู่ที่ 120/80 มม.ปรอทหรือต่ำกว่า" },
+  { id: "q13", number: 13, text: "การสูบบุหรี่เพิ่มความเสี่ยงต่อโรคใดมากที่สุด?", option_a: "โรคผิวหนัง", option_b: "โรคปอดและโรคหัวใจ", option_c: "โรคข้อเข่าเสื่อม", option_d: "โรคกระดูกพรุน", correct_answer: "B", explanation: "การสูบบุหรี่เป็นปัจจัยเสี่ยงหลักของมะเร็งปอด โรคปอดอุดกั้นเรื้อรัง และโรคหัวใจ" },
+];
+
+let initialized = false;
+let mongoClient: MongoClient | null = null;
+let mongoDb: Db | null = null;
+let memoryStore: MemoryStore = createSeededMemoryStore();
+
+function createSeededMemoryStore(): MemoryStore {
+  return {
+    users: [],
+    chapters: CHAPTERS.map((chapter) => ({ ...chapter })),
+    chapterScenes: CHAPTER_SCENES.map((scene) => ({ ...scene })),
+    chapterProgress: [],
+    habitActivities: [],
+    habitOccurrences: [],
+    quizQuestions: QUIZ_QUESTIONS.map((question) => ({ ...question })),
+    quizAttempts: [],
+    medicineCheckins: [],
+    nutritionCheckins: [],
+    symptomsCheckins: [],
+    moodCheckins: [],
+  };
+}
+
+function getRequiredEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`[story-diary] Missing required environment variable ${name}`);
+  }
+  return value;
+}
+
+function getMongoDatabaseName(): string {
+  return process.env.MONGODB_DB_NAME?.trim() || "story-diary";
+}
+
+function buildMongoUri(): string {
+  const explicitUri = process.env.MONGODB_URI?.trim();
+  if (explicitUri) {
+    return explicitUri;
+  }
+
+  const username = encodeURIComponent(getRequiredEnv("MONGODB_USERNAME"));
+  const password = encodeURIComponent(getRequiredEnv("MONGODB_PASSWORD"));
+  const host = process.env.MONGODB_CLUSTER_HOST?.trim() || "cluster0.563g7gd.mongodb.net";
+  const query = process.env.MONGODB_QUERY?.trim() || "retryWrites=true&w=majority&appName=Cluster0";
+  const dbName = encodeURIComponent(getMongoDatabaseName());
+
+  return `mongodb+srv://${username}:${password}@${host}/${dbName}?${query}`;
+}
+
+function requireMongoDb(): Db {
+  if (!mongoDb) {
+    throw new Error("[story-diary] Database has not been initialized");
+  }
+  return mongoDb;
+}
+
+function usersCollection() {
+  return requireMongoDb().collection<UserDoc>("users");
+}
+
+function chaptersCollection() {
+  return requireMongoDb().collection<ChapterDoc>("chapters");
+}
+
+function chapterScenesCollection() {
+  return requireMongoDb().collection<ChapterSceneDoc>("chapter_scenes");
+}
+
+function chapterProgressCollection() {
+  return requireMongoDb().collection<ChapterProgressDoc>("user_chapter_progress");
+}
+
+function habitActivitiesCollection() {
+  return requireMongoDb().collection<HabitActivityDoc>("habit_activities");
+}
+
+function habitOccurrencesCollection() {
+  return requireMongoDb().collection<HabitOccurrenceDoc>("habit_occurrences");
+}
+
+function quizQuestionsCollection() {
+  return requireMongoDb().collection<QuizQuestionDoc>("quiz_questions");
+}
+
+function quizAttemptsCollection() {
+  return requireMongoDb().collection<QuizAttemptDoc>("quiz_attempts");
+}
+
+function medicineCheckinsCollection() {
+  return requireMongoDb().collection<MedicineCheckinDoc>("medicine_checkins");
+}
+
+function nutritionCheckinsCollection() {
+  return requireMongoDb().collection<NutritionCheckinDoc>("nutrition_checkins");
+}
+
+function symptomsCheckinsCollection() {
+  return requireMongoDb().collection<SymptomsCheckinDoc>("symptoms_checkins");
+}
+
+function moodCheckinsCollection() {
+  return requireMongoDb().collection<MoodCheckinDoc>("mood_checkins");
+}
+
+async function ensureMongoIndexes(): Promise<void> {
+  await Promise.all([
+    usersCollection().createIndex({ id: 1 }, { unique: true }),
+    usersCollection().createIndex({ tel: 1 }, { unique: true }),
+    chaptersCollection().createIndex({ id: 1 }, { unique: true }),
+    chapterScenesCollection().createIndex({ id: 1 }, { unique: true }),
+    chapterScenesCollection().createIndex({ chapter_id: 1, idx: 1 }, { unique: true }),
+    chapterProgressCollection().createIndex({ user_id: 1, chapter_id: 1 }, { unique: true }),
+    habitActivitiesCollection().createIndex({ id: 1 }, { unique: true }),
+    habitActivitiesCollection().createIndex({ user_id: 1, name_normalized: 1, archived: 1 }),
+    habitOccurrencesCollection().createIndex({ id: 1 }, { unique: true }),
+    habitOccurrencesCollection().createIndex({ activity_id: 1, date: 1 }, { unique: true }),
+    quizQuestionsCollection().createIndex({ id: 1 }, { unique: true }),
+    quizQuestionsCollection().createIndex({ number: 1 }, { unique: true }),
+    quizAttemptsCollection().createIndex({ id: 1 }, { unique: true }),
+    medicineCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+    nutritionCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+    symptomsCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+    moodCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+  ]);
+}
+
+async function seedMongoReferenceData(): Promise<void> {
+  await Promise.all([
+    chaptersCollection().bulkWrite(
+      CHAPTERS.map((chapter) => ({
+        replaceOne: {
+          filter: { id: chapter.id },
+          replacement: chapter,
+          upsert: true,
+        },
+      }))
+    ),
+    chapterScenesCollection().bulkWrite(
+      CHAPTER_SCENES.map((scene) => ({
+        replaceOne: {
+          filter: { id: scene.id },
+          replacement: scene,
+          upsert: true,
+        },
+      }))
+    ),
+    quizQuestionsCollection().bulkWrite(
+      QUIZ_QUESTIONS.map((question) => ({
+        replaceOne: {
+          filter: { id: question.id },
+          replacement: question,
+          upsert: true,
+        },
+      }))
+    ),
+  ]);
+}
+
+export async function initializeDatabase(): Promise<void> {
+  if (initialized) {
+    return;
+  }
+
+  if (mode === "memory") {
+    memoryStore = createSeededMemoryStore();
+    initialized = true;
+    return;
+  }
+
+  mongoClient = new MongoClient(buildMongoUri(), {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  });
+
+  await mongoClient.connect();
+  mongoDb = mongoClient.db(getMongoDatabaseName());
+  await ensureMongoIndexes();
+  await seedMongoReferenceData();
+  initialized = true;
+}
+
+export async function closeDatabase(): Promise<void> {
+  if (mongoClient) {
+    await mongoClient.close();
+  }
+  mongoClient = null;
+  mongoDb = null;
+  initialized = false;
+}
+
+export function clearTestData(): void {
+  memoryStore = createSeededMemoryStore();
+  initialized = true;
+}
+
+export async function clearUserDataForTesting(): Promise<void> {
+  if (mode === "memory") {
+    memoryStore.users = [];
+    memoryStore.chapterProgress = [];
+    memoryStore.habitActivities = [];
+    memoryStore.habitOccurrences = [];
+    memoryStore.quizAttempts = [];
+    memoryStore.medicineCheckins = [];
+    memoryStore.nutritionCheckins = [];
+    memoryStore.symptomsCheckins = [];
+    memoryStore.moodCheckins = [];
+    return;
+  }
+  const db = requireMongoDb();
+  await Promise.all([
+    db.collection("users").deleteMany({}),
+    db.collection("user_chapter_progress").deleteMany({}),
+    db.collection("habit_activities").deleteMany({}),
+    db.collection("habit_occurrences").deleteMany({}),
+    db.collection("quiz_attempts").deleteMany({}),
+    db.collection("medicine_checkins").deleteMany({}),
+    db.collection("nutrition_checkins").deleteMany({}),
+    db.collection("symptoms_checkins").deleteMany({}),
+    db.collection("mood_checkins").deleteMany({}),
+  ]);
+}
+
+export async function findUserByTel(tel: string): Promise<UserDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.users.find((user) => user.tel === tel);
+  }
+  return (await usersCollection().findOne({ tel })) ?? undefined;
+}
+
+export async function findUserById(id: string): Promise<UserDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.users.find((user) => user.id === id);
+  }
+  return (await usersCollection().findOne({ id })) ?? undefined;
+}
+
+export async function findUserByTelExcludingId(tel: string, excludedId: string): Promise<UserDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.users.find((user) => user.tel === tel && user.id !== excludedId);
+  }
+  return (await usersCollection().findOne({ tel, id: { $ne: excludedId } })) ?? undefined;
+}
+
+export async function insertUser(user: UserDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.users.push({ ...user });
+    return;
+  }
+  await usersCollection().insertOne(user);
+}
+
+export async function updateUserDoc(id: string, patch: Partial<UserDoc>): Promise<UserDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.users.findIndex((user) => user.id === id);
+    if (index === -1) {
+      return undefined;
+    }
+    memoryStore.users[index] = { ...memoryStore.users[index], ...patch };
+    return memoryStore.users[index];
+  }
+  const result = await usersCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function listChaptersDocs(): Promise<ChapterDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return [...memoryStore.chapters].sort((a, b) => a.sort_order - b.sort_order);
+  }
+  return chaptersCollection().find({}, { sort: { sort_order: 1 } }).toArray();
+}
+
+export async function findChapterById(chapterId: number): Promise<ChapterDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.chapters.find((chapter) => chapter.id === chapterId);
+  }
+  return (await chaptersCollection().findOne({ id: chapterId })) ?? undefined;
+}
+
+export async function listChapterScenesByChapterId(chapterId: number): Promise<ChapterSceneDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.chapterScenes
+      .filter((scene) => scene.chapter_id === chapterId)
+      .sort((a, b) => a.idx - b.idx);
+  }
+  return chapterScenesCollection().find({ chapter_id: chapterId }, { sort: { idx: 1 } }).toArray();
+}
+
+export async function getChapterProgressDoc(userId: string, chapterId: number): Promise<ChapterProgressDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.chapterProgress.find((progress) => progress.user_id === userId && progress.chapter_id === chapterId);
+  }
+  return (await chapterProgressCollection().findOne({ user_id: userId, chapter_id: chapterId })) ?? undefined;
+}
+
+export async function upsertChapterProgress(userId: string, chapterId: number, progress: ChapterProgressDoc["progress"]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.chapterProgress.findIndex((row) => row.user_id === userId && row.chapter_id === chapterId);
+    const nextRow: ChapterProgressDoc = { user_id: userId, chapter_id: chapterId, progress };
+    if (index === -1) {
+      memoryStore.chapterProgress.push(nextRow);
+    } else {
+      memoryStore.chapterProgress[index] = nextRow;
+    }
+    return;
+  }
+  await chapterProgressCollection().updateOne(
+    { user_id: userId, chapter_id: chapterId },
+    { $set: { progress } },
+    { upsert: true }
+  );
+}
+
+export async function listHabitActivitiesByUser(userId: string, options?: { includeArchived?: boolean }): Promise<HabitActivityDoc[]> {
+  await initializeDatabase();
+  const includeArchived = options?.includeArchived ?? false;
+
+  if (mode === "memory") {
+    return memoryStore.habitActivities
+      .filter((activity) => activity.user_id === userId && (includeArchived || !activity.archived))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }
+
+  const filter: Partial<HabitActivityDoc> = { user_id: userId };
+  if (!includeArchived) {
+    filter.archived = false;
+  }
+
+  return habitActivitiesCollection().find(filter, { sort: { created_at: 1 } }).toArray();
+}
+
+export async function findHabitActivityById(activityId: string): Promise<HabitActivityDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitActivities.find((activity) => activity.id === activityId);
+  }
+  return (await habitActivitiesCollection().findOne({ id: activityId })) ?? undefined;
+}
+
+export async function findHabitActivityByIdForUser(activityId: string, userId: string): Promise<HabitActivityDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitActivities.find((activity) => activity.id === activityId && activity.user_id === userId);
+  }
+  return (await habitActivitiesCollection().findOne({ id: activityId, user_id: userId })) ?? undefined;
+}
+
+export async function findHabitActivityConflictByName(userId: string, normalizedName: string, excludeId?: string): Promise<HabitActivityDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitActivities.find((activity) => activity.user_id === userId && !activity.archived && activity.name_normalized === normalizedName && activity.id !== excludeId);
+  }
+  const filter: Record<string, unknown> = { user_id: userId, archived: false, name_normalized: normalizedName };
+  if (excludeId) {
+    filter.id = { $ne: excludeId };
+  }
+  return (await habitActivitiesCollection().findOne(filter)) ?? undefined;
+}
+
+export async function insertHabitActivity(activity: HabitActivityDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.habitActivities.push({ ...activity });
+    return;
+  }
+  await habitActivitiesCollection().insertOne(activity);
+}
+
+export async function updateHabitActivity(activityId: string, patch: Partial<HabitActivityDoc>): Promise<HabitActivityDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.habitActivities.findIndex((activity) => activity.id === activityId);
+    if (index === -1) {
+      return undefined;
+    }
+    memoryStore.habitActivities[index] = { ...memoryStore.habitActivities[index], ...patch };
+    return memoryStore.habitActivities[index];
+  }
+  const result = await habitActivitiesCollection().findOneAndUpdate(
+    { id: activityId },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function findOccurrenceByActivityAndDate(activityId: string, date: string): Promise<HabitOccurrenceDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitOccurrences.find((occurrence) => occurrence.activity_id === activityId && occurrence.date === date);
+  }
+  return (await habitOccurrencesCollection().findOne({ activity_id: activityId, date })) ?? undefined;
+}
+
+export async function insertOccurrence(occurrence: HabitOccurrenceDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.habitOccurrences.push({ ...occurrence });
+    return;
+  }
+  await habitOccurrencesCollection().insertOne(occurrence);
+}
+
+export async function upsertPendingOccurrence(occurrence: HabitOccurrenceDoc): Promise<HabitOccurrenceDoc> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const existing = memoryStore.habitOccurrences.find((row) => row.activity_id === occurrence.activity_id && row.date === occurrence.date);
+    if (existing) {
+      return existing;
+    }
+    memoryStore.habitOccurrences.push({ ...occurrence });
+    return occurrence;
+  }
+  await habitOccurrencesCollection().updateOne(
+    { activity_id: occurrence.activity_id, date: occurrence.date },
+    {
+      $setOnInsert: occurrence,
+    },
+    { upsert: true }
+  );
+  const saved = await findOccurrenceByActivityAndDate(occurrence.activity_id, occurrence.date);
+  if (!saved) {
+    throw new Error("[story-diary] Failed to upsert habit occurrence");
+  }
+  return saved;
+}
+
+export async function findOccurrenceById(occurrenceId: string): Promise<HabitOccurrenceDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitOccurrences.find((occurrence) => occurrence.id === occurrenceId);
+  }
+  return (await habitOccurrencesCollection().findOne({ id: occurrenceId })) ?? undefined;
+}
+
+export async function updateOccurrence(occurrenceId: string, patch: Partial<HabitOccurrenceDoc>): Promise<HabitOccurrenceDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.habitOccurrences.findIndex((occurrence) => occurrence.id === occurrenceId);
+    if (index === -1) {
+      return undefined;
+    }
+    memoryStore.habitOccurrences[index] = { ...memoryStore.habitOccurrences[index], ...patch };
+    return memoryStore.habitOccurrences[index];
+  }
+  const result = await habitOccurrencesCollection().findOneAndUpdate(
+    { id: occurrenceId },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function listOccurrencesByActivityAndDateRange(activityId: string, startDate: string, endDate: string): Promise<HabitOccurrenceDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.habitOccurrences
+      .filter((occurrence) => occurrence.activity_id === activityId && occurrence.date >= startDate && occurrence.date <= endDate)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return habitOccurrencesCollection().find(
+    { activity_id: activityId, date: { $gte: startDate, $lte: endDate } },
+    { sort: { date: 1 } }
+  ).toArray();
+}
+
+export async function replaceMedicineCheckin(doc: MedicineCheckinDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.medicineCheckins.findIndex((checkin) => checkin.occurrence_id === doc.occurrence_id);
+    if (index === -1) {
+      memoryStore.medicineCheckins.push({ ...doc });
+    } else {
+      memoryStore.medicineCheckins[index] = { ...doc };
+    }
+    return;
+  }
+  await medicineCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
+}
+
+export async function replaceNutritionCheckin(doc: NutritionCheckinDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.nutritionCheckins.findIndex((checkin) => checkin.occurrence_id === doc.occurrence_id);
+    if (index === -1) {
+      memoryStore.nutritionCheckins.push({ ...doc });
+    } else {
+      memoryStore.nutritionCheckins[index] = { ...doc };
+    }
+    return;
+  }
+  await nutritionCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
+}
+
+export async function replaceSymptomsCheckin(doc: SymptomsCheckinDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.symptomsCheckins.findIndex((checkin) => checkin.occurrence_id === doc.occurrence_id);
+    if (index === -1) {
+      memoryStore.symptomsCheckins.push({ ...doc });
+    } else {
+      memoryStore.symptomsCheckins[index] = { ...doc };
+    }
+    return;
+  }
+  await symptomsCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
+}
+
+export async function replaceMoodCheckin(doc: MoodCheckinDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.moodCheckins.findIndex((checkin) => checkin.occurrence_id === doc.occurrence_id);
+    if (index === -1) {
+      memoryStore.moodCheckins.push({ ...doc });
+    } else {
+      memoryStore.moodCheckins[index] = { ...doc };
+    }
+    return;
+  }
+  await moodCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
+}
+
+export async function listQuizQuestionsDocs(): Promise<QuizQuestionDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return [...memoryStore.quizQuestions].sort((a, b) => a.number - b.number);
+  }
+  return quizQuestionsCollection().find({}, { sort: { number: 1 } }).toArray();
+}
+
+export async function insertQuizAttempt(doc: QuizAttemptDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.quizAttempts.push({ ...doc });
+    return;
+  }
+  await quizAttemptsCollection().insertOne(doc);
+}
