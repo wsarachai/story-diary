@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 story-diary/
 ├── docz/layouts/   # Static HTML wireframe prototypes (design reference only)
 ├── frontend/       # Next.js 16 / React 19 application (active development)
-└── backend/        # Empty — not yet implemented
+└── backend/        # Express 5 API + MongoDB Atlas (active)
 ```
 
 ## Frontend

@@ -66,7 +66,9 @@ export type ApiErrorCode =
     /** Unhandled. Generic message; details only in server logs. */
     | "INTERNAL_ERROR"
     /** POST /api/habits/activities — a non-archived activity with the same name already exists for this user. */
-    | "ACTIVITY_NAME_TAKEN";
+    | "ACTIVITY_NAME_TAKEN"
+    /** GET /api/chapters/:id — chapter id is valid but does not exist in the database. */
+    | "CHAPTER_NOT_FOUND";
 
 /**
  * Per-field validation codes. Used inside `ApiErrorDetail.code` and also by

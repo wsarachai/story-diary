@@ -10,6 +10,7 @@ import {
   selectFeedbackForCurrent,
   selectIsLastQuestion,
   selectQuizPhase,
+  selectCurrentIndex,
   advance,
 } from "@/store/quizSlice";
 import type { AnswerLetter } from "@/types/minigame";
@@ -25,29 +26,29 @@ function FeedbackInner() {
   const feedback = useAppSelector(selectFeedbackForCurrent);
   const isLastQuestion = useAppSelector(selectIsLastQuestion);
   const phase = useAppSelector(selectQuizPhase);
+  const currentIndex = useAppSelector(selectCurrentIndex);
 
   const nParam = searchParams.get("n");
   const nIndex = nParam ? parseInt(nParam, 10) : 0;
 
+  // Use currentIndex from Redux (not nIndex from URL) so the redirect target is
+  // always the question that advance() just moved to, not the old URL value.
   useEffect(() => {
     if (phase === "idle") {
       router.replace("/minigame");
     }
     if (phase === "in-progress") {
-      router.replace(`/minigame/quiz?n=${nIndex}`);
+      router.replace(`/minigame/quiz?n=${currentIndex}`);
     }
     if (phase === "completed") {
       router.replace("/minigame/quiz/score");
     }
-  }, [phase, router, nIndex]);
+  }, [phase, router, currentIndex]);
 
   function handleAdvance() {
     dispatch(advance());
-    if (isLastQuestion) {
-      router.push("/minigame/quiz/score");
-    } else {
-      router.push(`/minigame/quiz?n=${nIndex + 1}`);
-    }
+    // Navigation is driven entirely by the useEffect above so there is no
+    // race between an explicit push and the effect's replace.
   }
 
   if (!question || !feedback) return null;
@@ -63,7 +64,7 @@ function FeedbackInner() {
         <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
           <div className="quiz-progress-row">
             <p className="quiz-counter">
-              บทถดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
             </p>
             <div className="quiz-progress-bar" aria-hidden="true">
               <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
@@ -92,8 +93,8 @@ function FeedbackInner() {
                 letter === feedback.correct
                   ? `ตัวเลือก ${letter} ถูกต้อง`
                   : letter === feedback.selected
-                  ? `ตัวเลือก ${letter} ตอบผิด`
-                  : `ตัวเลือก ${letter}`;
+                    ? `ตัวเลือก ${letter} ตอบผิด`
+                    : `ตัวเลือก ${letter}`;
               return (
                 <div key={letter} className={cls} aria-label={ariaLabel}>
                   <span className="option-letter">{letter}</span>

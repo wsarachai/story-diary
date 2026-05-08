@@ -392,7 +392,7 @@ UI props are listed in **Component Tree**. Domain shapes
 `PeriodSummary`, `MonthlyGoal`, `MonthlyResults`) live in
 `src/types/habit.ts`. UI must not duplicate these.
 
-Assumed API endpoints (full backend spec out of scope):
+API endpoints — see `docs/specs/backend-architecture.md` for the full spec:
 
 ```ts
 // GET /api/habits/today                              → { entries: TodayHabitEntry[] }
@@ -404,8 +404,10 @@ Assumed API endpoints (full backend spec out of scope):
 //   409 if a server-side lock contends; UI reverts.
 ```
 
-When the backend spec lands, add `OCCURRENCE_NOT_FOUND` and
-`OCCURRENCE_LOCKED` to `src/types/error.ts#ApiErrorCode`.
+`OCCURRENCE_NOT_FOUND` and `OCCURRENCE_LOCKED` are not yet emitted as typed codes by
+the backend (the current `habitService.ts` uses `VALIDATION_ERROR` for occurrence
+not-found cases). Add dedicated codes to `src/types/error.ts#ApiErrorCode` once the
+service layer is updated to use them.
 
 ---
 
@@ -563,4 +565,4 @@ Dependencies: 1 unblocks 2; 3 must precede 4; 6 must precede 7+8.
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | `src/types/habit.ts`          | `HabitCategory`, `PhysicalCategory`, `HabitFrequency`, `HabitImportance`, `HabitOccurrenceStatus`, `WeekdayIndex`, `MealSlot`, `MealRelation`, `HabitSchedule`, `HabitActivity`, `HabitOccurrence`, `TodayHabitEntry`, `PeriodSummary`, `MonthlyGoal`, `MonthlyResults` | New file — created in this commit. Also re-used by the authoring spec. |
 | `src/types/navigation.ts`     | `ScreenId`, `AppRoute` (`/habit/...`), `SCREEN_TO_RAIL`, `RAIL_ITEMS`                                                                                                                                                                              | Extended in this commit.                           |
-| `src/types/error.ts`          | (future) `OCCURRENCE_NOT_FOUND`, `OCCURRENCE_LOCKED`                                                                                                                                                                                                 | Add when backend spec lands.                       |
+| `src/types/error.ts`          | (future) `OCCURRENCE_NOT_FOUND`, `OCCURRENCE_LOCKED`                                                                                                                                                                                                 | Not yet emitted by the backend; add when `habitService.ts` uses dedicated codes instead of `VALIDATION_ERROR`. |

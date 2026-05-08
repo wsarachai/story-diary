@@ -111,8 +111,8 @@ export default function ChaptersMenuPage() {
     };
   }, []);
 
-  const leftChapters = summaries.slice(0, 2);
-  const rightChapters = summaries.slice(2);
+  const leftChapters = summaries.filter((s) => s.id % 2 !== 0);
+  const rightChapters = summaries.filter((s) => s.id % 2 === 0);
 
   return (
     <BookShellLayout
@@ -123,13 +123,13 @@ export default function ChaptersMenuPage() {
           <h1 className="chapter-title">เนื้อเรื่อง</h1>
           <div className="chapter-title-rule" aria-hidden="true" />
           <ol className="chapter-list" aria-label="รายการบทฝั่งซ้าย">
-            {leftChapters.map((s) => (
+            {leftChapters.map((s, i) => (
               <ChapterRow
                 key={s.id}
                 id={s.id}
                 title={s.title}
                 isLocked={s.lockState === "locked"}
-                hasLinkLine={s.id === 1}
+                hasLinkLine={i < leftChapters.length - 1}
                 onLockedTap={handleLockedTap}
                 isShaking={shakingId === s.id}
                 showHint={lockHintFor === s.id}
@@ -140,17 +140,22 @@ export default function ChaptersMenuPage() {
       }
       right={
         <div className="chapters-menu-page">
+          {/* Invisible spacer mirrors the left-side title + rule so lists align */}
+          <div aria-hidden="true" style={{ visibility: "hidden" }}>
+            <h1 className="chapter-title">placeholder</h1>
+            <div className="chapter-title-rule" />
+          </div>
           <ol
             className="chapter-list chapter-list-right"
             aria-label="รายการบทฝั่งขวา"
           >
-            {rightChapters.map((s) => (
+            {rightChapters.map((s, i) => (
               <ChapterRow
                 key={s.id}
                 id={s.id}
                 title={s.title}
                 isLocked={s.lockState === "locked"}
-                hasLinkLine={s.id < 5}
+                hasLinkLine={i < rightChapters.length - 1}
                 onLockedTap={handleLockedTap}
                 isShaking={shakingId === s.id}
                 showHint={lockHintFor === s.id}

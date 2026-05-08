@@ -42,9 +42,9 @@ export default function ScorePage() {
         </div>
       }
       right={
-        <div style={{ padding: "7% 8% 7%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "2.4rem", position: "relative" }}>
+        <div style={{ padding: "5% 7% 5%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.4rem", position: "relative" }}>
           {/* Sparkle stars decoration */}
-          <svg style={{ position: "absolute", top: "4%", right: "4%", width: "12rem", pointerEvents: "none" }} viewBox="0 0 220 160" fill="none" aria-hidden="true">
+          <svg style={{ position: "absolute", top: "4%", right: "4%", width: "7rem", pointerEvents: "none" }} viewBox="0 0 220 160" fill="none" aria-hidden="true">
             <g fill="#f5e441">
               <path d="M52 10 L56 42 L88 46 L56 50 L52 82 L48 50 L16 46 L48 42 Z"/>
               <path d="M152 24 L155 45 L176 48 L155 51 L152 72 L149 51 L128 48 L149 45 Z"/>

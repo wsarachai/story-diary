@@ -1,130 +1,113 @@
-/**
- * Auth service — handles register, login, and session-user lookup.
- * All password handling is done here; hashes never leave this module.
- */
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db";
+import {
+    findUserById,
+    findUserByTel,
+    findUserByTelExcludingId,
+    insertUser,
+    updateUserDoc,
+    type UserDoc,
+} from "../db";
 import { Errors } from "../lib/errors";
 import type { UserProfile } from "../../../src/types/user";
 import type { RegisterRequest } from "../../../src/types/auth";
 
 const SALT_ROUNDS = 12;
 
-interface UserRow {
-  id: string;
-  name: string;
-  tel: string;
-  password_hash: string;
-  character_name: string;
-  gender: string;
-  created_at: string;
-  updated_at: string;
-}
-
-function rowToProfile(row: UserRow): UserProfile {
-  return {
-    id: row.id,
-    name: row.name,
-    tel: row.tel,
-    characterName: row.character_name,
-    gender: row.gender as UserProfile["gender"],
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
+function rowToProfile(row: UserDoc): UserProfile {
+    return {
+        id: row.id,
+        name: row.name,
+        tel: row.tel,
+        characterName: row.character_name,
+        gender: row.gender,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+    };
 }
 
 export async function registerUser(input: RegisterRequest): Promise<UserProfile> {
-  // Check phone number uniqueness
-  const tel = input.tel.trim();
-  const existing = db
-    .prepare("SELECT id FROM users WHERE tel = ?")
-    .get(tel) as { id: string } | undefined;
+    const tel = input.tel.trim();
+    const existing = await findUserByTel(tel);
 
-  console.log(`REGISTER ATTEMPT: tel=${tel}, EXISTING: ${existing?.id}`);
+    if (existing) {
+        throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
+    }
 
-  if (existing) {
-    throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
-  }
+    const hash = await bcrypt.hash(input.password, SALT_ROUNDS);
+    const now = new Date().toISOString();
+    const user: UserDoc = {
+        id: uuidv4(),
+        name: input.name.trim(),
+        tel,
+        password_hash: hash,
+        character_name: input.characterName.trim(),
+        gender: input.gender,
+        created_at: now,
+        updated_at: now,
+    };
 
-  const hash = await bcrypt.hash(input.password, SALT_ROUNDS);
-  const now = new Date().toISOString();
-  const id = uuidv4();
-
-  db.prepare(
-    `INSERT INTO users (id, name, tel, password_hash, character_name, gender, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, input.name.trim(), tel, hash, input.characterName.trim(), input.gender, now, now);
-
-  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow;
-  return rowToProfile(row);
+    await insertUser(user);
+    return rowToProfile(user);
 }
 
 export async function loginUser(username: string, password: string): Promise<UserProfile> {
-  // Login by phone number (tel)
-  const tel = username.trim();
+    const tel = username.trim();
+    const row = await findUserByTel(tel);
 
-  const row = db
-    .prepare("SELECT * FROM users WHERE tel = ?")
-    .get(tel) as UserRow | undefined;
+    if (!row) {
+        throw Errors.invalidCredentials();
+    }
 
-  if (!row) {
-    throw Errors.invalidCredentials();
-  }
+    const match = await bcrypt.compare(password, row.password_hash);
+    if (!match) {
+        throw Errors.invalidCredentials();
+    }
 
-  const match = await bcrypt.compare(password, row.password_hash);
-  if (!match) {
-    throw Errors.invalidCredentials();
-  }
-
-  return rowToProfile(row);
+    return rowToProfile(row);
 }
 
-export function getUserById(id: string): UserProfile {
-  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
-  if (!row) {
-    throw Errors.notFound("USER_NOT_FOUND", "User not found");
-  }
-  return rowToProfile(row);
+export async function getUserById(id: string): Promise<UserProfile> {
+    const row = await findUserById(id);
+    if (!row) {
+        throw Errors.notFound("USER_NOT_FOUND", "User not found");
+    }
+    return rowToProfile(row);
 }
 
 export async function updateUser(
-  id: string,
-  patch: Partial<{ name: string; tel: string; characterName: string; gender: string }>
+    id: string,
+    patch: Partial<{ name: string; tel: string; characterName: string; gender: string }>
 ): Promise<UserProfile> {
-  const row = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow | undefined;
-  if (!row) {
-    throw Errors.notFound("USER_NOT_FOUND", "User not found");
-  }
-
-  if (patch.tel) {
-    const conflict = db
-      .prepare("SELECT id FROM users WHERE tel = ? AND id != ?")
-      .get(patch.tel.trim(), id) as { id: string } | undefined;
-    if (conflict) {
-      throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
+    const row = await findUserById(id);
+    if (!row) {
+        throw Errors.notFound("USER_NOT_FOUND", "User not found");
     }
-  }
 
-  const now = new Date().toISOString();
-  const updates: string[] = [];
-  const values: unknown[] = [];
+    if (patch.tel) {
+        const conflict = await findUserByTelExcludingId(patch.tel.trim(), id);
+        if (conflict) {
+            throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
+        }
+    }
 
-  if (patch.name !== undefined) { updates.push("name = ?"); values.push(patch.name.trim()); }
-  if (patch.tel !== undefined) { updates.push("tel = ?"); values.push(patch.tel.trim()); }
-  if (patch.characterName !== undefined) { updates.push("character_name = ?"); values.push(patch.characterName.trim()); }
-  if (patch.gender !== undefined) { updates.push("gender = ?"); values.push(patch.gender); }
+    const updates: Partial<UserDoc> = {};
 
-  if (updates.length === 0) {
-    throw Errors.validation("Request body must include at least one updatable field");
-  }
+    if (patch.name !== undefined) updates.name = patch.name.trim();
+    if (patch.tel !== undefined) updates.tel = patch.tel.trim();
+    if (patch.characterName !== undefined) updates.character_name = patch.characterName.trim();
+    if (patch.gender !== undefined) updates.gender = patch.gender as UserDoc["gender"];
 
-  updates.push("updated_at = ?");
-  values.push(now);
-  values.push(id);
+    if (Object.keys(updates).length === 0) {
+        throw Errors.validation("Request body must include at least one updatable field");
+    }
 
-  db.prepare(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`).run(...values);
+    updates.updated_at = new Date().toISOString();
 
-  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(id) as UserRow;
-  return rowToProfile(updated);
+    const updated = await updateUserDoc(id, updates);
+    if (!updated) {
+        throw Errors.notFound("USER_NOT_FOUND", "User not found");
+    }
+
+    return rowToProfile(updated);
 }

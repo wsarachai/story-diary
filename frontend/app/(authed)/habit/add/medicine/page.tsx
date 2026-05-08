@@ -182,7 +182,7 @@ function MedicineFormInner() {
                 aria-label="ยกเลิก"
                 onClick={handleCancel}
               >
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
               <h2 className="create-title" id="create-title">เพิ่มกิจกรรม</h2>
               <button
@@ -193,8 +193,8 @@ function MedicineFormInner() {
                 style={{ borderColor: "#08c65a" }}
               >
                 {saving
-                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" /></svg>
+                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12" /></svg>
                 }
               </button>
             </header>
@@ -217,7 +217,7 @@ function MedicineFormInner() {
                   onClick={() => dialogRef.current?.showModal()}
                   style={{ ["--name-icon-stroke" as string]: form.iconColor }}
                 >
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>
                 </button>
               </div>
               {form.errors.name && <p className="field-error" role="alert">{form.errors.name}</p>}

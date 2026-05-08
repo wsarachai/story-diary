@@ -44,102 +44,6 @@ interface HabitsState {
 
 const today = new Date().toISOString().split("T")[0]!;
 
-const MOCK_ACTIVITIES: Record<string, HabitActivity> = {
-  "act-1": {
-    id: "act-1",
-    category: "medicine",
-    name: "กินยา xxx",
-    schedule: { frequency: "daily", weekdays: [1, 2, 3, 4, 5] },
-    mealRelation: "after",
-    mealSlots: ["breakfast", "dinner"],
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  "act-2": {
-    id: "act-2",
-    category: "nutrition",
-    name: "รับประทานอาหารครบ 5 หมู่",
-    schedule: { frequency: "daily", weekdays: [0, 1, 2, 3, 4, 5, 6] },
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  "act-3": {
-    id: "act-3",
-    category: "physical",
-    physicalCategory: "exercise",
-    name: "ท่าออกกำลังกาย",
-    schedule: { frequency: "daily", weekdays: [0, 1, 2, 3, 4, 5, 6] },
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-  "act-4": {
-    id: "act-4",
-    category: "physical",
-    physicalCategory: "symptoms",
-    name: "สังเกตอาการผิดปกติ",
-    schedule: { frequency: "daily", weekdays: [0, 1, 2, 3, 4, 5, 6] },
-    createdAt: "2026-01-01T00:00:00Z",
-    updatedAt: "2026-01-01T00:00:00Z",
-  },
-};
-
-const MOCK_TODAY_OCCURRENCES: Record<string, HabitOccurrence> = {
-  "act-1": { id: "occ-1", activityId: "act-1", date: today, status: "done" },
-  "act-2": { id: "occ-2", activityId: "act-2", date: today, status: "pending" },
-  "act-3": { id: "occ-3", activityId: "act-3", date: today, status: "pending" },
-  "act-4": { id: "occ-4", activityId: "act-4", date: today, status: "pending" },
-};
-
-const D: HabitOccurrenceStatus = "done";
-const P: HabitOccurrenceStatus = "pending";
-const S: HabitOccurrenceStatus = "skipped";
-
-const MOCK_WEEKLY = {
-  weekStartDate: today,
-  rowsByActivity: {
-    "act-1": [D, D, D, S, D, P, P] as HabitOccurrenceStatus[],
-    "act-2": [D, D, P, D, D, P, P] as HabitOccurrenceStatus[],
-    "act-3": [D, P, D, P, D, P, P] as HabitOccurrenceStatus[],
-    "act-4": [D, D, D, D, D, P, P] as HabitOccurrenceStatus[],
-  },
-  summary: { done: 17, target: 35 },
-};
-
-const MOCK_MONTHLY = {
-  month: today.slice(0, 7),
-  rowsByActivity: {
-    "act-1": Array.from({ length: 31 }, (_, i) =>
-      i < 14 ? (i % 4 === 3 ? S : D) : i === 14 ? P : P
-    ) as HabitOccurrenceStatus[],
-    "act-2": Array.from({ length: 31 }, (_, i) =>
-      i < 14 ? (i % 7 === 6 ? S : D) : i === 14 ? P : P
-    ) as HabitOccurrenceStatus[],
-    "act-3": Array.from({ length: 31 }, (_, i) =>
-      i < 14 ? (i % 2 === 0 ? D : P) : i === 14 ? P : P
-    ) as HabitOccurrenceStatus[],
-    "act-4": Array.from({ length: 31 }, (_, i) =>
-      i < 14 ? D : i === 14 ? P : P
-    ) as HabitOccurrenceStatus[],
-  },
-  summary: { done: 74, target: 120 },
-};
-
-const MOCK_SUMMARY = {
-  goals: [
-    { activityId: "act-1", name: "กินยา xxx", subline: "กิจกรรม · ทุกวัน · สำคัญมาก", progressPercent: 90 },
-    { activityId: "act-2", name: "รับประทานอาหาร 5 หมู่", subline: "โภชนาการ · ทุกวัน · ทั่วไป", progressPercent: 70 },
-    { activityId: "act-3", name: "ท่าออกกำลังกาย", subline: "กิจกรรมทางกาย · ทุกวัน · ทั่วไป", progressPercent: 50 },
-  ],
-  results: {
-    totalDone: 127,
-    target: 155,
-    skipped: 8,
-    fullDays: 11,
-    longestStreak: 9,
-    completionPercent: 72,
-  },
-};
-
 const initialState: HabitsState = {
   activities: {},
   todayByActivity: {},
@@ -161,87 +65,227 @@ const initialState: HabitsState = {
   lastCreatedActivityId: null,
 };
 
-export const fetchToday = createAsyncThunk("habits/fetchToday", async () => {
-  await new Promise((r) => setTimeout(r, 200));
-  return { activities: MOCK_ACTIVITIES, todayByActivity: MOCK_TODAY_OCCURRENCES };
-});
+// ── API response shapes ──────────────────────────────────────────────────
+
+interface WeeklyRowApi {
+  activityId: string;
+  activityName: string;
+  category: string;
+  occurrences: HabitOccurrence[];
+  dates: string[];
+}
+
+interface WeeklyApiResponse {
+  weekStartDate: string;
+  rowsByActivity: WeeklyRowApi[];
+  summary: PeriodSummary;
+}
+
+interface MonthlyRowApi {
+  activityId: string;
+  activityName: string;
+  category: string;
+  occurrences: HabitOccurrence[];
+  dates: string[];
+}
+
+interface MonthlyApiResponse {
+  month: string;
+  rowsByActivity: MonthlyRowApi[];
+  summary: PeriodSummary;
+}
+
+// ── Thunks ───────────────────────────────────────────────────────────────
+
+export const fetchToday = createAsyncThunk(
+  "habits/fetchToday",
+  async () => {
+    const res = await fetch(`/api/habits/today?date=${today}`, { credentials: "include" });
+    if (!res.ok) throw new Error("FETCH_TODAY_FAILED");
+    const data = await res.json() as { entries: TodayHabitEntry[] };
+
+    // Reshape into what the slice state expects
+    const activities: Record<string, HabitActivity> = {};
+    const todayByActivity: Record<string, HabitOccurrence> = {};
+    for (const entry of data.entries) {
+      activities[entry.activity.id] = entry.activity;
+      todayByActivity[entry.activity.id] = entry.occurrence;
+    }
+    return { activities, todayByActivity };
+  }
+);
 
 export const fetchWeekly = createAsyncThunk<
   { weekStartDate: string; rowsByActivity: Record<string, HabitOccurrenceStatus[]>; summary: PeriodSummary }
 >("habits/fetchWeekly", async () => {
-  await new Promise((r) => setTimeout(r, 200));
-  return MOCK_WEEKLY;
+  const res = await fetch("/api/habits/weekly", { credentials: "include" });
+  if (!res.ok) throw new Error("FETCH_WEEKLY_FAILED");
+  const data = await res.json() as WeeklyApiResponse;
+
+  // Convert array of WeeklyRowApi to Record<activityId, HabitOccurrenceStatus[]>
+  const rowsByActivity: Record<string, HabitOccurrenceStatus[]> = {};
+  for (const row of data.rowsByActivity) {
+    rowsByActivity[row.activityId] = row.occurrences.map((o) => o.status);
+  }
+
+  return {
+    weekStartDate: data.weekStartDate,
+    rowsByActivity,
+    summary: data.summary,
+  };
 });
 
 export const fetchMonthly = createAsyncThunk<
   { month: string; rowsByActivity: Record<string, HabitOccurrenceStatus[]>; summary: PeriodSummary }
 >("habits/fetchMonthly", async () => {
-  await new Promise((r) => setTimeout(r, 200));
-  return MOCK_MONTHLY;
+  const month = today.slice(0, 7);
+  const res = await fetch(`/api/habits/monthly?month=${month}`, { credentials: "include" });
+  if (!res.ok) throw new Error("FETCH_MONTHLY_FAILED");
+  const data = await res.json() as MonthlyApiResponse;
+
+  const rowsByActivity: Record<string, HabitOccurrenceStatus[]> = {};
+  for (const row of data.rowsByActivity) {
+    rowsByActivity[row.activityId] = row.occurrences.map((o) => o.status);
+  }
+
+  return {
+    month: data.month,
+    rowsByActivity,
+    summary: data.summary,
+  };
 });
 
 export const fetchMonthlySummary = createAsyncThunk(
   "habits/fetchMonthlySummary",
   async () => {
-    await new Promise((r) => setTimeout(r, 200));
-    return MOCK_SUMMARY;
+    const month = today.slice(0, 7);
+    const res = await fetch(`/api/habits/monthly-summary?month=${month}`, { credentials: "include" });
+    if (!res.ok) throw new Error("FETCH_SUMMARY_FAILED");
+    const data = await res.json() as { goals: MonthlyGoal[]; results: MonthlyResults };
+    return data;
   }
 );
 
 export const toggleOccurrence = createAsyncThunk(
   "habits/toggleOccurrence",
-  async ({ occurrenceId, activityId }: { occurrenceId: string; activityId: string }) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return { occurrenceId, activityId };
+  async (
+    { occurrenceId, activityId }: { occurrenceId: string; activityId: string },
+    { getState }
+  ) => {
+    const state = getState() as HabitsRootState;
+    const occ = state.habits.todayByActivity[activityId];
+    // The optimistic update (pending action) already flipped the status;
+    // getState() here returns the post-flip state — use it as the target.
+    const newStatus: HabitOccurrenceStatus = occ?.status ?? "pending";
+    const res = await fetch(`/api/habits/occurrences/${occurrenceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!res.ok) throw new Error("TOGGLE_FAILED");
+    const data = await res.json() as { occurrence: HabitOccurrence };
+    return { occurrenceId, activityId, occurrence: data.occurrence };
   }
 );
 
 export const createActivity = createAsyncThunk(
   "habits/createActivity",
-  async (activity: Omit<HabitActivity, "id" | "createdAt" | "updatedAt">, { rejectWithValue }) => {
-    await new Promise((r) => setTimeout(r, 400));
-    const newActivity: HabitActivity = {
-      ...activity,
-      id: `act-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    return newActivity;
-    void rejectWithValue; // unused in mock
+  async (
+    activity: Omit<HabitActivity, "id" | "createdAt" | "updatedAt">,
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await fetch("/api/habits/activities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(activity),
+      });
+      const data: unknown = await res.json();
+      if (!res.ok) {
+        return rejectWithValue("SAVE_FAILED");
+      }
+      return (data as { activity: HabitActivity }).activity;
+    } catch {
+      return rejectWithValue("SAVE_FAILED");
+    }
   }
 );
 
 export const saveMedicineCheckin = createAsyncThunk(
   "habits/saveMedicineCheckin",
-  async (checkin: MedicineCheckin) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return checkin.occurrenceId;
+  async (checkin: MedicineCheckin, { rejectWithValue }) => {
+    try {
+      const res = await fetch("/api/habits/checkin/medicine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(checkin),
+      });
+      if (!res.ok) return rejectWithValue("CHECKIN_FAILED");
+      return checkin.occurrenceId;
+    } catch {
+      return rejectWithValue("CHECKIN_FAILED");
+    }
   }
 );
 
 export const saveNutritionCheckin = createAsyncThunk(
   "habits/saveNutritionCheckin",
-  async (checkin: NutritionCheckin) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return checkin.occurrenceId;
+  async (checkin: NutritionCheckin, { rejectWithValue }) => {
+    try {
+      const res = await fetch("/api/habits/checkin/nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(checkin),
+      });
+      if (!res.ok) return rejectWithValue("CHECKIN_FAILED");
+      return checkin.occurrenceId;
+    } catch {
+      return rejectWithValue("CHECKIN_FAILED");
+    }
   }
 );
 
 export const saveSymptomsCheckin = createAsyncThunk(
   "habits/saveSymptomsCheckin",
-  async (checkin: UnusualSymptomsCheckin) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return checkin.occurrenceId;
+  async (checkin: UnusualSymptomsCheckin, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`/api/habits/checkins/symptoms/${checkin.occurrenceId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(checkin),
+      });
+      if (!res.ok) return rejectWithValue("CHECKIN_FAILED");
+      return checkin.occurrenceId;
+    } catch {
+      return rejectWithValue("CHECKIN_FAILED");
+    }
   }
 );
 
 export const saveMoodCheckin = createAsyncThunk(
   "habits/saveMoodCheckin",
-  async (checkin: MoodCheckin) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return checkin.occurrenceId;
+  async (checkin: MoodCheckin, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`/api/habits/checkins/mood/${checkin.occurrenceId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(checkin),
+      });
+      if (!res.ok) return rejectWithValue("CHECKIN_FAILED");
+      return checkin.occurrenceId;
+    } catch {
+      return rejectWithValue("CHECKIN_FAILED");
+    }
   }
 );
+
+// ── Slice ────────────────────────────────────────────────────────────────
 
 const habitsSlice = createSlice({
   name: "habits",
@@ -300,6 +344,7 @@ const habitsSlice = createSlice({
       .addCase(fetchMonthlySummary.rejected, (state) => {
         state.fetchStatus.summary = "error";
       })
+      // Optimistic toggle: flip before the request, revert on failure
       .addCase(toggleOccurrence.pending, (state, action) => {
         const { occurrenceId, activityId } = action.meta.arg;
         state.pendingToggles[occurrenceId] = true;
@@ -309,13 +354,18 @@ const habitsSlice = createSlice({
         }
       })
       .addCase(toggleOccurrence.fulfilled, (state, action) => {
-        const { occurrenceId } = action.payload;
+        const { occurrenceId, activityId, occurrence } = action.payload;
         delete state.pendingToggles[occurrenceId];
+        // Sync with server-confirmed status
+        if (state.todayByActivity[activityId]) {
+          state.todayByActivity[activityId] = occurrence;
+        }
       })
       .addCase(toggleOccurrence.rejected, (state, action) => {
         const { occurrenceId, activityId } = action.meta.arg;
         delete state.pendingToggles[occurrenceId];
         state.toggleErrors[occurrenceId] = "บันทึกไม่สำเร็จ";
+        // Revert optimistic update
         const occ = state.todayByActivity[activityId];
         if (occ) {
           occ.status = occ.status === "done" ? "pending" : "done";
@@ -398,7 +448,7 @@ function getAccent(activity: HabitActivity): `#${string}` {
   if (activity.category === "medicine") return "#57a8db";
   if (activity.category === "nutrition") return "#2eb563";
   const pc = activity.physicalCategory;
-  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51"; // Or `#ee8a4a` if tests fail, but let's keep variants if they exist. Actually let's just make physical return #ee8a4a as base.
+  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
   return "#ee8a4a";
 }
 

@@ -2,7 +2,8 @@
  * Story Diary — Express backend entry point.
  * Listens on port 3001. Session-cookie auth; no JWT.
  */
-import express from "express";
+import "dotenv/config";
+import express, { type Express } from "express";
 import session from "express-session";
 import cors from "cors";
 import "./lib/session"; // session type augmentation (must be early)
@@ -17,10 +18,9 @@ import minigameRouter from "./routes/minigame";
 // Import error handler (must be last middleware)
 import { errorHandler } from "./middleware/errorHandler";
 
-// Initialise DB (runs migrations + seed on first boot)
-import "./db";
+import { initializeDatabase } from "./db";
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -87,8 +87,20 @@ app.use(errorHandler);
 // Start
 // ──────────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`[story-diary] API server listening on http://localhost:${PORT}`);
-});
+async function bootstrap(): Promise<void> {
+  try {
+    await initializeDatabase();
+    app.listen(PORT, () => {
+      console.log(`[story-diary] API server listening on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("[story-diary] Failed to initialize database", error);
+    process.exit(1);
+  }
+}
+
+if (process.env.NODE_ENV !== "test") {
+  void bootstrap();
+}
 
 export default app;

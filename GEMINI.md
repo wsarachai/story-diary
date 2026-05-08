@@ -16,7 +16,7 @@ The project is divided into two main parts: `frontend/` and `backend/`.
 
 ### Backend
 - **Framework:** Express 5.2.1
-- **Database:** SQLite (using `better-sqlite3`)
+- **Database:** MongoDB Atlas (using the official `mongodb` driver v7). In-memory store is used automatically when `NODE_ENV=test`.
 - **Authentication:** Session-based (using `express-session`), cookie-based (no JWT).
 - **Validation:** Zod 4.4.1
 - **Development Tool:** `tsx` for running TypeScript directly.
@@ -80,5 +80,5 @@ The development server will run at `http://localhost:3000`.
 
 ## 📝 Important Notes
 
-- **Backend Status:** The `CLAUDE.md` file may state that the backend is not yet implemented. This is incorrect; the backend is active and contains core logic for users, chapters, habits, and minigames.
-- **Database:** The SQLite database is stored in `backend/data/story-diary.db`. It is automatically initialized with seed data on the first run.
+- **Backend Status:** The backend is active and contains full REST API logic for auth, users, chapters, habits, and minigames.
+- **Database:** MongoDB Atlas. Connection is configured via environment variables in `backend/.env` (see `backend/.env.example`). Reference data (chapters, scenes, quiz questions) is seeded via upsert on every startup. No local database file is used.

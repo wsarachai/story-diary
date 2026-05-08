@@ -6,19 +6,13 @@ interface VideoClipsState {
   status: "idle" | "loading" | "ready" | "error";
 }
 
-const MOCK_COLLECTION: VideoClipsCollection = {
-  badge: "ดาวแห่งการเรียนรู้",
-  clips: [
-    { id: "clip-1", caption: "คลิป 1" },
-    { id: "clip-2", caption: "คลิป 2" },
-  ],
-};
-
 export const fetchCollection = createAsyncThunk(
   "videoClips/fetchCollection",
   async () => {
-    await new Promise((r) => setTimeout(r, 200));
-    return MOCK_COLLECTION;
+    const res = await fetch("/api/video-clips", { credentials: "include" });
+    if (!res.ok) throw new Error("FETCH_CLIPS_FAILED");
+    const data = await res.json() as VideoClipsCollection;
+    return data;
   }
 );
 

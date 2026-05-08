@@ -529,7 +529,7 @@ spec (all already declared in `src/types/habit.ts`):
   `MoodCheckin`, `MoodLevel`, `SymptomCheck`, `NutritionPresetKey`,
   `NUTRITION_PRESETS`.
 
-Assumed API endpoints (full backend spec out of scope):
+API endpoints — see `docs/specs/backend-architecture.md` for the full spec:
 
 ```ts
 // POST /api/habits/activities                              → { activity: HabitActivity }
@@ -710,4 +710,4 @@ Dependencies: 2 unblocks 3,4,11-14; 7 must precede 8; 10 must precede
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `src/types/habit.ts`         | All shapes referenced by this spec are already declared (see preceding spec).                                                                                                                                                                                                                  | No new exports needed for this commit.                                             |
 | `src/types/navigation.ts`    | Adds `/habit/add/...`, `/habit/checkin/...`, `/habit/add/physical/...` routes and the matching ScreenIds.                                                                                                                                                                                      | Updated in this commit.                                                            |
-| `src/types/error.ts`         | (future) `ACTIVITY_NAME_TAKEN`                                                                                                                                                                                                                                                                  | Add when backend spec lands so DS-3 has a typed code.                              |
+| `src/types/error.ts`         | `ACTIVITY_NAME_TAKEN`                                                                                                                                                                                                                                                                           | Already defined and in use — `habitService.ts` throws this on name conflict. See `docs/specs/backend-architecture.md`. |

@@ -81,7 +81,7 @@ function QuizInner() {
         <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
           <div className="quiz-progress-row">
             <p className="quiz-counter">
-              บทถดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
             </p>
             <div className="quiz-progress-bar" aria-hidden="true">
               <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
@@ -133,17 +133,23 @@ function QuizInner() {
         {/* Locked rail (DS-2) */}
         <nav className="icon-rail" aria-label="Main navigation">
           {[
-            { href: "/home", icon: "/icons/home.svg", label: "ไปหน้าแรก" },
-            { href: "/chapters", icon: "/icons/book.svg", label: "ไปหน้าอ่านเนื้อเรื่อง" },
-            { href: "/habit", icon: "/icons/edit.svg", label: "ไปหน้า habit tracker" },
-            { href: "/minigame", icon: "/icons/game.svg", label: "ไปหน้ามินิเกม" },
-          ].map(({ href, icon, label }) => (
+            { href: "/home", icon: "/icons/home.svg", label: "ไปหน้าแรก", activeAccent: "#ff3131" },
+            { href: "/chapters", icon: "/icons/book.svg", label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
+            { href: "/habit", icon: "/icons/edit.svg", label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
+            { href: "/minigame", icon: "/icons/game.svg", label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
+          ].map(({ href, icon, label, activeAccent }) => (
             <button
               key={href}
               className={`icon-rail-link${href === "/minigame" || href.startsWith("/minigame/") ? " is-active" : ""}`}
               aria-label={label}
               onClick={() => handleRailNavigate(href)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                ["--rail-accent" as string]: activeAccent,
+              }}
             >
               <Image src={icon} alt="" width={72} height={72} style={{ display: "block", width: "100%", height: "100%", borderRadius: "0 1.3rem 1.3rem 0" }} />
             </button>
