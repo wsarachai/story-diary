@@ -9,11 +9,29 @@
             "cwd": "${workspaceFolder}/frontend"
         },
         {
-            "name": "Frontend: Chrome",
+            "name": "Frontend: Node (Server-side Debug)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "cwd": "${workspaceFolder}/frontend",
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/frontend/node_modules/**"
+            ],
+            "sourceMaps": true,
+            "protocol": "inspector"
+        },
+        {
+            "name": "Frontend: Chrome (Browser Debug)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}/frontend"
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///*": "${webRoot}/*"
+            }
         },
         {
             "name": "Backend: API debug",
@@ -25,11 +43,20 @@
     ],
     "compounds": [
         {
+            "name": "Frontend: Debug (Server + Browser)",
+            "configurations": [
+                "Frontend: Next.js dev",
+                "Frontend: Chrome (Browser Debug)"
+            ],
+            "stopOnEntry": false
+        },
+        {
             "name": "Full Stack: Frontend + Backend",
             "configurations": [
                 "Frontend: Next.js dev",
                 "Backend: API debug"
-            ]
+            ],
+            "stopOnEntry": false
         }
     ]
 }
