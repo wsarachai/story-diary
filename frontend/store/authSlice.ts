@@ -13,7 +13,7 @@ interface AuthState {
 const initialState: AuthState = {
   status: "unknown",
   user: null,
-  token: null,
+  token: typeof window !== "undefined" ? localStorage.getItem("auth_token") : null,
   submitError: null,
 };
 
@@ -26,12 +26,15 @@ export const probeSession = createAsyncThunk<User | null, void, { state: { auth:
   async (_, { getState }) => {
     try {
       const state = getState();
-      const token = state.auth.token;
+      const token = state.auth.token || (typeof window !== "undefined" ? localStorage.getItem("auth_token") : null);
       if (!token) return null;
       const res = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) return null;
+      if (!res.ok) {
+        if (typeof window !== "undefined") localStorage.removeItem("auth_token");
+        return null;
+      }
       const data = await res.json() as { user: User };
       return data.user;
     } catch {
@@ -139,12 +142,14 @@ const authSlice = createSlice({
         state.status = "authenticated";
         state.user = action.payload.user;
         state.token = action.payload.token;
+        if (typeof window !== "undefined") localStorage.setItem("auth_token", action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "unauthenticated";
         state.user = null;
         state.token = null;
         state.submitError = action.payload ?? "INTERNAL_ERROR";
+        if (typeof window !== "undefined") localStorage.removeItem("auth_token");
       })
       // register
       .addCase(register.pending, (state) => {
@@ -155,18 +160,24 @@ const authSlice = createSlice({
         state.status = "authenticated";
         state.user = action.payload.user;
         state.token = action.payload.token;
+        if (typeof window !== "undefined") localStorage.setItem("auth_token", action.payload.token);
       })
       .addCase(register.rejected, (state, action) => {
         state.status = "unauthenticated";
         state.user = null;
         state.token = null;
         state.submitError = action.payload ?? "INTERNAL_ERROR";
+        if (typeof window !== "undefined") localStorage.removeItem("auth_token");
       })
       // logout
-      .addCase(logout.fulfilled, () => ({
-        ...initialState,
-        status: "unauthenticated" as const,
-      }));
+      .addCase(logout.fulfilled, (state) => {
+        if (typeof window !== "undefined") localStorage.removeItem("auth_token");
+        return {
+          ...initialState,
+          status: "unauthenticated" as const,
+          token: null,
+        };
+      });
   },
 });
 

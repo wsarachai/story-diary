@@ -120,7 +120,7 @@ describe("authSlice — login (DS-3: login form states)", () => {
   it("fulfilled → status 'authenticated', user stored", () => {
     const state = reducer(
       undefined,
-      login.fulfilled(MOCK_USER, "req-2", LOGIN_INPUT)
+      login.fulfilled({ user: MOCK_USER, token: "test-token" }, "req-2", LOGIN_INPUT)
     );
     expect(state.status).toBe<AuthStatus>("authenticated");
     expect(state.user).toEqual(MOCK_USER);
@@ -174,7 +174,7 @@ describe("authSlice — register (DS-4: register form states)", () => {
   it("fulfilled → status 'authenticated', user populated", () => {
     const state = reducer(
       undefined,
-      register.fulfilled(MOCK_USER, "req-4", REGISTER_INPUT)
+      register.fulfilled({ user: MOCK_USER, token: "test-token" }, "req-4", REGISTER_INPUT)
     );
     expect(state.status).toBe<AuthStatus>("authenticated");
     expect(state.user).toEqual(MOCK_USER);
@@ -252,7 +252,7 @@ describe("authSlice — selectors", () => {
   it("selectCurrentUser returns the user when authenticated", () => {
     const state = reducer(
       undefined,
-      login.fulfilled(MOCK_USER, "", { username: "x", password: "y" })
+      login.fulfilled({ user: MOCK_USER, token: "test-token" }, "", { username: "x", password: "y" })
     );
     expect(selectCurrentUser(wrapState(state))).toEqual(MOCK_USER);
   });
@@ -263,7 +263,7 @@ describe("authSlice — selectors", () => {
 
     const authed = reducer(
       undefined,
-      login.fulfilled(MOCK_USER, "", { username: "x", password: "y" })
+      login.fulfilled({ user: MOCK_USER, token: "test-token" }, "", { username: "x", password: "y" })
     );
     expect(selectIsAuthed(wrapState(authed))).toBe(true);
   });
