@@ -6,8 +6,6 @@
  * in jest.config.ts; no explicit jest.mock() calls are needed here.
  */
 import express from "express";
-import session from "express-session";
-import "../../src/lib/session"; // session type augmentation
 
 import authRouter from "../../src/routes/auth";
 import usersRouter from "../../src/routes/users";
@@ -21,15 +19,6 @@ export function createTestApp() {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-
-  app.use(
-    session({
-      secret: "test-secret",
-      resave: false,
-      saveUninitialized: false,
-      cookie: { httpOnly: true, secure: false },
-    })
-  );
 
   app.use("/api/auth", authRouter);
   app.use("/api/users", usersRouter);

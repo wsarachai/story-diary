@@ -14,6 +14,7 @@ import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { mongoIt } from "./setup";
 import type { QuizAnswer } from "../../../src/types/minigame";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -57,9 +58,7 @@ const ALL_CORRECT = buildAnswers(ALL_QUESTION_IDS, true);
 const ALL_WRONG = buildAnswers(ALL_QUESTION_IDS, false);
 
 async function loginAgent(tel = VALID_USER.tel) {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/register").send({ ...VALID_USER, tel }).expect(201);
-  return agent;
+  return registerAndAuth(app, { ...VALID_USER, tel });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

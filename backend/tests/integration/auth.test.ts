@@ -14,6 +14,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { mongoIt } from "./setup";
+import { createAuthClient, registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -22,7 +23,7 @@ const VALID_REGISTER = {
   tel: "0812345678",
   password: "password123",
   characterName: "ตัวละคร",
-  gender: "female",
+  gender: "female" as const,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,15 +49,14 @@ describe("POST /api/auth/register [mongo]", () => {
     expect(res.body.user.passwordHash).toBeUndefined();
   });
 
-  mongoIt("sets session cookie on successful register", async () => {
+  mongoIt("returns JWT token on successful register", async () => {
     const res = await request(app)
       .post("/api/auth/register")
       .send(VALID_REGISTER)
       .expect(201);
 
-    const cookies = res.headers["set-cookie"] as unknown as string[] | undefined;
-    expect(cookies).toBeDefined();
-    expect(cookies!.join(";")).toMatch(/connect\.sid/);
+    expect(typeof res.body.token).toBe("string");
+    expect(res.body.token.length).toBeGreaterThan(10);
   });
 
   mongoIt("409 PHONE_TAKEN when phone already registered", async () => {
@@ -176,7 +176,7 @@ describe("POST /api/auth/login [mongo]", () => {
     expect(res.body.user.password).toBeUndefined();
   });
 
-  mongoIt("sets session cookie on successful login", async () => {
+  mongoIt("returns JWT token on successful login", async () => {
     await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
 
     const res = await request(app)
@@ -184,9 +184,8 @@ describe("POST /api/auth/login [mongo]", () => {
       .send({ username: "0812345678", password: "password123" })
       .expect(200);
 
-    const cookies = res.headers["set-cookie"] as unknown as string[] | undefined;
-    expect(cookies).toBeDefined();
-    expect(cookies!.join(";")).toMatch(/connect\.sid/);
+    expect(typeof res.body.token).toBe("string");
+    expect(res.body.token.length).toBeGreaterThan(10);
   });
 
   mongoIt("401 INVALID_CREDENTIALS on wrong password", async () => {
@@ -255,20 +254,19 @@ describe("POST /api/auth/login [mongo]", () => {
 
 describe("POST /api/auth/logout [mongo]", () => {
   mongoIt("200 { ok: true } on logout", async () => {
-    const agent = request.agent(app);
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const authed = createAuthClient(app, reg.body.token as string);
 
-    const res = await agent.post("/api/auth/logout").expect(200);
+    const res = await authed.post("/api/auth/logout").expect(200);
     expect(res.body).toEqual({ ok: true });
   });
 
-  mongoIt("session is invalidated after logout", async () => {
-    const agent = request.agent(app);
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
-    await agent.post("/api/auth/logout").expect(200);
+  mongoIt("logout does not revoke existing JWT (stateless)", async () => {
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const authed = createAuthClient(app, reg.body.token as string);
+    await authed.post("/api/auth/logout").expect(200);
 
-    const res = await agent.get("/api/auth/me").expect(401);
-    expect(res.body.error.code).toBe("UNAUTHENTICATED");
+    await authed.get("/api/auth/me").expect(200);
   });
 
   mongoIt("logout without a session still returns 200", async () => {
@@ -281,14 +279,13 @@ describe("POST /api/auth/logout [mongo]", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("GET /api/auth/me [mongo]", () => {
-  mongoIt("401 UNAUTHENTICATED when no session", async () => {
+  mongoIt("401 UNAUTHENTICATED when no token", async () => {
     const res = await request(app).get("/api/auth/me").expect(401);
     expect(res.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  mongoIt("200 + user profile when session is active", async () => {
-    const agent = request.agent(app);
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+  mongoIt("200 + user profile when token is valid", async () => {
+    const agent = await registerAndAuth(app, VALID_REGISTER);
 
     const res = await agent.get("/api/auth/me").expect(200);
     expect(res.body.user).toMatchObject({
@@ -297,9 +294,8 @@ describe("GET /api/auth/me [mongo]", () => {
     });
   });
 
-  mongoIt("session persists across multiple requests", async () => {
-    const agent = request.agent(app);
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+  mongoIt("token works across multiple requests", async () => {
+    const agent = await registerAndAuth(app, VALID_REGISTER);
 
     await agent.get("/api/auth/me").expect(200);
     await agent.get("/api/auth/me").expect(200);
@@ -307,8 +303,7 @@ describe("GET /api/auth/me [mongo]", () => {
   });
 
   mongoIt("profile returned from MongoDB matches registered data", async () => {
-    const agent = request.agent(app);
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const agent = await registerAndAuth(app, VALID_REGISTER);
 
     const res = await agent.get("/api/auth/me").expect(200);
     expect(res.body.user).toMatchObject({
@@ -326,8 +321,8 @@ describe("GET /api/auth/me [mongo]", () => {
 
 describe("PATCH /api/users/:id [mongo]", () => {
   mongoIt("200 + updated user profile on valid patch", async () => {
-    const agent = request.agent(app);
-    const regRes = await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const regRes = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const agent = createAuthClient(app, regRes.body.token as string);
     const userId = regRes.body.user.id as string;
 
     const res = await agent
@@ -340,8 +335,8 @@ describe("PATCH /api/users/:id [mongo]", () => {
   });
 
   mongoIt("GET /api/auth/me reflects updated name after PATCH", async () => {
-    const agent = request.agent(app);
-    const regRes = await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const regRes = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const agent = createAuthClient(app, regRes.body.token as string);
     const userId = regRes.body.user.id as string;
 
     await agent.patch(`/api/users/${userId}`).send({ name: "ชื่อที่อัปเดต" }).expect(200);
@@ -350,7 +345,7 @@ describe("PATCH /api/users/:id [mongo]", () => {
     expect(meRes.body.user.name).toBe("ชื่อที่อัปเดต");
   });
 
-  mongoIt("401 UNAUTHENTICATED when patching without session", async () => {
+  mongoIt("401 UNAUTHENTICATED when patching without token", async () => {
     const res = await request(app)
       .patch("/api/users/some-id")
       .send({ name: "ชื่อใหม่" })
@@ -360,12 +355,10 @@ describe("PATCH /api/users/:id [mongo]", () => {
   });
 
   mongoIt("409 PHONE_TAKEN when updating tel to an already-used number", async () => {
-    const agent1 = request.agent(app);
-    const agent2 = request.agent(app);
-
     const user2 = { ...VALID_REGISTER, tel: "0898765432", name: "คนที่สอง" };
-    const reg1 = await agent1.post("/api/auth/register").send(VALID_REGISTER).expect(201);
-    await agent2.post("/api/auth/register").send(user2).expect(201);
+    const reg1 = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    await request(app).post("/api/auth/register").send(user2).expect(201);
+    const agent1 = createAuthClient(app, reg1.body.token as string);
 
     const userId1 = reg1.body.user.id as string;
 

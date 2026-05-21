@@ -1,12 +1,11 @@
 /**
  * Story Diary — Express backend entry point.
- * Listens on port 3001. Session-cookie auth; no JWT.
+ * Listens on port 3001. JWT authentication.
  */
 import "dotenv/config";
 import express, { type Express } from "express";
 
 import cors from "cors";
-// import "./lib/session"; // session type augmentation (removed for JWT)
 
 // Import routes
 import authRouter from "./routes/auth";

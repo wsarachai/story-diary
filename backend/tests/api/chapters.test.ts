@@ -16,6 +16,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { clearTestData } from "../helpers/testDb";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -28,9 +29,7 @@ const VALID_USER = {
 };
 
 async function loginAgent() {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/register").send(VALID_USER).expect(201);
-  return agent;
+  return registerAndAuth(app, VALID_USER);
 }
 
 beforeEach(() => {

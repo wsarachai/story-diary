@@ -13,6 +13,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { mongoIt } from "./setup";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -25,9 +26,7 @@ const VALID_USER = {
 };
 
 async function loginAgent(tel = VALID_USER.tel, password = VALID_USER.password) {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/register").send({ ...VALID_USER, tel }).expect(201);
-  return agent;
+  return registerAndAuth(app, { ...VALID_USER, tel, password });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -240,11 +239,7 @@ describe("POST /api/chapters/:id/progress [mongo]", () => {
 
   mongoIt("progress is isolated per user (user A's progress does not affect user B)", async () => {
     const agentA = await loginAgent("0811111111");
-    const agentB = request.agent(app);
-    await agentB
-      .post("/api/auth/register")
-      .send({ ...VALID_USER, tel: "0822222222", name: "คนที่สอง" })
-      .expect(201);
+    const agentB = await registerAndAuth(app, { ...VALID_USER, tel: "0822222222", name: "คนที่สอง" });
 
     // User A marks chapter 1 completed
     await agentA.post("/api/chapters/1/progress").send({ progress: "completed" }).expect(200);

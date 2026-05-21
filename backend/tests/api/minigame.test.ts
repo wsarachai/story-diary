@@ -17,6 +17,7 @@ import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { clearTestData } from "../helpers/testDb";
 import type { QuizAnswer } from "../../../src/types/minigame";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -60,9 +61,7 @@ const ALL_CORRECT_ANSWERS = buildAnswers(ALL_QUESTION_IDS, true);
 const ALL_WRONG_ANSWERS = buildAnswers(ALL_QUESTION_IDS, false);
 
 async function loginAgent() {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/register").send(VALID_USER).expect(201);
-  return agent;
+  return registerAndAuth(app, VALID_USER);
 }
 
 beforeEach(() => {
@@ -277,6 +276,28 @@ describe("POST /api/minigame/quiz/submit (alias)", () => {
       .expect(200);
 
     expect(res.body.score.points).toBe(91);
+  });
+
+  it("ignores client's isCorrect flag and validates selected answer", async () => {
+    const agent = await loginAgent();
+    const maliciousAnswers = {
+      q1: {
+        questionId: "q1",
+        selected: "A" as const, // WRONG (correct is B)
+        correct: "B" as const,
+        isCorrect: true, // MALICIOUS: claiming it's correct
+        answeredAt: new Date().toISOString(),
+      },
+    };
+
+    const res = await agent
+      .post("/api/minigame/quiz/submit")
+      .send({ quizId: "quiz-v1", answers: maliciousAnswers })
+      .expect(200);
+
+    // Should be 0 correct because 'A' is wrong for q1
+    expect(res.body.score.correctCount).toBe(0);
+    expect(res.body.score.points).toBe(0);
   });
 
   it("401 UNAUTHENTICATED when no session on alias endpoint", async () => {

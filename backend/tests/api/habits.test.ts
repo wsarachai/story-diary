@@ -22,6 +22,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { clearTestData } from "../helpers/testDb";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -42,9 +43,7 @@ const MED_ACTIVITY = {
 };
 
 async function loginAgent() {
-  const agent = request.agent(app);
-  await agent.post("/api/auth/register").send(VALID_USER).expect(201);
-  return agent;
+  return registerAndAuth(app, VALID_USER);
 }
 
 beforeEach(() => {
@@ -351,14 +350,8 @@ describe("POST /api/habits/activities", () => {
   });
 
   it("different users can have activities with the same name", async () => {
-    const agent1 = request.agent(app);
-    await agent1.post("/api/auth/register").send(VALID_USER).expect(201);
-
-    const agent2 = request.agent(app);
-    await agent2
-      .post("/api/auth/register")
-      .send({ ...VALID_USER, tel: "0888888888" })
-      .expect(201);
+    const agent1 = await registerAndAuth(app, VALID_USER);
+    const agent2 = await registerAndAuth(app, { ...VALID_USER, tel: "0888888888" });
 
     await agent1.post("/api/habits/activities").send(MED_ACTIVITY).expect(201);
     // Second user creates same-named activity — should succeed

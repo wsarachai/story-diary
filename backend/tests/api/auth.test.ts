@@ -17,6 +17,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { clearTestData } from "../helpers/testDb";
+import { createAuthClient } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -56,15 +57,14 @@ describe("POST /api/auth/register", () => {
     expect(res.body.user.passwordHash).toBeUndefined();
   });
 
-  it("sets session cookie on successful register", async () => {
+  it("returns JWT token on successful register", async () => {
     const res = await request(app)
       .post("/api/auth/register")
       .send(VALID_REGISTER)
       .expect(201);
 
-    const cookies = res.headers["set-cookie"] as unknown as string[] | undefined;
-    expect(cookies).toBeDefined();
-    expect(cookies!.join(";")).toMatch(/connect\.sid/);
+    expect(typeof res.body.token).toBe("string");
+    expect(res.body.token.length).toBeGreaterThan(10);
   });
 
   it("409 PHONE_TAKEN when phone already registered", async () => {
@@ -159,15 +159,14 @@ describe("POST /api/auth/login", () => {
     expect(res.body.user.password).toBeUndefined();
   });
 
-  it("sets session cookie on successful login", async () => {
+  it("returns JWT token on successful login", async () => {
     const res = await request(app)
       .post("/api/auth/login")
       .send({ username: "0812345678", password: "password123" })
       .expect(200);
 
-    const cookies = res.headers["set-cookie"] as unknown as string[] | undefined;
-    expect(cookies).toBeDefined();
-    expect(cookies!.join(";")).toMatch(/connect\.sid/);
+    expect(typeof res.body.token).toBe("string");
+    expect(res.body.token.length).toBeGreaterThan(10);
   });
 
   it("401 INVALID_CREDENTIALS on wrong password", async () => {
@@ -213,23 +212,23 @@ describe("POST /api/auth/login", () => {
 
 describe("POST /api/auth/logout", () => {
   it("200 { ok: true } on logout", async () => {
-    // Use agent to maintain session across requests
-    const agent = request.agent(app);
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const token = reg.body.token as string;
 
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
-
-    const res = await agent.post("/api/auth/logout").expect(200);
+    const res = await request(app)
+      .post("/api/auth/logout")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
     expect(res.body).toEqual({ ok: true });
   });
 
-  it("session is invalidated after logout (GET /me returns 401)", async () => {
-    const agent = request.agent(app);
+  it("logout does not revoke existing JWT (stateless)", async () => {
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const token = reg.body.token as string;
+    const authed = createAuthClient(app, token);
 
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
-    await agent.post("/api/auth/logout").expect(200);
-
-    const res = await agent.get("/api/auth/me").expect(401);
-    expect(res.body.error.code).toBe("UNAUTHENTICATED");
+    await authed.post("/api/auth/logout").expect(200);
+    await authed.get("/api/auth/me").expect(200);
   });
 
   it("logout without a session still returns 200", async () => {
@@ -243,31 +242,29 @@ describe("POST /api/auth/logout", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("GET /api/auth/me", () => {
-  it("401 UNAUTHENTICATED when no session (unauthenticated probe)", async () => {
+  it("401 UNAUTHENTICATED when no token (unauthenticated probe)", async () => {
     const res = await request(app).get("/api/auth/me").expect(401);
     expect(res.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  it("200 + user profile when session is active (authenticated probe)", async () => {
-    const agent = request.agent(app);
+  it("200 + user profile when JWT is provided (authenticated probe)", async () => {
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const authed = createAuthClient(app, reg.body.token as string);
 
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
-
-    const res = await agent.get("/api/auth/me").expect(200);
+    const res = await authed.get("/api/auth/me").expect(200);
     expect(res.body.user).toMatchObject({
       id: expect.any(String),
       tel: "0812345678",
     });
   });
 
-  it("session persists across multiple requests (already-authenticated state)", async () => {
-    const agent = request.agent(app);
-
-    await agent.post("/api/auth/register").send(VALID_REGISTER).expect(201);
+  it("JWT works across multiple authenticated requests", async () => {
+    const reg = await request(app).post("/api/auth/register").send(VALID_REGISTER).expect(201);
+    const authed = createAuthClient(app, reg.body.token as string);
 
     // Multiple consecutive probes all succeed
-    await agent.get("/api/auth/me").expect(200);
-    await agent.get("/api/auth/me").expect(200);
-    await agent.get("/api/auth/me").expect(200);
+    await authed.get("/api/auth/me").expect(200);
+    await authed.get("/api/auth/me").expect(200);
+    await authed.get("/api/auth/me").expect(200);
   });
 });

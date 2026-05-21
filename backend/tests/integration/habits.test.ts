@@ -18,6 +18,7 @@
 import request from "supertest";
 import { createTestApp } from "../helpers/createTestApp";
 import { mongoIt } from "./setup";
+import { registerAndAuth } from "../helpers/auth";
 
 const app = createTestApp();
 
@@ -40,12 +41,7 @@ const MED_ACTIVITY = {
 const TODAY = new Date().toISOString().slice(0, 10);
 
 async function loginAgent(tel = VALID_USER.tel) {
-  const agent = request.agent(app);
-  await agent
-    .post("/api/auth/register")
-    .send({ ...VALID_USER, tel })
-    .expect(201);
-  return agent;
+  return registerAndAuth(app, { ...VALID_USER, tel });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

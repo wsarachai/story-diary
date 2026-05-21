@@ -33,7 +33,13 @@ export async function submitQuiz(
   quizId: string,
   answers: Record<string, QuizAnswer>
 ): Promise<QuizScore> {
-  const correctCount = Object.values(answers).filter((answer) => answer.isCorrect).length;
+  const questions = await listQuizQuestionsDocs();
+  
+  const correctCount = Object.entries(answers).filter(([id, answer]) => {
+    const q = questions.find(q => q.id === id);
+    return q && q.correct_answer === answer.selected;
+  }).length;
+
   const total = Object.values(answers).length;
   const points = correctCount * POINTS_PER_CORRECT;
   const now = new Date().toISOString();
