@@ -1,5 +1,5 @@
 import { Router, type Router as ExpressRouter } from "express";
-import "../lib/session";
+
 import { requireAuth } from "../middleware/auth";
 import { validate } from "../lib/validate";
 import { SubmitQuizSchema } from "../lib/schemas";
@@ -17,20 +17,22 @@ router.get("/quiz", requireAuth, async (_req, res, next) => {
     }
 });
 
+
 router.post("/quiz/attempts", requireAuth, async (req, res, next) => {
     try {
         const body = validate(SubmitQuizSchema, req.body);
-        const score = await submitQuiz(req.session.userId!, body.quizId, body.answers as Record<string, QuizAnswer>);
+        const score = await submitQuiz((req as any).userId!, body.quizId, body.answers as Record<string, QuizAnswer>);
         res.status(200).json({ score });
     } catch (err) {
         next(err);
     }
 });
 
+
 router.post("/quiz/submit", requireAuth, async (req, res, next) => {
     try {
         const body = validate(SubmitQuizSchema, req.body);
-        const score = await submitQuiz(req.session.userId!, body.quizId, body.answers as Record<string, QuizAnswer>);
+        const score = await submitQuiz((req as any).userId!, body.quizId, body.answers as Record<string, QuizAnswer>);
         res.status(200).json({ score });
     } catch (err) {
         next(err);

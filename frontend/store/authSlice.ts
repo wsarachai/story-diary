@@ -6,12 +6,14 @@ import { isApiError } from "@/types/error";
 interface AuthState {
   status: AuthStatus;
   user: User | null;
+  token: string | null;
   submitError: ApiErrorCode | null;
 }
 
 const initialState: AuthState = {
   status: "unknown",
   user: null,
+  token: null,
   submitError: null,
 };
 
@@ -19,11 +21,16 @@ const initialState: AuthState = {
 // Thunks
 // ──────────────────────────────────────────────────────────
 
-export const probeSession = createAsyncThunk<User | null>(
+export const probeSession = createAsyncThunk<User | null, void, { state: { auth: AuthState } }>(
   "auth/probeSession",
-  async () => {
+  async (_, { getState }) => {
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const state = getState();
+      const token = state.auth.token;
+      if (!token) return null;
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) return null;
       const data = await res.json() as { user: User };
       return data.user;
@@ -33,59 +40,63 @@ export const probeSession = createAsyncThunk<User | null>(
   }
 );
 
-export const login = createAsyncThunk<User, LoginInput, { rejectValue: ApiErrorCode }>(
+export const login = createAsyncThunk<{ user: User; token: string }, LoginInput, { rejectValue: ApiErrorCode }>(
   "auth/login",
   async (input, { rejectWithValue }) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(input),
       });
-      const data: unknown = await res.json();
+      const data: any = await res.json();
       if (!res.ok) {
         if (isApiError(data)) {
           return rejectWithValue(data.error.code as ApiErrorCode);
         }
         return rejectWithValue("INTERNAL_ERROR");
       }
-      return (data as { user: User }).user;
+      return { user: data.user, token: data.token };
     } catch {
       return rejectWithValue("INTERNAL_ERROR");
     }
   }
 );
 
+
 type RegisterRequest = Omit<RegisterInput, "confirmPassword">;
 
-export const register = createAsyncThunk<User, RegisterRequest, { rejectValue: ApiErrorCode }>(
+export const register = createAsyncThunk<{ user: User; token: string }, RegisterRequest, { rejectValue: ApiErrorCode }>(
   "auth/register",
   async (input, { rejectWithValue }) => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(input),
       });
-      const data: unknown = await res.json();
+      const data: any = await res.json();
       if (!res.ok) {
         if (isApiError(data)) {
           return rejectWithValue(data.error.code as ApiErrorCode);
         }
         return rejectWithValue("INTERNAL_ERROR");
       }
-      return (data as { user: User }).user;
+      return { user: data.user, token: data.token };
     } catch {
       return rejectWithValue("INTERNAL_ERROR");
     }
   }
 );
 
-export const logout = createAsyncThunk("auth/logout", async () => {
+export const logout = createAsyncThunk("auth/logout", async (_, { getState }) => {
   try {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    const state = getState() as { auth: AuthState };
+    const token = state.auth.token;
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
   } catch {
     // ignore — client state is cleared regardless
   }
@@ -115,6 +126,8 @@ const authSlice = createSlice({
           state.user = action.payload;
         } else {
           state.status = "unauthenticated";
+          state.user = null;
+          state.token = null;
         }
       })
       // login
@@ -124,10 +137,13 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.status = "authenticated";
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "unauthenticated";
+        state.user = null;
+        state.token = null;
         state.submitError = action.payload ?? "INTERNAL_ERROR";
       })
       // register
@@ -137,10 +153,13 @@ const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.status = "authenticated";
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
       })
       .addCase(register.rejected, (state, action) => {
         state.status = "unauthenticated";
+        state.user = null;
+        state.token = null;
         state.submitError = action.payload ?? "INTERNAL_ERROR";
       })
       // logout

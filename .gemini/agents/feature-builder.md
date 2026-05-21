@@ -1,8 +1,14 @@
 ---
 name: feature-builder
 description: Implements new features in isolation
-tools: Read, Write, Edit, Bash, Grep, Glob
-isolation: worktree
+tools:
+  - list_directory
+  - read_file
+  - write_file
+  - replace
+  - grep_search
+  - glob
+  - run_shell_command
 ---
 
 Implement the requested feature. You are working in an isolated

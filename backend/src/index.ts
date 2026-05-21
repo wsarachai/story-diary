@@ -4,9 +4,9 @@
  */
 import "dotenv/config";
 import express, { type Express } from "express";
-import session from "express-session";
+
 import cors from "cors";
-import "./lib/session"; // session type augmentation (must be early)
+// import "./lib/session"; // session type augmentation (removed for JWT)
 
 // Import routes
 import authRouter from "./routes/auth";
@@ -41,18 +41,8 @@ app.use(express.urlencoded({ extended: false }));
 // Session
 // ──────────────────────────────────────────────────────────────────────────
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET ?? "story-diary-dev-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  })
-);
+
+// No session middleware — JWT only
 
 // ──────────────────────────────────────────────────────────────────────────
 // Routes

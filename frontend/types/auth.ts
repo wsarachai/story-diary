@@ -71,14 +71,11 @@ export type RegisterRequest = Omit<RegisterInput, "confirmPassword">;
 /**
  * Common response envelope for both login and register success.
  *
- * Auth is session-cookie based (see docs/specs/user-profile.md §Auth). The
- * cookie is set by the server via `Set-Cookie`; the response body intentionally
- * does NOT carry a token because there is no token to expose to JS. The body
- * carries the user record so the client can hydrate Redux without a second
- * round-trip.
+ * Now includes a JWT token for client-side storage.
  */
 export interface AuthResponse {
     user: import("./user").UserProfile;
+    token: string;
 }
 
 /**
