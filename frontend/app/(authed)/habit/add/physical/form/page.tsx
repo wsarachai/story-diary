@@ -43,7 +43,12 @@ function formReducer(state: FormState, action: FormAction): FormState {
     case "SET_GOAL": return { ...state, goal: action.value, dirty: true };
     case "SET_GOAL_COUNT": return { ...state, goalCount: action.value, dirty: true };
     case "SET_GOAL_UNIT": return { ...state, goalUnit: action.value, dirty: true };
-    case "SET_FREQUENCY": return { ...state, frequency: action.value, dirty: true };
+    case "SET_FREQUENCY": return {
+      ...state,
+      frequency: action.value,
+      weekdays: action.value === "daily" ? ([0, 1, 2, 3, 4, 5, 6] as WeekdayIndex[]) : state.weekdays,
+      dirty: true,
+    };
     case "TOGGLE_WEEKDAY": {
       const days = state.weekdays.includes(action.day)
         ? state.weekdays.filter((d) => d !== action.day)
@@ -79,7 +84,7 @@ function PhysicalFormInner() {
     goalCount: 1,
     goalUnit: "ครั้ง",
     frequency: "daily" as HabitFrequency,
-    weekdays: [1, 2, 3, 4, 5] as WeekdayIndex[],
+    weekdays: [0, 1, 2, 3, 4, 5, 6] as WeekdayIndex[],
     daysPerWeek: 3,
     daysPerMonth: 3,
     importance: "general" as HabitImportance,
