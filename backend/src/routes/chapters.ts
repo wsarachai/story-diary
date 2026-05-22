@@ -64,9 +64,9 @@ videoClipsRouter.get("/", requireAuth, (_req, res, next) => {
 
 export const eBooksRouter: ExpressRouter = Router();
 
-eBooksRouter.get("/", requireAuth, (_req, res, next) => {
+eBooksRouter.get("/", requireAuth, async (_req, res, next) => {
     try {
-        const collection = getEBooks();
+        const collection = await getEBooks();
         res.status(200).json(collection);
     } catch (err) {
         next(err);

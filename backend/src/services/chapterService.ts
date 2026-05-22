@@ -4,6 +4,7 @@ import {
     listChapterScenesByChapterId,
     listChaptersDocs,
     upsertChapterProgress,
+    listEBooksDocs,
 } from "../db";
 import { Errors } from "../lib/errors";
 import type { Chapter, ChapterSummary, ChapterProgressState, VideoClipsCollection } from "../../../src/types/chapters";
@@ -76,13 +77,14 @@ export function getVideoClips(): VideoClipsCollection {
     };
 }
 
-export function getEBooks() {
+export async function getEBooks() {
+    const rows = await listEBooksDocs();
     return {
         badge: "E-book",
-        chapters: [1, 2, 3, 4, 5].map((n) => ({
-            id: `ebk-${n}`,
-            title: `บทที่ ${n}`,
-            pdfUrl: `/e-books/ch0${n}.pdf`,
+        chapters: rows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            pdfUrl: row.pdf_url,
         })),
     };
 }

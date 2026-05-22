@@ -142,6 +142,20 @@ interface MemoryStore {
   nutritionCheckins: NutritionCheckinDoc[];
   symptomsCheckins: SymptomsCheckinDoc[];
   moodCheckins: MoodCheckinDoc[];
+  eBooks: EBookDoc[];
+}
+
+const E_BOOKS: EBookDoc[] = [1, 2, 3, 4, 5].map((n) => ({
+  id: `ebk-${n}`,
+  title: `บทที่ ${n}`,
+  pdf_url: `/e-books/ch0${n}.pdf`,
+}));
+
+const CHAPTERS: ChapterDoc[] = [
+
+  id: string;
+  title: string;
+  pdf_url: string;
 }
 
 const CHAPTERS: ChapterDoc[] = [
@@ -215,6 +229,7 @@ function createSeededMemoryStore(): MemoryStore {
     nutritionCheckins: [],
     symptomsCheckins: [],
     moodCheckins: [],
+    eBooks: E_BOOKS.map((ebook) => ({ ...ebook })),
   };
 }
 
@@ -749,4 +764,12 @@ export async function insertQuizAttempt(doc: QuizAttemptDoc): Promise<void> {
     return;
   }
   await quizAttemptsCollection().insertOne(doc);
+}
+
+export async function listEBooksDocs(): Promise<EBookDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return [...memoryStore.eBooks];
+  }
+  return eBooksCollection().find({}).toArray();
 }
