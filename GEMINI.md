@@ -57,8 +57,8 @@ The development server will run at `http://localhost:3000`.
 - **Location:** `backend/tests/`
 
 ### Frontend
-- **Framework:** Jest + React Testing Library
-- **Commands:** `pnpm test` (Note: ensure script is defined in `package.json`)
+- **Framework:** Vitest + React Testing Library + MSW
+- **Commands:** `pnpm test`
 - **Location:** `frontend/tests/`
 
 ## 📖 Development Conventions

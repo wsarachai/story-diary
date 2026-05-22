@@ -7,9 +7,12 @@
  * 3. Logout -> Token removed from localStorage
  */
 
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "@/store/apiSlice";
 import { authApi } from "@/store/authApi";
+import { http, HttpResponse } from "msw";
+import { server } from "../mocks/server";
 
 describe("Auth Flow Integration", () => {
   let store: any;
@@ -27,22 +30,21 @@ describe("Auth Flow Integration", () => {
   beforeEach(() => {
     store = createTestStore();
     localStorage.clear();
-    (global.fetch as jest.Mock).mockClear();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it("completes a full login -> probe -> logout cycle", async () => {
-    // 1. LOGIN
     const MOCK_USER = { id: "usr-001", tel: "0812345678", name: "สมชาย ใจดี" };
     const loginResponse = {
       user: MOCK_USER,
       token: "valid-jwt-token"
     };
 
-    (global.fetch as jest.Mock).mockResolvedValue(new Response(JSON.stringify(loginResponse)));
+    // 1. LOGIN
+    server.use(
+      http.post("/api/auth/login", () => {
+        return HttpResponse.json(loginResponse);
+      })
+    );
 
     await store.dispatch(authApi.endpoints.login.initiate({ username: "0812345678", password: "password123" })).unwrap();
 
@@ -50,28 +52,36 @@ describe("Auth Flow Integration", () => {
     expect(localStorage.getItem("auth_token")).toBe("valid-jwt-token");
 
     // 2. PROBE SESSION (GET /auth/me)
-    (global.fetch as jest.Mock).mockResolvedValue(new Response(JSON.stringify({ user: MOCK_USER })));
+    let capturedHeader = "";
+    server.use(
+      http.get("/api/auth/me", ({ request }) => {
+        capturedHeader = request.headers.get("Authorization") || "";
+        return HttpResponse.json({ user: MOCK_USER });
+      })
+    );
 
     await store.dispatch(authApi.endpoints.getMe.initiate()).unwrap();
 
-    // Verify fetch was called with correct URL
-    expect(global.fetch).toHaveBeenLastCalledWith(expect.objectContaining({
-      url: "/api/auth/me"
-    }));
+    // Verify correct Authorization header was sent
+    expect(capturedHeader).toBe("Bearer valid-jwt-token");
 
     // 3. LOGOUT
-    (global.fetch as jest.Mock).mockResolvedValue(new Response(JSON.stringify({})));
+    server.use(
+      http.post("/api/auth/logout", () => {
+        return HttpResponse.json({});
+      })
+    );
 
-    // Mock window.location.reload by overriding window temporarily if possible
-    // or just assume it works if localStorage is cleared.
-    // In JSDOM, window.location is very sticky.
-    try {
-      await store.dispatch(authApi.endpoints.logout.initiate());
-    } catch (e) {
-      // ignore reload error
-    }
+    // Mock window.location.reload
+    const reloadMock = vi.fn();
+    vi.stubGlobal("location", { reload: reloadMock });
+
+    await store.dispatch(authApi.endpoints.logout.initiate()).unwrap();
 
     // Verify localStorage is cleared
     expect(localStorage.getItem("auth_token")).toBeNull();
+    expect(reloadMock).toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
   });
 });
