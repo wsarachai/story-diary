@@ -38,7 +38,7 @@ function LoginForm() {
     }
   }, [user, router, from]);
 
-  const submitError = (error as any)?.data?.error?.code as ApiErrorCode || localError;
+  const submitError = (error && "data" in error ? (error.data as any)?.error?.code : null) as ApiErrorCode || localError;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -85,7 +85,7 @@ export const habitsApi = apiSlice.injectEndpoints({
       invalidatesTags: ["Habits"],
       async onQueryStarted({ activityId, status, date }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
-          apiSlice.util.updateQueryData("getTodayHabits", date, (draft) => {
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
             const occ = draft.todayByActivity[activityId];
             if (occ) {
               occ.status = status;

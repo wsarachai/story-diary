@@ -86,7 +86,7 @@ export default function RegisterPage() {
     }
   }, [user, router]);
 
-  const submitError = (error as any)?.data?.error?.code as ApiErrorCode;
+  const submitError = (error && "data" in error ? (error.data as { error?: { code?: ApiErrorCode } })?.error?.code : null) as ApiErrorCode;
 
   function validate(): boolean {
     const errors: FormState["errors"] = {};
@@ -164,7 +164,7 @@ export default function RegisterPage() {
                   type="text"
                   autoComplete="name"
                   value={form.name}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "name", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "name", value: e.target.value }); }}
                   aria-describedby={form.errors.name ? "err-name" : undefined}
                   style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.name ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                   autoComplete="tel"
                   inputMode="numeric"
                   value={form.tel}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "tel", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "tel", value: e.target.value }); }}
                   aria-describedby={form.errors.tel ? "err-tel" : undefined}
                   style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.tel ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                   type="password"
                   autoComplete="new-password"
                   value={form.password}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "password", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "password", value: e.target.value }); }}
                   aria-describedby={form.errors.password ? "err-password" : undefined}
                   style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.password ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
@@ -219,7 +219,7 @@ export default function RegisterPage() {
                   type="password"
                   autoComplete="new-password"
                   value={form.confirmPassword}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "confirmPassword", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "confirmPassword", value: e.target.value }); }}
                   aria-describedby={form.errors.confirmPassword ? "err-confirm" : undefined}
                   style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.confirmPassword ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
@@ -268,7 +268,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="ชื่อตัวละคร"
                   value={form.characterName}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "characterName", value: e.target.value }); dispatch(clearSubmitError()); }}
+                  onChange={(e) => { dispatchForm({ type: "SET", field: "characterName", value: e.target.value }); }}
                   aria-describedby={form.errors.characterName ? "err-char" : undefined}
                   style={{
                     width: "100%",

@@ -57,7 +57,8 @@ export type ScreenId =
     | "s017-minigame-quiz"
     | "s018-minigame-quiz-feedback"
     | "s019-minigame-score"
-    | "s031-minigame-quiz-summary";
+    | "s031-minigame-quiz-summary"
+    | "s999-profile";
 
 /**
  * The four destinations exposed on the persistent icon rail. Excludes
@@ -85,6 +86,7 @@ export type AppRoute =
     | "/chapters"
     | "/habit"
     | "/minigame"
+    | "/profile"
     // Chapters / story
     | "/chapters/menu"
     | `/chapters/${number}/explain`
@@ -217,4 +219,5 @@ export const SCREEN_TO_RAIL: Readonly<Record<ScreenId, NavRailKey | null>> = {
     "s018-minigame-quiz-feedback": "minigame",
     "s019-minigame-score": "minigame",
     "s031-minigame-quiz-summary": "minigame",
+    "s999-profile": "home",
 } as const;

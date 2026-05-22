@@ -25,7 +25,7 @@ export const chaptersApi = apiSlice.injectEndpoints({
       async onQueryStarted({ id, progress }, { dispatch, queryFulfilled }) {
         // Optimistic update for getChapterSummaries
         const patchResult = dispatch(
-          apiSlice.util.updateQueryData("getChapterSummaries", undefined, (draft) => {
+          chaptersApi.util.updateQueryData("getChapterSummaries", undefined, (draft) => {
             const summary = draft.find((s) => s.id === id);
             if (summary) {
               summary.progress = progress;
@@ -40,7 +40,7 @@ export const chaptersApi = apiSlice.injectEndpoints({
         );
         // Optimistic update for getChapter
         const detailPatchResult = dispatch(
-          apiSlice.util.updateQueryData("getChapter", id, (draft) => {
+          chaptersApi.util.updateQueryData("getChapter", id, (draft) => {
             if (draft) {
               draft.progress = progress;
             }

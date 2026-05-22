@@ -2,6 +2,7 @@ import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import Image from "next/image";
+import { useGetMeQuery } from "@/store/authApi";
 
 /**
  * s004 Home Screen — authenticated entry hub.
@@ -64,17 +65,51 @@ function StoryCardPanel() {
 }
 
 function DashboardPanel() {
+  const { data: user } = useGetMeQuery();
+
   return (
     <div
       style={{
         height: "100%",
         display: "grid",
-        gridTemplateRows: "auto 1fr",
-        gap: "3rem",
-        paddingTop: "8%",
+        gridTemplateRows: "auto auto 1fr",
+        gap: "1.5rem",
         padding: "7% 7% 6%",
       }}
     >
+      {/* Profile link */}
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <Link
+          href="/profile"
+          aria-label="ไปหน้าโปรไฟล์"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            textDecoration: "none",
+            color: "var(--ink)",
+            fontSize: "24px",
+            fontWeight: 500,
+            background: "rgba(255,255,255,0.4)",
+            padding: "0.4rem 1rem",
+            borderRadius: "999px",
+          }}
+        >
+          <span style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {user?.characterName || "โปรไฟล์"}
+          </span>
+          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+             <Image 
+               src={user?.gender === "female" ? "/images/chapter-speaker-girl-transparent.png" : "/images/chapter-speaker-girl-transparent.png"} 
+               alt="" 
+               width={24} 
+               height={24}
+               style={{ transform: "scale(2) translateY(2px)" }}
+             />
+          </div>
+        </Link>
+      </div>
+
       {/* Habit tracker card */}
       <Link
         href="/habit"
