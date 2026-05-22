@@ -8,6 +8,7 @@ import {
     getChapter,
     setChapterProgress,
     getVideoClips,
+    getEBooks,
 } from "../services/chapterService";
 import { Errors } from "../lib/errors";
 

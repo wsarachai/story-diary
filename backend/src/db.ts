@@ -129,6 +129,12 @@ export interface MoodCheckinDoc {
   created_at: string;
 }
 
+export interface EBookDoc {
+  id: string;
+  title: string;
+  pdf_url: string;
+}
+
 interface MemoryStore {
   users: UserDoc[];
   chapters: ChapterDoc[];
@@ -150,13 +156,6 @@ const E_BOOKS: EBookDoc[] = [1, 2, 3, 4, 5].map((n) => ({
   title: `บทที่ ${n}`,
   pdf_url: `/e-books/ch0${n}.pdf`,
 }));
-
-const CHAPTERS: ChapterDoc[] = [
-
-  id: string;
-  title: string;
-  pdf_url: string;
-}
 
 const CHAPTERS: ChapterDoc[] = [
   { id: 1, title: "บทที่ 1: เริ่มต้นการเดินทาง", intro_title: "บทบรรยาย", lock_state: "unlocked", sort_order: 1 },
@@ -315,6 +314,10 @@ function moodCheckinsCollection() {
   return requireMongoDb().collection<MoodCheckinDoc>("mood_checkins");
 }
 
+function eBooksCollection() {
+  return requireMongoDb().collection<EBookDoc>("e_books");
+}
+
 async function ensureMongoIndexes(): Promise<void> {
   await Promise.all([
     usersCollection().createIndex({ id: 1 }, { unique: true }),
@@ -334,6 +337,7 @@ async function ensureMongoIndexes(): Promise<void> {
     nutritionCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     symptomsCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     moodCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+    eBooksCollection().createIndex({ id: 1 }, { unique: true }),
   ]);
 }
 
@@ -362,6 +366,15 @@ async function seedMongoReferenceData(): Promise<void> {
         replaceOne: {
           filter: { id: question.id },
           replacement: question,
+          upsert: true,
+        },
+      }))
+    ),
+    eBooksCollection().bulkWrite(
+      E_BOOKS.map((ebook) => ({
+        replaceOne: {
+          filter: { id: ebook.id },
+          replacement: ebook,
           upsert: true,
         },
       }))

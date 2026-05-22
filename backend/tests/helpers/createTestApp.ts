@@ -9,7 +9,7 @@ import express from "express";
 
 import authRouter from "../../src/routes/auth";
 import usersRouter from "../../src/routes/users";
-import { chaptersRouter, videoClipsRouter } from "../../src/routes/chapters";
+import { chaptersRouter, videoClipsRouter, eBooksRouter } from "../../src/routes/chapters";
 import habitsRouter from "../../src/routes/habits";
 import minigameRouter from "../../src/routes/minigame";
 import { errorHandler } from "../../src/middleware/errorHandler";
@@ -24,6 +24,7 @@ export function createTestApp() {
   app.use("/api/users", usersRouter);
   app.use("/api/chapters", chaptersRouter);
   app.use("/api/video-clips", videoClipsRouter);
+  app.use("/api/e-books", eBooksRouter);
   app.use("/api/habits", habitsRouter);
   app.use("/api/minigame", minigameRouter);
 

@@ -191,20 +191,27 @@ describe("POST /api/chapters/:id/progress", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET /api/video-clips
+// GET /api/e-books
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe("GET /api/video-clips", () => {
+describe("GET /api/e-books", () => {
   it("401 UNAUTHENTICATED when no session", async () => {
-    const res = await request(app).get("/api/video-clips").expect(401);
+    const res = await request(app).get("/api/e-books").expect(401);
     expect(res.body.error.code).toBe("UNAUTHENTICATED");
   });
 
-  it("200 + video clip collection when authenticated", async () => {
+  it("200 + e-book collection when authenticated", async () => {
     const agent = await loginAgent();
-    const res = await agent.get("/api/video-clips").expect(200);
+    const res = await agent.get("/api/e-books").expect(200);
 
-    // Response should be an array or an object with clips
-    expect(res.body).toBeDefined();
+    expect(res.body.badge).toBe("E-book");
+    expect(Array.isArray(res.body.chapters)).toBe(true);
+    expect(res.body.chapters.length).toBeGreaterThan(0);
+
+    res.body.chapters.forEach((ebook: Record<string, unknown>) => {
+      expect(typeof ebook.id).toBe("string");
+      expect(typeof ebook.title).toBe("string");
+      expect(typeof ebook.pdfUrl).toBe("string");
+    });
   });
 });
