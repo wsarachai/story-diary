@@ -5,15 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchSummaries,
-  showLockHint,
-  clearLockHint,
-  selectChapterSummaries,
-  selectSummariesStatus,
-  selectLockHintFor,
-} from "@/store/chaptersSlice";
+import { useGetChapterSummariesQuery } from "@/store/chaptersApi";
 import type { ChapterId } from "@/types/chapters";
 
 function ChapterRow({
@@ -81,26 +73,18 @@ function ChapterRow({
 }
 
 export default function ChaptersMenuPage() {
-  const dispatch = useAppDispatch();
-  const summaries = useAppSelector(selectChapterSummaries);
-  const status = useAppSelector(selectSummariesStatus);
-  const lockHintFor = useAppSelector(selectLockHintFor);
+  const { data: summaries = [] } = useGetChapterSummariesQuery();
+  const [lockHintFor, setLockHintFor] = useState<ChapterId | null>(null);
   const [shakingId, setShakingId] = useState<ChapterId | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchSummaries());
-    }
-  }, [dispatch, status]);
-
   const handleLockedTap = (id: ChapterId) => {
     setShakingId(id);
-    dispatch(showLockHint(id));
+    setLockHintFor(id);
 
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     hintTimerRef.current = setTimeout(() => {
-      dispatch(clearLockHint());
+      setLockHintFor(null);
       setShakingId(null);
     }, 2000);
   };

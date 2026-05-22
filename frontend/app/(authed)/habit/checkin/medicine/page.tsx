@@ -2,12 +2,7 @@
 import { Suspense, useReducer } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  saveMedicineCheckin,
-  selectCheckinSaveStatus,
-  selectActivityById,
-} from "@/store/habitsSlice";
+import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 
 const MOCK_SIDE_EFFECTS: SymptomCheck[] = [
@@ -32,15 +27,16 @@ function reducer(state: State, action: Action): State {
 function MedicineCheckinInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectCheckinSaveStatus);
+  const [saveMedicine, { isLoading: saving }] = useSaveMedicineCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
-  const activity = useAppSelector((state) => selectActivityById(state, activityId));
+
+  const today = new Date().toISOString().split("T")[0];
+  const { data: todayData } = useGetTodayHabitsQuery(today);
+  const activity = todayData?.activities[activityId];
 
   const [state, dispatchLocal] = useReducer(reducer, { sideEffects: MOCK_SIDE_EFFECTS });
-  const saving = saveStatus === "saving";
 
   if (!occId) {
     router.replace("/habit/today");
@@ -49,14 +45,19 @@ function MedicineCheckinInner() {
 
   async function handleSave() {
     if (saving) return;
-    await dispatch(saveMedicineCheckin({
-      occurrenceId: occId,
-      medicineName: activity?.name ?? "ยา",
-      mealRelation: activity?.mealRelation ?? "after",
-      mealSlots: activity?.mealSlots ?? [],
-      sideEffects: state.sideEffects,
-    }));
-    router.replace("/habit/today");
+    try {
+      await saveMedicine({
+        occurrenceId: occId,
+        medicineName: activity?.name ?? "ยา",
+        mealRelation: activity?.mealRelation ?? "after",
+        mealSlots: activity?.mealSlots ?? [],
+        sideEffects: state.sideEffects,
+        date: today
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   const mealSlotLabel = (activity?.mealSlots ?? []).join(", ") || "—";

@@ -3,14 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  login,
-  clearSubmitError,
-  selectAuthStatus,
-  selectIsAuthed,
-  selectSubmitError,
-} from "@/store/authSlice";
+import { useGetMeQuery, useLoginMutation } from "@/store/authApi";
 import type { ApiErrorCode } from "@/types/error";
 
 function errorCopy(code: ApiErrorCode | null): string | null {
@@ -28,32 +21,32 @@ function errorCopy(code: ApiErrorCode | null): string | null {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
 
-  const status = useAppSelector(selectAuthStatus);
-  const isAuthed = useAppSelector(selectIsAuthed);
-  const submitError = useAppSelector(selectSubmitError);
+  const { data: user } = useGetMeQuery();
+  const [login, { isLoading: isSubmitting, error }] = useLoginMutation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [localError, setLocalError] = useState<ApiErrorCode | null>(null);
 
   const from = searchParams.get("from") ?? "/home";
 
   // DS-2: redirect if already authenticated
   useEffect(() => {
-    if (isAuthed) {
+    if (user) {
       router.replace(from);
     }
-  }, [isAuthed, router, from]);
+  }, [user, router, from]);
 
-  const isSubmitting = status === "authenticating";
+  const submitError = (error as any)?.data?.error?.code as ApiErrorCode || localError;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const result = await dispatch(login({ username: username.trim(), password }));
-    if (login.fulfilled.match(result)) {
+    setLocalError(null);
+    try {
+      await login({ username: username.trim(), password }).unwrap();
       router.replace(from);
-    } else {
+    } catch (err) {
       setPassword("");
     }
   }
@@ -106,7 +99,7 @@ function LoginForm() {
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);
-            dispatch(clearSubmitError());
+            setLocalError(null);
           }}
           onBlur={(e) => setUsername(e.target.value.trim())}
           required
@@ -152,7 +145,7 @@ function LoginForm() {
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
-            dispatch(clearSubmitError());
+            setLocalError(null);
           }}
           required
           aria-describedby={submitError ? "login-error" : undefined}

@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppSelector } from "@/lib/hooks";
-import { selectAuthStatus, selectIsAuthed } from "@/store/authSlice";
+import { useGetMeQuery } from "@/store/authApi";
 
 /**
  * s001 Landing Screen — public entry point.
@@ -13,16 +12,15 @@ import { selectAuthStatus, selectIsAuthed } from "@/store/authSlice";
  */
 export default function LandingPage() {
   const router = useRouter();
-  const status = useAppSelector(selectAuthStatus);
-  const isAuthed = useAppSelector(selectIsAuthed);
+  const { data: user, isLoading } = useGetMeQuery();
 
   useEffect(() => {
-    if (isAuthed) {
+    if (user) {
       router.replace("/home");
     }
-  }, [isAuthed, router]);
+  }, [user, router]);
 
-  const isPending = status === "unknown";
+  const isPending = isLoading;
 
   return (
     <main

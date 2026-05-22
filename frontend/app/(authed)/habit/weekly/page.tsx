@@ -2,13 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchWeekly,
-  selectWeeklyRows,
-  selectWeeklySummary,
-  selectFetchStatus,
-} from "@/store/habitsSlice";
+import { useGetWeeklyHabitsQuery } from "@/store/habitsApi";
 import type { HabitOccurrenceStatus } from "@/types/habit";
 import IconRail from "@/components/IconRail";
 
@@ -21,14 +15,9 @@ function dotClass(status: HabitOccurrenceStatus): string {
 }
 
 export default function HabitWeeklyPage() {
-  const dispatch = useAppDispatch();
-  const rows = useAppSelector(selectWeeklyRows);
-  const summary = useAppSelector(selectWeeklySummary);
-  const { weekly: status } = useAppSelector(selectFetchStatus);
-
-  useEffect(() => {
-    if (status === "idle") dispatch(fetchWeekly());
-  }, [dispatch, status]);
+  const { data, isLoading } = useGetWeeklyHabitsQuery();
+  const summary = data?.summary;
+  const rows = data ? Object.values(data.rowsByActivity) : [];
 
   return (
     <main className="screen" aria-label="Story Diary Weekly Tracker">
@@ -47,12 +36,12 @@ export default function HabitWeeklyPage() {
           </div>
 
           <div className="weekly-content">
-            {status === "loading" && (
+            {isLoading && (
               <div style={{ display: "grid", placeItems: "center" }}>
                 <div className="chapter-spinner" />
               </div>
             )}
-            {status !== "loading" && (
+            {!isLoading && (
               <>
                 <div className="weekly-grid" role="table" aria-label="ตารางกิจกรรมรายสัปดาห์">
                   <div className="weekly-day-header" role="row">

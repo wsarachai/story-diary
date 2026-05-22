@@ -1,18 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./authSlice";
-import chaptersReducer from "./chaptersSlice";
-import videoClipsReducer from "./videoClipsSlice";
-import habitsReducer from "./habitsSlice";
-import quizReducer from "./quizSlice";
+import { apiSlice } from "./apiSlice";
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    chapters: chaptersReducer,
-    videoClips: videoClipsReducer,
-    habits: habitsReducer,
-    quiz: quizReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

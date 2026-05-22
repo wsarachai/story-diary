@@ -2,8 +2,7 @@
 import { useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { saveMoodCheckin, selectCheckinSaveStatus } from "@/store/habitsSlice";
+import { useSaveMoodCheckinMutation } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 
 const MOOD_LEVELS: { level: MoodLevel; emoji: string; label: string }[] = [
@@ -32,17 +31,25 @@ function reducer(state: State, action: Action): State {
 
 export default function ExploreEmotionPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectCheckinSaveStatus);
+  const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
 
-  const saving = saveStatus === "saving";
+  const today = new Date().toISOString().split("T")[0];
 
   async function handleSave() {
     if (saving) return;
-    await dispatch(saveMoodCheckin({ occurrenceId: "mood-occ-1", mood: state.mood, sliderValue: state.sliderValue }));
-    router.replace("/habit/today");
+    try {
+      await saveMood({
+        occurrenceId: "mood-occ-1",
+        mood: state.mood,
+        sliderValue: state.sliderValue,
+        date: today
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   function handleCancel() {

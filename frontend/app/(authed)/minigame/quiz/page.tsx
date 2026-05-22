@@ -2,29 +2,24 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  selectCurrentQuestion,
-  selectQuizCounterText,
-  selectQuizProgressPercent,
-  selectPendingSelection,
-  selectQuizPhase,
-  selectOption,
-  submitAnswer,
-  abandon,
-} from "@/store/quizSlice";
+import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 
 function QuizInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
+  const {
+    currentQuestion: question,
+    counterText,
+    progressPercent,
+    attempt,
+    phase,
+    selectOption: handleSelect,
+    submitAnswer: doSubmit,
+    abandon: doAbandon,
+  } = useQuiz();
+  const pendingSelection = attempt?.pendingSelection ?? null;
 
-  const question = useAppSelector(selectCurrentQuestion);
-  const counterText = useAppSelector(selectQuizCounterText);
-  const progressPercent = useAppSelector(selectQuizProgressPercent);
-  const pendingSelection = useAppSelector(selectPendingSelection);
-  const phase = useAppSelector(selectQuizPhase);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const nParam = searchParams.get("n");
@@ -42,13 +37,9 @@ function QuizInner() {
     }
   }, [phase, router, nIndex]);
 
-  function handleSelect(letter: AnswerLetter) {
-    dispatch(selectOption(letter));
-  }
-
   function handleSubmit() {
     if (!pendingSelection) return;
-    dispatch(submitAnswer());
+    doSubmit();
     router.push(`/minigame/quiz/feedback?n=${nIndex}`);
   }
 
@@ -64,7 +55,7 @@ function QuizInner() {
   function handleAbandon() {
     const dlg = dialogRef.current as HTMLDialogElement & { _pendingHref?: string };
     const href = dlg._pendingHref ?? "/home";
-    dispatch(abandon());
+    doAbandon();
     dlg.close();
     router.push(href);
   }

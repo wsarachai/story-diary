@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { probeSession, selectAuthStatus } from "@/store/authSlice";
+import { useGetMeQuery } from "@/store/authApi";
 
 /**
  * DS-1: Fires GET /api/auth/me on first mount to resolve session status.
@@ -10,20 +8,10 @@ import { probeSession, selectAuthStatus } from "@/store/authSlice";
  * Maximum probe hold: 1200 ms; after that the UI falls through regardless.
  */
 export default function AuthProbe() {
-  const dispatch = useAppDispatch();
-  const status = useAppSelector(selectAuthStatus);
-
-  useEffect(() => {
-    if (status === "unknown") {
-      const timer = setTimeout(() => {
-        // Fallback: if probe hasn't resolved in 1200ms, treat as unauthenticated
-        // by dispatching probeSession which will resolve to null on network hang.
-      }, 1200);
-
-      dispatch(probeSession());
-      return () => clearTimeout(timer);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { isLoading } = useGetMeQuery(undefined, {
+    // Avoid re-probing too often, but ensure it runs on mount
+    refetchOnMountOrArgChange: false,
+  });
 
   return null;
 }

@@ -2,14 +2,7 @@
 
 import { useReducer, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  register,
-  clearSubmitError,
-  selectAuthStatus,
-  selectIsAuthed,
-  selectSubmitError,
-} from "@/store/authSlice";
+import { useGetMeQuery, useRegisterMutation } from "@/store/authApi";
 import type { Gender } from "@/types/auth";
 import type { ApiErrorCode } from "@/types/error";
 
@@ -80,22 +73,20 @@ function apiErrorCopy(code: ApiErrorCode | null): string | null {
  */
 export default function RegisterPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
 
-  const status = useAppSelector(selectAuthStatus);
-  const isAuthed = useAppSelector(selectIsAuthed);
-  const submitError = useAppSelector(selectSubmitError);
+  const { data: user } = useGetMeQuery();
+  const [register, { isLoading: isSubmitting, error }] = useRegisterMutation();
 
   const [form, dispatchForm] = useReducer(formReducer, initialForm);
 
   // DS-2: redirect if already authenticated
   useEffect(() => {
-    if (isAuthed) {
+    if (user) {
       router.replace("/home");
     }
-  }, [isAuthed, router]);
+  }, [user, router]);
 
-  const isSubmitting = status === "authenticating";
+  const submitError = (error as any)?.data?.error?.code as ApiErrorCode;
 
   function validate(): boolean {
     const errors: FormState["errors"] = {};
@@ -119,18 +110,17 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    dispatch(clearSubmitError());
-    const result = await dispatch(
-      register({
+    try {
+      await register({
         name: form.name.trim(),
         tel: form.tel.trim(),
         password: form.password,
         characterName: form.characterName.trim(),
         gender: form.gender!,
-      })
-    );
-    if (register.fulfilled.match(result)) {
+      }).unwrap();
       router.replace("/home");
+    } catch {
+      // ignore
     }
   }
 

@@ -2,12 +2,7 @@
 import { Suspense, useReducer, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  createActivity,
-  selectActivitySaveStatus,
-  clearSaveStatus,
-} from "@/store/habitsSlice";
+import { useCreateActivityMutation } from "@/store/habitsApi";
 import type {
   HabitFrequency,
   HabitImportance,
@@ -90,8 +85,7 @@ const MEAL_SLOTS: { slot: MealSlot; label: string }[] = [
 function MedicineFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectActivitySaveStatus);
+  const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const discardRef = useRef<HTMLDialogElement>(null);
 
@@ -114,8 +108,6 @@ function MedicineFormInner() {
     errors: {},
     dirty: false,
   } satisfies FormState);
-
-  const saving = saveStatus === "saving";
 
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
@@ -145,15 +137,18 @@ function MedicineFormInner() {
       if (form.frequency === "monthly") return { frequency: "monthly" as const, daysPerMonth: form.daysPerMonth };
       return { frequency: "todo" as const, importance: form.importance };
     })();
-    await dispatch(createActivity({
-      category: isNutrition ? "nutrition" : "medicine",
-      name: form.name.trim(),
-      iconColor: form.iconColor as `#${string}`,
-      schedule,
-      ...(isNutrition ? {} : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
-    }));
-    dispatch(clearSaveStatus());
-    router.replace("/habit/today");
+    try {
+      await createActivity({
+        category: isNutrition ? "nutrition" : "medicine",
+        name: form.name.trim(),
+        iconColor: form.iconColor as `#${string}`,
+        schedule,
+        ...(isNutrition ? {} : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   function handleCancel() {

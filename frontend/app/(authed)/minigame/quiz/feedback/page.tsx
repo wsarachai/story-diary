@@ -2,31 +2,22 @@
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  selectCurrentQuestion,
-  selectQuizCounterText,
-  selectQuizProgressPercent,
-  selectFeedbackForCurrent,
-  selectIsLastQuestion,
-  selectQuizPhase,
-  selectCurrentIndex,
-  advance,
-} from "@/store/quizSlice";
+import { useQuiz } from "../../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 
 function FeedbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
-
-  const question = useAppSelector(selectCurrentQuestion);
-  const counterText = useAppSelector(selectQuizCounterText);
-  const progressPercent = useAppSelector(selectQuizProgressPercent);
-  const feedback = useAppSelector(selectFeedbackForCurrent);
-  const isLastQuestion = useAppSelector(selectIsLastQuestion);
-  const phase = useAppSelector(selectQuizPhase);
-  const currentIndex = useAppSelector(selectCurrentIndex);
+  const {
+    currentQuestion: question,
+    counterText,
+    progressPercent,
+    feedbackForCurrent: feedback,
+    isLastQuestion,
+    phase,
+    currentIndex,
+    advance: doAdvance,
+  } = useQuiz();
 
   const nParam = searchParams.get("n");
   const nIndex = nParam ? parseInt(nParam, 10) : 0;
@@ -46,7 +37,7 @@ function FeedbackInner() {
   }, [phase, router, currentIndex]);
 
   function handleAdvance() {
-    dispatch(advance());
+    doAdvance();
     // Navigation is driven entirely by the useEffect above so there is no
     // race between an explicit push and the effect's replace.
   }

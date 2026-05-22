@@ -1,25 +1,16 @@
 "use client";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { fetchQuiz, start, selectQuizFetchStatus } from "@/store/quizSlice";
+import { useQuiz } from "./QuizProvider";
 
 export default function MinigamePage() {
-  const dispatch = useAppDispatch();
   const router = useRouter();
-  const fetchStatus = useAppSelector(selectQuizFetchStatus);
-
-  useEffect(() => {
-    if (fetchStatus === "idle") {
-      dispatch(fetchQuiz());
-    }
-  }, [dispatch, fetchStatus]);
+  const { start, isLoading } = useQuiz();
 
   function handleStart() {
-    dispatch(start());
+    start();
     router.push("/minigame/quiz?n=0");
   }
 
@@ -66,7 +57,7 @@ export default function MinigamePage() {
               className="ready-btn ready-btn-yes"
               onClick={handleStart}
               aria-label="เริ่มทำแบบทดสอบ"
-              disabled={fetchStatus === "loading"}
+              disabled={isLoading}
             >
               พร้อมแล้ว!
             </button>

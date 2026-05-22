@@ -2,13 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchMonthly,
-  selectMonthlyRows,
-  selectMonthlySummary,
-  selectFetchStatus,
-} from "@/store/habitsSlice";
+import { useGetMonthlyHabitsQuery } from "@/store/habitsApi";
 import type { HabitOccurrenceStatus } from "@/types/habit";
 import IconRail from "@/components/IconRail";
 
@@ -25,14 +19,10 @@ function mDotClass(status: HabitOccurrenceStatus, dayIndex: number): string {
 const DAY_NUMBERS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export default function HabitMonthlyPage() {
-  const dispatch = useAppDispatch();
-  const rows = useAppSelector(selectMonthlyRows);
-  const summary = useAppSelector(selectMonthlySummary);
-  const { monthly: status } = useAppSelector(selectFetchStatus);
-
-  useEffect(() => {
-    if (status === "idle") dispatch(fetchMonthly());
-  }, [dispatch, status]);
+  const month = new Date().toISOString().slice(0, 7);
+  const { data, isLoading } = useGetMonthlyHabitsQuery(month);
+  const rows = data ? Object.values(data.rowsByActivity) : [];
+  const summary = data?.summary;
 
   return (
     <main className="screen" aria-label="Story Diary Monthly Tracker">
@@ -51,12 +41,12 @@ export default function HabitMonthlyPage() {
           </div>
 
           <div className="monthly-content">
-            {status === "loading" && (
+            {isLoading && (
               <div style={{ display: "grid", placeItems: "center" }}>
                 <div className="chapter-spinner" />
               </div>
             )}
-            {status !== "loading" && (
+            {!isLoading && (
               <>
                 <div className="monthly-grid-wrap" role="table" aria-label="ตารางรายเดือน">
                   <div className="monthly-col-header" role="row">

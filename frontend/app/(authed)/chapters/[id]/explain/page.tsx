@@ -4,12 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchChapter,
-  selectChapter,
-  selectChapterDetailStatus,
-} from "@/store/chaptersSlice";
+import { useGetChapterQuery } from "@/store/chaptersApi";
 
 export default function ChapterIntroPage() {
   const params = useParams();
@@ -17,27 +12,22 @@ export default function ChapterIntroPage() {
   const rawId = params?.id;
   const id = typeof rawId === "string" ? parseInt(rawId, 10) : NaN;
 
-  const dispatch = useAppDispatch();
-  const chapter = useAppSelector((s) => selectChapter(s, id));
-  const detailStatus = useAppSelector((s) => selectChapterDetailStatus(s, id));
+  const { data: chapter, status: detailStatus } = useGetChapterQuery(id, { skip: isNaN(id) });
 
   useEffect(() => {
     if (isNaN(id)) {
       router.replace("/chapters/menu");
       return;
     }
-    if (detailStatus === "idle") {
-      dispatch(fetchChapter(id));
-    }
-  }, [dispatch, id, detailStatus, router]);
+  }, [id, router]);
 
   useEffect(() => {
-    if (detailStatus === "error") {
+    if (detailStatus === "rejected") {
       router.replace("/chapters/menu");
     }
   }, [detailStatus, router]);
 
-  const isLoading = detailStatus === "loading" || detailStatus === "idle";
+  const isLoading = detailStatus === "pending" || detailStatus === "uninitialized";
   const introTitle = chapter?.introTitle ?? "บทบรรยาย";
   const bgUrl = chapter?.backgroundImageUrl;
 

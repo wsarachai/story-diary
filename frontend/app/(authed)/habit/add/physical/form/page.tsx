@@ -2,12 +2,7 @@
 import { Suspense, useReducer, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  createActivity,
-  selectActivitySaveStatus,
-  clearSaveStatus,
-} from "@/store/habitsSlice";
+import { useCreateActivityMutation } from "@/store/habitsApi";
 import type {
   HabitFrequency,
   HabitImportance,
@@ -71,8 +66,7 @@ const GOAL_PRESETS = ["ก้าว", "นาที", "กม.", "ครั้�
 function PhysicalFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectActivitySaveStatus);
+  const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const colorDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -94,8 +88,6 @@ function PhysicalFormInner() {
     dirty: false,
   } satisfies FormState);
 
-  const saving = saveStatus === "saving";
-
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
     if (!form.name.trim()) errors.name = "กรุณาระบุชื่อ";
@@ -114,14 +106,17 @@ function PhysicalFormInner() {
       if (form.frequency === "monthly") return { frequency: "monthly" as const, daysPerMonth: form.daysPerMonth };
       return { frequency: "todo" as const, importance: form.importance };
     })();
-    await dispatch(createActivity({
-      category: "physical",
-      name: form.name.trim(),
-      iconColor: form.iconColor as `#${string}`,
-      schedule,
-    }));
-    dispatch(clearSaveStatus());
-    router.replace("/habit/today");
+    try {
+      await createActivity({
+        category: "physical",
+        name: form.name.trim(),
+        iconColor: form.iconColor as `#${string}`,
+        schedule,
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   function handleCancel() {

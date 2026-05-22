@@ -4,15 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchChapter,
-  markCompleted,
-  persistChapterProgress,
-  selectChapter,
-  selectChapterDetailStatus,
-} from "@/store/chaptersSlice";
-import { selectCurrentUser } from "@/store/authSlice";
+import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/chaptersApi";
+import { useGetMeQuery } from "@/store/authApi";
 
 /** Milliseconds between each revealed character — tuned to natural speech pace. */
 const TYPEWRITER_SPEED_MS = 60;
@@ -97,10 +90,9 @@ export default function ChapterScenePage() {
   const id = typeof rawId === "string" ? parseInt(rawId, 10) : NaN;
   const sceneIndex = typeof rawScene === "string" ? parseInt(rawScene, 10) : NaN;
 
-  const dispatch = useAppDispatch();
-  const chapter = useAppSelector((s) => selectChapter(s, id));
-  const detailStatus = useAppSelector((s) => selectChapterDetailStatus(s, id));
-  const currentUser = useAppSelector(selectCurrentUser);
+  const { data: chapter, status: detailStatus } = useGetChapterQuery(id, { skip: isNaN(id) });
+  const { data: currentUser } = useGetMeQuery();
+  const [updateProgress] = useUpdateChapterProgressMutation();
 
   // Track which scene index typing has been completed for, so the "done" state
   // automatically resets when sceneIndex changes (no setState-in-effect needed).
@@ -113,17 +105,14 @@ export default function ChapterScenePage() {
       router.replace("/chapters/menu");
       return;
     }
-    if (detailStatus === "idle") {
-      dispatch(fetchChapter(id));
-    }
-  }, [dispatch, id, sceneIndex, detailStatus, router]);
+  }, [id, sceneIndex, router]);
 
   useEffect(() => {
-    if (detailStatus === "error") {
+    if (detailStatus === "rejected") {
       router.replace("/chapters/menu");
       return;
     }
-    if (detailStatus === "ready" && chapter) {
+    if (detailStatus === "fulfilled" && chapter) {
       if (sceneIndex < 0 || sceneIndex >= chapter.scenes.length) {
         router.replace("/chapters/menu");
       }
@@ -140,8 +129,7 @@ export default function ChapterScenePage() {
     if (sceneIndex < chapter.scenes.length - 1) {
       router.push(`/chapters/${id}/explain/${sceneIndex + 1}`);
     } else {
-      dispatch(markCompleted(id));
-      dispatch(persistChapterProgress({ id, progress: "completed" }));
+      updateProgress({ id, progress: "completed" });
       router.push("/chapters/menu");
     }
   };

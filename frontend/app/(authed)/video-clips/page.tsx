@@ -4,12 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchCollection,
-  selectVideoClipsCollection,
-  selectVideoClipsStatus,
-} from "@/store/videoClipsSlice";
+import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import type { VideoClip } from "@/types/chapters";
 
 function PlayButton({ clip }: { clip: VideoClip }) {
@@ -28,15 +23,7 @@ function PlayButton({ clip }: { clip: VideoClip }) {
 }
 
 export default function VideoClipsPage() {
-  const dispatch = useAppDispatch();
-  const collection = useAppSelector(selectVideoClipsCollection);
-  const status = useAppSelector(selectVideoClipsStatus);
-
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchCollection());
-    }
-  }, [dispatch, status]);
+  const { data: collection } = useGetVideoClipsQuery();
 
   const clips = collection?.clips ?? [];
   const leftClips = clips.filter((_, index) => (index + 1) % 2 === 1);

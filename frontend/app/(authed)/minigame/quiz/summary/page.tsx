@@ -4,13 +4,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
-import { useAppSelector } from "@/lib/hooks";
-import { selectQuizScore, selectQuizPhase } from "@/store/quizSlice";
+import { useQuiz } from "../../QuizProvider";
 
 export default function SummaryPage() {
   const router = useRouter();
-  const score = useAppSelector(selectQuizScore);
-  const phase = useAppSelector(selectQuizPhase);
+  const { score, phase } = useQuiz();
 
   useEffect(() => {
     if (phase !== "completed" && !score) {

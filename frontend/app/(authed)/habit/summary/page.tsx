@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchMonthlySummary,
-  selectMonthlyGoalsSummary,
-  selectFetchStatus,
-} from "@/store/habitsSlice";
+import { useGetMonthlySummaryQuery } from "@/store/habitsApi";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 
@@ -16,15 +11,8 @@ function ringDashOffset(percent: number): number {
 }
 
 export default function HabitSummaryPage() {
-  const dispatch = useAppDispatch();
-  const data = useAppSelector(selectMonthlyGoalsSummary);
-  const { summary: status } = useAppSelector(selectFetchStatus);
-
-  useEffect(() => {
-    if (status === "idle") dispatch(fetchMonthlySummary());
-  }, [dispatch, status]);
-
-  const loading = status === "loading";
+  const month = new Date().toISOString().slice(0, 7);
+  const { data, isLoading: loading } = useGetMonthlySummaryQuery(month);
 
   return (
     <BookShellLayout

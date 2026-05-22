@@ -5,12 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-    fetchCollection,
-    selectVideoClipsCollection,
-    selectVideoClipsStatus,
-} from "@/store/videoClipsSlice";
+import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import type { VideoClip } from "@/types/chapters";
 
 function toEmbedUrl(sourceUrl?: string): string {
@@ -46,17 +41,9 @@ function resolveClipByParam(clips: VideoClip[], clipParam: string): VideoClip | 
 }
 
 export default function VideoClipPlayerPage() {
-    const dispatch = useAppDispatch();
-    const collection = useAppSelector(selectVideoClipsCollection);
-    const status = useAppSelector(selectVideoClipsStatus);
+    const { data: collection } = useGetVideoClipsQuery();
     const params = useParams<{ clip: string }>();
     const clipParam = params?.clip ?? "";
-
-    useEffect(() => {
-        if (status === "idle") {
-            dispatch(fetchCollection());
-        }
-    }, [dispatch, status]);
 
     const clips = collection?.clips ?? [];
     const activeClip = useMemo(() => resolveClipByParam(clips, clipParam), [clips, clipParam]);

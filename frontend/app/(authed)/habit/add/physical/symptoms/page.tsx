@@ -2,8 +2,7 @@
 import { useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { saveSymptomsCheckin, selectCheckinSaveStatus } from "@/store/habitsSlice";
+import { useSaveSymptomsCheckinMutation } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 
 const INITIAL_SYMPTOMS: SymptomCheck[] = [
@@ -29,18 +28,25 @@ function reducer(state: State, action: Action): State {
 
 export default function SymptomsCheckinPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectCheckinSaveStatus);
+  const [saveSymptoms, { isLoading: saving }] = useSaveSymptomsCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const [state, dispatchLocal] = useReducer(reducer, { items: INITIAL_SYMPTOMS });
 
-  const saving = saveStatus === "saving";
   const dirty = state.items.some((s) => s.checked);
+  const today = new Date().toISOString().split("T")[0];
 
   async function handleSave() {
     if (saving) return;
-    await dispatch(saveSymptomsCheckin({ occurrenceId: "sym-occ-1", items: state.items }));
-    router.replace("/habit/today");
+    try {
+      await saveSymptoms({
+        occurrenceId: "sym-occ-1",
+        items: state.items,
+        date: today
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   function handleCancel() {

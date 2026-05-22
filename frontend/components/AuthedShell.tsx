@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAppSelector, useAppDispatch } from "@/lib/hooks";
-import { selectIsAuthed, selectAuthStatus, logout } from "@/store/authSlice";
+import { useGetMeQuery, useLogoutMutation } from "@/store/authApi";
 
 /**
  * Auth guard wrapper for the (authed) route group.
@@ -13,22 +12,22 @@ import { selectIsAuthed, selectAuthStatus, logout } from "@/store/authSlice";
 export default function AuthedShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
-  const status = useAppSelector(selectAuthStatus);
-  const isAuthed = useAppSelector(selectIsAuthed);
+  const { data: user, status, isFetching } = useGetMeQuery();
+  const [logout] = useLogoutMutation();
+
+  const isUnauthenticated = status === "rejected" || (status === "fulfilled" && !user);
+  const isLoading = status === "pending" || isFetching;
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      dispatch(logout());
+    if (isUnauthenticated) {
+      logout();
       router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     }
-  }, [status, pathname, router, dispatch]);
+  }, [isUnauthenticated, pathname, router, logout]);
 
-  if (status === "unknown" || status === "unauthenticated") {
+  if (isLoading || isUnauthenticated) {
     return null;
   }
-
-  if (!isAuthed) return null;
 
   return <>{children}</>;
 }

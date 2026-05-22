@@ -3,26 +3,45 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  fetchToday,
-  toggleOccurrence,
-  selectTodayEntries,
-  selectFetchStatus,
-} from "@/store/habitsSlice";
+import { useGetTodayHabitsQuery, useToggleOccurrenceMutation } from "@/store/habitsApi";
 import IconRail from "@/components/IconRail";
+import type { HabitActivity } from "@/types/habit";
+
+function getAccent(activity: HabitActivity): string {
+  if (activity.category === "medicine") return "#57a8db";
+  if (activity.category === "nutrition") return "#2eb563";
+  const pc = activity.physicalCategory;
+  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
+  return "#ee8a4a";
+}
+
+function getSubline(activity: HabitActivity): string {
+  const { schedule, mealRelation, mealSlots } = activity;
+  if (activity.category === "medicine" && mealRelation && mealSlots && mealSlots.length > 0) {
+    const relation = mealRelation === "after" ? "หลัง" : "ก่อน";
+    const slots = mealSlots.map(s => {
+      if (s === "breakfast") return "อาหารเช้า";
+      if (s === "lunch") return "อาหารกลางวัน";
+      if (s === "dinner") return "อาหารเย็น";
+      return "ก่อนนอน";
+    }).join("-");
+    return `${relation}${slots}`;
+  }
+  if (schedule.frequency === "daily") return "ทุกวัน";
+  return "ทั่วไป";
+}
 
 function getCategoryClass(accent: string): string {
-  if (accent === "#9b5de5") return "entry-med";
-  if (accent === "#f4a261") return "entry-food";
+  if (accent === "#57a8db") return "entry-med";
+  if (accent === "#2eb563") return "entry-food";
   if (accent === "#e76f51") return "entry-mood";
   return "entry-body";
 }
 
 function CategoryIcon({ accent }: { accent: string }) {
-  if (accent === "#9b5de5") {
+  if (accent === "#57a8db") {
     return (
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#9b5de5" strokeWidth="2">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#57a8db" strokeWidth="2">
         <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
         <rect x="9" y="1" width="6" height="4" rx="1"/>
         <line x1="9" y1="12" x2="15" y2="12"/>
@@ -30,9 +49,9 @@ function CategoryIcon({ accent }: { accent: string }) {
       </svg>
     );
   }
-  if (accent === "#f4a261") {
+  if (accent === "#2eb563") {
     return (
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#f4a261" strokeWidth="2">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#2eb563" strokeWidth="2">
         <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
         <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
       </svg>
@@ -49,7 +68,7 @@ function CategoryIcon({ accent }: { accent: string }) {
     );
   }
   return (
-    <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#2a9d8f" strokeWidth="2">
+    <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#ee8a4a" strokeWidth="2">
       <circle cx="12" cy="5" r="2"/>
       <path d="M6 11h12M12 7v4M9 21l3-7 3 7"/>
     </svg>
@@ -58,13 +77,16 @@ function CategoryIcon({ accent }: { accent: string }) {
 
 export default function HabitTodayPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const entries = useAppSelector(selectTodayEntries);
-  const { today: status } = useAppSelector(selectFetchStatus);
+  const todayStr = new Date().toISOString().split("T")[0];
+  const { data, isLoading } = useGetTodayHabitsQuery(todayStr);
+  const [toggle] = useToggleOccurrenceMutation();
 
-  useEffect(() => {
-    if (status === "idle") dispatch(fetchToday());
-  }, [dispatch, status]);
+  const entries = data ? Object.values(data.activities).map(activity => ({
+    activity,
+    occurrence: data.todayByActivity[activity.id],
+    subline: getSubline(activity),
+    accent: getAccent(activity)
+  })) : [];
 
   function handleEntryTap(activity: { id: string; category: string }, occurrenceId: string) {
     if (activity.category === "medicine") {
@@ -93,12 +115,12 @@ export default function HabitTodayPage() {
           </header>
 
           <div className="habit-entries">
-            {status === "loading" && (
+            {isLoading && (
               <div style={{ display: "grid", placeItems: "center", height: "12rem" }}>
                 <div className="chapter-spinner" />
               </div>
             )}
-            {status !== "loading" && entries.map((entry) => (
+            {!isLoading && entries.map((entry) => (
               <div
                 key={entry.activity.id}
                 className={`habit-entry ${getCategoryClass(entry.accent)}`}
@@ -119,7 +141,12 @@ export default function HabitTodayPage() {
                   aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
                   onClick={(e) => {
                     e.stopPropagation();
-                    dispatch(toggleOccurrence({ occurrenceId: entry.occurrence.id, activityId: entry.activity.id }));
+                    toggle({
+                      occurrenceId: entry.occurrence.id,
+                      activityId: entry.activity.id,
+                      status: entry.occurrence.status === "done" ? "pending" : "done",
+                      date: todayStr
+                    });
                   }}
                 >
                   {entry.occurrence.status === "done" && (

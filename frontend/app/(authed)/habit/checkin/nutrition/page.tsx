@@ -2,12 +2,7 @@
 import { Suspense, useReducer } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  saveNutritionCheckin,
-  selectCheckinSaveStatus,
-  selectActivityById,
-} from "@/store/habitsSlice";
+import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
 
 interface State {
   breakfast: string;
@@ -30,15 +25,16 @@ function reducer(state: State, action: Action): State {
 function NutritionCheckinInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dispatch = useAppDispatch();
-  const saveStatus = useAppSelector(selectCheckinSaveStatus);
+  const [saveNutrition, { isLoading: saving }] = useSaveNutritionCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
-  const activity = useAppSelector((state) => selectActivityById(state, activityId));
+
+  const today = new Date().toISOString().split("T")[0];
+  const { data: todayData } = useGetTodayHabitsQuery(today);
+  const activity = todayData?.activities[activityId];
 
   const [state, dispatchLocal] = useReducer(reducer, { breakfast: "", lunch: "", dinner: "" });
-  const saving = saveStatus === "saving";
 
   if (!occId) {
     router.replace("/habit/today");
@@ -47,14 +43,19 @@ function NutritionCheckinInner() {
 
   async function handleSave() {
     if (saving) return;
-    await dispatch(saveNutritionCheckin({
-      occurrenceId: occId,
-      activityName: activity?.name ?? "โภชนาการ",
-      breakfast: state.breakfast,
-      lunch: state.lunch,
-      dinner: state.dinner,
-    }));
-    router.replace("/habit/today");
+    try {
+      await saveNutrition({
+        occurrenceId: occId,
+        activityName: activity?.name ?? "โภชนาการ",
+        breakfast: state.breakfast,
+        lunch: state.lunch,
+        dinner: state.dinner,
+        date: today
+      }).unwrap();
+      router.replace("/habit/today");
+    } catch {
+      // ignore
+    }
   }
 
   return (
