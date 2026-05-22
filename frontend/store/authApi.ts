@@ -23,11 +23,15 @@ export const authApi = apiSlice.injectEndpoints({
         method: "POST",
         body: credentials,
       }),
-      invalidatesTags: ["Auth"],
-      async onQueryStarted(_, { queryFulfilled }) {
+      // Do NOT use invalidatesTags here: it dispatches synchronously and
+      // triggers a getMe refetch whose prepareHeaders runs before the token
+      // reaches localStorage, causing a 401 redirect loop. Instead, populate
+      // the getMe cache directly once we have the token.
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("auth_token", data.token);
+          dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch (err) {
           localStorage.removeItem("auth_token");
         }
@@ -39,11 +43,11 @@ export const authApi = apiSlice.injectEndpoints({
         method: "POST",
         body: userData,
       }),
-      invalidatesTags: ["Auth"],
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("auth_token", data.token);
+          dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch (err) {
           localStorage.removeItem("auth_token");
         }
@@ -54,14 +58,17 @@ export const authApi = apiSlice.injectEndpoints({
         url: "/auth/logout",
         method: "POST",
       }),
-      invalidatesTags: ["Auth"],
-      async onQueryStarted(_, { queryFulfilled }) {
+      // Do NOT use invalidatesTags here: the synchronous refetch it triggers
+      // fires before onQueryStarted removes the token, so getMe succeeds with
+      // the stale JWT and the user appears still authenticated.
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
         } catch {
           // ignore
         } finally {
           localStorage.removeItem("auth_token");
+          dispatch(authApi.util.upsertQueryData("getMe", undefined, null));
         }
       },
     }),

@@ -44,13 +44,11 @@ function LoginForm() {
     e.preventDefault();
     setLocalError(null);
     try {
-      const data = await login({ username: username.trim(), password }).unwrap();
-      // Store token synchronously before navigating so that the next page's
-      // getMe request includes the Authorization header (avoids a race with
-      // onQueryStarted which runs in a separate microtask).
-      if (data.token) {
-        localStorage.setItem("auth_token", data.token);
-      }
+      await login({ username: username.trim(), password }).unwrap();
+      // onQueryStarted stores the token and populates the getMe cache before
+      // this continuation runs. The useEffect above will handle the redirect
+      // once the Redux user state updates, but we also navigate here as a
+      // fast-path for cases where the effect fires after this.
       router.replace(from);
     } catch (err) {
       setPassword("");
