@@ -53,11 +53,17 @@ export default function ChaptersPage() {
           </section>
 
           <section className="chapter-card chapter-card-bottom">
-            <div className="ebook-arch" aria-hidden="true" />
-            <div className="ebook-step" aria-hidden="true" />
-            <div className="ebook-step s2" aria-hidden="true" />
-            <div className="ebook-step s3" aria-hidden="true" />
-            <h2>E-book</h2>
+            <Link
+              href="/e-books"
+              className="ebook-link-overlay"
+              aria-label="ไปหน้า E-book"
+            >
+              <div className="ebook-arch" aria-hidden="true" />
+              <div className="ebook-step" aria-hidden="true" />
+              <div className="ebook-step s2" aria-hidden="true" />
+              <div className="ebook-step s3" aria-hidden="true" />
+              <h2>E-book</h2>
+            </Link>
           </section>
         </div>
       }

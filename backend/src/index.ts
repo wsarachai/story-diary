@@ -10,7 +10,7 @@ import cors from "cors";
 // Import routes
 import authRouter from "./routes/auth";
 import usersRouter from "./routes/users";
-import { chaptersRouter, videoClipsRouter } from "./routes/chapters";
+import { chaptersRouter, videoClipsRouter, eBooksRouter } from "./routes/chapters";
 import habitsRouter from "./routes/habits";
 import minigameRouter from "./routes/minigame";
 
@@ -51,6 +51,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/chapters", chaptersRouter);
 app.use("/api/video-clips", videoClipsRouter);
+app.use("/api/e-books", eBooksRouter);
 app.use("/api/habits", habitsRouter);
 app.use("/api/minigame", minigameRouter);
 

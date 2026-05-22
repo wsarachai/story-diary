@@ -61,3 +61,14 @@ videoClipsRouter.get("/", requireAuth, (_req, res, next) => {
         next(err);
     }
 });
+
+export const eBooksRouter: ExpressRouter = Router();
+
+eBooksRouter.get("/", requireAuth, (_req, res, next) => {
+    try {
+        const collection = getEBooks();
+        res.status(200).json(collection);
+    } catch (err) {
+        next(err);
+    }
+});

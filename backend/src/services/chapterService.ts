@@ -75,3 +75,14 @@ export function getVideoClips(): VideoClipsCollection {
         })),
     };
 }
+
+export function getEBooks() {
+    return {
+        badge: "E-book",
+        chapters: [1, 2, 3, 4, 5].map((n) => ({
+            id: `ebk-${n}`,
+            title: `บทที่ ${n}`,
+            pdfUrl: `/e-books/ch0${n}.pdf`,
+        })),
+    };
+}

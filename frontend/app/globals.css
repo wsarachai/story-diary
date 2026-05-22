@@ -465,12 +465,28 @@ input:focus-visible,
   width: 8rem;
 }
 
-.chapter-card-bottom {
-  align-self: stretch;
+.ebook-link-overlay {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.ebook-link-overlay h2 {
+  margin: 0 1.4rem 0 0;
+  font-size: 74px;
+  font-weight: 500;
+  line-height: 0.95;
+  position: relative;
+  z-index: 1;
 }
 
 .ebook-arch {
+
   position: absolute;
   left: 3rem;
   bottom: 1.4rem;
