@@ -62,8 +62,6 @@ export const authApi = apiSlice.injectEndpoints({
           // ignore
         } finally {
           localStorage.removeItem("auth_token");
-          // Clear all API state on logout
-          window.location.reload(); 
         }
       },
     }),

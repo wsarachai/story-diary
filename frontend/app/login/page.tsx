@@ -44,7 +44,13 @@ function LoginForm() {
     e.preventDefault();
     setLocalError(null);
     try {
-      await login({ username: username.trim(), password }).unwrap();
+      const data = await login({ username: username.trim(), password }).unwrap();
+      // Store token synchronously before navigating so that the next page's
+      // getMe request includes the Authorization header (avoids a race with
+      // onQueryStarted which runs in a separate microtask).
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
       router.replace(from);
     } catch (err) {
       setPassword("");

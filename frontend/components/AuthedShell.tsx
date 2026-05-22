@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useGetMeQuery, useLogoutMutation } from "@/store/authApi";
+import { useGetMeQuery } from "@/store/authApi";
 
 /**
  * Auth guard wrapper for the (authed) route group.
@@ -13,17 +13,15 @@ export default function AuthedShell({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const { data: user, status, isFetching } = useGetMeQuery();
-  const [logout] = useLogoutMutation();
 
   const isUnauthenticated = status === "rejected" || (status === "fulfilled" && !user);
   const isLoading = status === "pending" || isFetching;
 
   useEffect(() => {
     if (isUnauthenticated) {
-      logout();
       router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     }
-  }, [isUnauthenticated, pathname, router, logout]);
+  }, [isUnauthenticated, pathname, router]);
 
   if (isLoading || isUnauthenticated) {
     return null;
