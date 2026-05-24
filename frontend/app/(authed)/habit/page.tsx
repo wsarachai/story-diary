@@ -31,21 +31,15 @@ export default function HabitPage() {
           <h1 className="tracker-title">Habit tracker</h1>
           <div className="section-label-row">
             <div className="section-label">daily habits</div>
-            <Link href="/habit/today" className="edit-icon-btn" aria-label="แก้ไขกิจกรรมวันนี้">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </Link>
           </div>
-          <div className="daily-card" aria-label="Daily habit checklist">
+          <Link href="/habit/today" className="daily-card" aria-label="Daily habit checklist" style={{ textDecoration: "none" }}>
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="habit-item">
                 <div className="habit-checkbox" />
                 <div className="habit-line" />
               </div>
             ))}
-          </div>
+          </Link>
         </div>
       }
       right={

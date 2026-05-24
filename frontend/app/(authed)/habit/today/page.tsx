@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGetTodayHabitsQuery, useToggleOccurrenceMutation } from "@/store/habitsApi";
@@ -100,19 +99,25 @@ export default function HabitTodayPage() {
     <main className="screen" aria-label="Story Diary Habit Daily Today">
       <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
         <section
-          className="page page-right"
-          style={{ padding: "7% 6% 6% 7%", display: "grid", gridTemplateRows: "auto 1fr", gap: "2rem", gridColumn: "1 / 3", overflow: "hidden" }}
+          className="page page-left page-seam-right"
+          style={{ gridColumn: "1 / 3", padding: "5% 6% 5%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "2rem", overflow: "hidden" }}
           aria-label="รายการกิจกรรมวันนี้"
         >
-          <header className="today-header">
-            <h1 className="today-header-title">กิจกรรมวันนี้</h1>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h1 className="tracker-section-title" style={{ margin: 0 }}>Daily Tracker</h1>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
             </Link>
-          </header>
+          </div>
+
+          <div className="tracker-tab-row">
+            <span className="tracker-tab is-active" aria-current="page">daily habits</span>
+            <Link href="/habit/weekly" className="tracker-tab">weekly habits</Link>
+            <Link href="/habit/monthly" className="tracker-tab">monthly habits</Link>
+          </div>
 
           <div className="habit-entries">
             {isLoading && (
