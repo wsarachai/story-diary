@@ -388,7 +388,8 @@ export async function getWeeklyView(
     weekStart: string
 ): Promise<{ weekStartDate: string; rowsByActivity: WeeklyRow[]; summary: PeriodSummary }> {
     const dates = weekDates(weekStart);
-    const activities = await getActivities(userId);
+    const allActivities = await getActivities(userId);
+    const activities = allActivities.filter(a => a.schedule.frequency === "weekly");
 
     let totalDone = 0;
     let totalTarget = 0;
@@ -428,7 +429,8 @@ export async function getMonthlyView(
     month: string
 ): Promise<{ month: string; rowsByActivity: MonthlyRow[]; summary: PeriodSummary }> {
     const dates = monthDates(month);
-    const activities = await getActivities(userId);
+    const allActivities = await getActivities(userId);
+    const activities = allActivities.filter(a => a.schedule.frequency === "monthly");
 
     let totalDone = 0;
     let totalTarget = 0;

@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useReducer, useRef } from "react";
+import { Suspense, useReducer, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { useCreateActivityMutation } from "@/store/habitsApi";
@@ -94,6 +94,7 @@ function MedicineFormInner() {
   const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const discardRef = useRef<HTMLDialogElement>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const source = searchParams.get("source");
   const typeKey = searchParams.get("type") as NutritionPresetKey | null;
@@ -152,8 +153,10 @@ function MedicineFormInner() {
         ...(isNutrition ? {} : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
       }).unwrap();
       router.replace("/habit/today");
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const raw = (err as { data?: { error?: unknown } })?.data?.error;
+      const msg = typeof raw === "string" ? raw : undefined;
+      setSaveError(msg ?? "ไม่สามารถบันทึกได้ กรุณาลองใหม่");
     }
   }
 
@@ -200,6 +203,7 @@ function MedicineFormInner() {
               </button>
             </header>
 
+            {saveError && <p className="field-error" role="alert" style={{ margin: "0 0 0.5em", textAlign: "center" }}>{saveError}</p>}
             <div className="form-panel">
               {/* Name + icon-color */}
               <div className="name-row">
@@ -299,31 +303,37 @@ function MedicineFormInner() {
                 </div>
               )}
               {form.frequency === "weekly" && (
-                <div className="count-row" aria-label="จำนวนวันต่อสัปดาห์">
-                  <input
-                    className="count-num"
-                    type="number"
-                    min="1"
-                    max="7"
-                    value={form.daysPerWeek}
-                    aria-label="จำนวนวันต่อสัปดาห์"
-                    onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
-                  />
-                  <div className="count-unit">วัน/สัปดาห์</div>
+                <div>
+                  <div className="count-row" aria-label="จำนวนวันต่อสัปดาห์">
+                    <input
+                      className="count-num"
+                      type="number"
+                      min="1"
+                      max="7"
+                      value={form.daysPerWeek}
+                      aria-label="จำนวนวันต่อสัปดาห์"
+                      onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
+                    />
+                    <div className="count-unit">วัน/สัปดาห์</div>
+                  </div>
+                  {form.errors.daysPerWeek && <p className="field-error" role="alert">{form.errors.daysPerWeek}</p>}
                 </div>
               )}
               {form.frequency === "monthly" && (
-                <div className="count-row" aria-label="จำนวนวันต่อเดือน">
-                  <input
-                    className="count-num"
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={form.daysPerMonth}
-                    aria-label="จำนวนวันต่อเดือน"
-                    onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
-                  />
-                  <div className="count-unit">วัน/เดือน</div>
+                <div>
+                  <div className="count-row" aria-label="จำนวนวันต่อเดือน">
+                    <input
+                      className="count-num"
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={form.daysPerMonth}
+                      aria-label="จำนวนวันต่อเดือน"
+                      onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
+                    />
+                    <div className="count-unit">วัน/เดือน</div>
+                  </div>
+                  {form.errors.daysPerMonth && <p className="field-error" role="alert">{form.errors.daysPerMonth}</p>}
                 </div>
               )}
               {form.frequency === "todo" && (

@@ -1300,6 +1300,7 @@ input:focus-visible,
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+  height: 100%;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -3170,6 +3171,273 @@ input:focus-visible,
 .check-item-text {
   margin: 0;
   font-size: 2.5em;
+}
+
+/* s022 medicine check-in – redesigned */
+.med-checkin-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  background: linear-gradient(150deg, #faf8f4 0%, #f0ebf7 100%);
+  border: 3px solid #b896ed;
+  box-shadow: 0 20px 60px -16px rgba(90, 30, 170, 0.18);
+  padding: 1.8rem 2.4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.med-checkin-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.07);
+}
+
+.med-checkin-title {
+  margin: 0;
+  text-align: center;
+  font-size: 2.4em;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.01em;
+}
+
+.med-action-btn {
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: 50%;
+  border: 4px solid #1f1f1f;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.med-action-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.22);
+}
+
+.med-action-btn--save {
+  border-color: #08c65a;
+}
+
+.med-action-btn--save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.med-action-btn svg {
+  width: 2.6rem;
+  height: 2.6rem;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Medicine identity block */
+.med-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.med-info-name-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.med-info-icon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: rgba(155, 93, 229, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.med-info-icon svg {
+  width: 2.6rem;
+  height: 2.6rem;
+  stroke: #9b5de5;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.med-name-pill {
+  background: linear-gradient(130deg, #9b5de5, #7c3aed);
+  color: #fff;
+  border-radius: 50px;
+  padding: 0.5rem 1.6rem;
+  font-size: 2em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px -4px rgba(124, 58, 237, 0.38);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.med-timing-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding-left: 6.2rem;
+}
+
+.med-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 50px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1.7em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.med-chip--timing {
+  background: #edf9fa;
+  border: 2px solid #59d6dc;
+  color: #0d6e74;
+}
+
+.med-chip--timing svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: #0d6e74;
+  fill: none;
+  stroke-width: 2;
+}
+
+.med-chip--slot {
+  background: #f3e8ff;
+  border: 2px solid #b896ed;
+  color: #6b21a8;
+}
+
+/* Divider */
+.med-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(155, 93, 229, 0.2) 20%,
+    rgba(155, 93, 229, 0.2) 80%,
+    transparent
+  );
+  flex-shrink: 0;
+}
+
+/* Side effects */
+.med-side-effects-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.med-side-effects-title {
+  margin: 0;
+  font-size: 2em;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.med-side-effects-title svg {
+  width: 2.2rem;
+  height: 2.2rem;
+  stroke: #e76f51;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.med-se-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.med-se-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.75rem 1.2rem;
+  border-radius: 20px;
+  background: #fff;
+  border: 2px solid #e8e3da;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.med-se-row:hover {
+  border-color: #b896ed;
+  background: #faf7ff;
+}
+
+.med-se-row--checked {
+  background: #f3e8ff;
+  border-color: #9b5de5;
+}
+
+.med-se-circle {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.med-se-row--checked .med-se-circle {
+  background: #9b5de5;
+  border-color: #9b5de5;
+}
+
+.med-se-circle svg {
+  width: 1.8rem;
+  height: 1.8rem;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.med-se-label {
+  flex: 1;
+  font-size: 1.9em;
+  font-weight: 500;
+  color: #2d2d2d;
+  transition: color 0.15s;
+}
+
+.med-se-row--checked .med-se-label {
+  color: #6b21a8;
 }
 
 /* s023 nutrition check-in */
