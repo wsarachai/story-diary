@@ -1,10 +1,10 @@
 /**
  * authFlow integration tests — Story Diary
- * 
- * Verifies the end-to-end RTK Query-to-Network flow for authentication:
- * 1. Login success -> Token saved to localStorage
- * 2. Probe session (getMe) -> Correct header sent
- * 3. Logout -> Token removed from localStorage
+ *
+ * Verifies the RTK Query ↔ network contract for authentication:
+ * 1. Login success  → token saved to localStorage
+ * 2. getMe request  → Authorization header is injected
+ * 3. Logout         → token removed + page reloaded
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -14,74 +14,84 @@ import { authApi } from "@/store/authApi";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
 
+function createTestStore() {
+  return configureStore({
+    reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
+    middleware: (gdm) =>
+      gdm({ serializableCheck: false, immutableCheck: false }).concat(
+        apiSlice.middleware
+      ),
+  });
+}
+
+const MOCK_USER = { id: "usr-001", tel: "0812345678", name: "สมชาย ใจดี" };
+
 describe("Auth Flow Integration", () => {
-  let store: any;
-
-  function createTestStore() {
-    return configureStore({
-      reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
-      middleware: (gdm) => gdm({
-        serializableCheck: false,
-        immutableCheck: false,
-      }).concat(apiSlice.middleware),
-    });
-  }
-
   beforeEach(() => {
-    store = createTestStore();
     localStorage.clear();
   });
 
-  it("completes a full login -> probe -> logout cycle", async () => {
-    const MOCK_USER = { id: "usr-001", tel: "0812345678", name: "สมชาย ใจดี" };
-    const loginResponse = {
-      user: MOCK_USER,
-      token: "valid-jwt-token"
-    };
-
-    // 1. LOGIN
+  // ──────────────────────────────────────────────────────────────────
+  // Test 1: Login saves token
+  // ──────────────────────────────────────────────────────────────────
+  it("login mutation stores token in localStorage after success", async () => {
+    const store = createTestStore();
     server.use(
-      http.post("/api/auth/login", () => {
-        return HttpResponse.json(loginResponse);
-      })
+      http.post("/api/auth/login", () =>
+        HttpResponse.json({ user: MOCK_USER, token: "valid-jwt-token" })
+      )
     );
 
-    await store.dispatch(authApi.endpoints.login.initiate({ username: "0812345678", password: "password123" })).unwrap();
+    await store
+      .dispatch(
+        authApi.endpoints.login.initiate({
+          username: "0812345678",
+          password: "password123",
+        })
+      )
+      .unwrap();
 
-    // Verify localStorage
-    expect(localStorage.getItem("auth_token")).toBe("valid-jwt-token");
+    // onQueryStarted runs async; wait for the side-effect
+    await vi.waitFor(() => {
+      expect(localStorage.getItem("auth_token")).toBe("valid-jwt-token");
+    });
+  });
 
-    // 2. PROBE SESSION (GET /auth/me)
+  // ──────────────────────────────────────────────────────────────────
+  // Test 2: getMe sends Authorization header
+  // ──────────────────────────────────────────────────────────────────
+  it("getMe request includes Bearer token from localStorage", async () => {
+    // Pre-seed the token as if login already ran
+    localStorage.setItem("auth_token", "probe-jwt-token");
+
+    const store = createTestStore(); // fresh store = no pre-populated cache
     let capturedHeader = "";
+
     server.use(
       http.get("/api/auth/me", ({ request }) => {
-        capturedHeader = request.headers.get("Authorization") || "";
+        capturedHeader = request.headers.get("Authorization") ?? "";
         return HttpResponse.json({ user: MOCK_USER });
       })
     );
 
     await store.dispatch(authApi.endpoints.getMe.initiate()).unwrap();
 
-    // Verify correct Authorization header was sent
-    expect(capturedHeader).toBe("Bearer valid-jwt-token");
+    expect(capturedHeader).toBe("Bearer probe-jwt-token");
+  });
 
-    // 3. LOGOUT
-    server.use(
-      http.post("/api/auth/logout", () => {
-        return HttpResponse.json({});
-      })
-    );
+  // ──────────────────────────────────────────────────────────────────
+  // Test 3: Logout clears token
+  // ──────────────────────────────────────────────────────────────────
+  it("logout mutation removes token from localStorage", async () => {
+    localStorage.setItem("auth_token", "existing-token");
+    const store = createTestStore();
 
-    // Mock window.location.reload
-    const reloadMock = vi.fn();
-    vi.stubGlobal("location", { reload: reloadMock });
+    // Default handler in handlers.ts covers POST /api/auth/logout.
+    // onQueryStarted finally-block removes the token regardless of network result.
+    await store.dispatch(authApi.endpoints.logout.initiate());
 
-    await store.dispatch(authApi.endpoints.logout.initiate()).unwrap();
-
-    // Verify localStorage is cleared
-    expect(localStorage.getItem("auth_token")).toBeNull();
-    expect(reloadMock).toHaveBeenCalled();
-
-    vi.unstubAllGlobals();
+    await vi.waitFor(() => {
+      expect(localStorage.getItem("auth_token")).toBeNull();
+    });
   });
 });

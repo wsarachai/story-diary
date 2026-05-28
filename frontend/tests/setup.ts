@@ -8,6 +8,8 @@ import { server } from "./mocks/server";
 beforeAll(() => server.listen({ onUnhandledRequest: "warn" }));
 afterEach(() => {
   server.resetHandlers();
-  localStorage.clear();
+  if (typeof localStorage !== "undefined") {
+    localStorage.clear();
+  }
 });
 afterAll(() => server.close());
