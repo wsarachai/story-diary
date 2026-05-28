@@ -14,6 +14,16 @@ function getAccent(activity: HabitActivity): string {
   return "#ee8a4a";
 }
 
+/** True when the activity has a dedicated detail log form (not just a ✓ toggle). */
+function hasDetailedCheckin(activity: HabitActivity): boolean {
+  return (
+    activity.category === "medicine" ||
+    activity.category === "nutrition" ||
+    activity.physicalCategory === "symptoms" ||
+    activity.physicalCategory === "emotion-management"
+  );
+}
+
 function getSubline(activity: HabitActivity): string {
   const { schedule, mealRelation, mealSlots } = activity;
   if (activity.category === "medicine" && mealRelation && mealSlots && mealSlots.length > 0) {
@@ -87,12 +97,19 @@ export default function HabitTodayPage() {
     accent: getAccent(activity)
   })) : [];
 
-  function handleEntryTap(activity: { id: string; category: string }, occurrenceId: string) {
+  function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
+    const base = `/habit/checkin`;
+    const qs   = `occ=${occurrenceId}&actId=${activity.id}`;
     if (activity.category === "medicine") {
-      router.push(`/habit/checkin/medicine?occ=${occurrenceId}&actId=${activity.id}`);
+      router.push(`${base}/medicine?${qs}`);
     } else if (activity.category === "nutrition") {
-      router.push(`/habit/checkin/nutrition?occ=${occurrenceId}&actId=${activity.id}`);
+      router.push(`${base}/nutrition?${qs}`);
+    } else if (activity.physicalCategory === "symptoms") {
+      router.push(`${base}/symptom?${qs}`);
+    } else if (activity.physicalCategory === "emotion-management") {
+      router.push(`${base}/emotion?${qs}`);
     }
+    // Other physical categories: no tap navigation — use the ✓ toggle only
   }
 
   return (
@@ -125,43 +142,51 @@ export default function HabitTodayPage() {
                 <div className="chapter-spinner" />
               </div>
             )}
-            {!isLoading && entries.map((entry) => (
-              <div
-                key={entry.activity.id}
-                className={`habit-entry ${getCategoryClass(entry.accent)}`}
-                role="article"
-                aria-label={entry.activity.name}
-                onClick={() => handleEntryTap(entry.activity, entry.occurrence.id)}
-                style={{ cursor: (entry.activity.category === "medicine" || entry.activity.category === "nutrition") ? "pointer" : "default" }}
-              >
-                <div className="habit-entry-icon">
-                  <CategoryIcon accent={entry.accent} />
-                </div>
-                <div className="habit-entry-body">
-                  <p className="habit-entry-name">{entry.activity.name}</p>
-                  <p className="habit-entry-sub">{entry.subline}</p>
-                </div>
-                <button
-                  className={`habit-check${entry.occurrence.status === "done" ? " done" : ""}`}
-                  aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggle({
-                      occurrenceId: entry.occurrence.id,
-                      activityId: entry.activity.id,
-                      status: entry.occurrence.status === "done" ? "pending" : "done",
-                      date: todayStr
-                    });
-                  }}
+            {!isLoading && entries.map((entry) => {
+              const tappable = hasDetailedCheckin(entry.activity);
+              return (
+                <div
+                  key={entry.activity.id}
+                  className={`habit-entry ${getCategoryClass(entry.accent)}${tappable ? " has-log" : ""}`}
+                  role="article"
+                  aria-label={entry.activity.name}
+                  onClick={() => tappable && handleEntryTap(entry.activity, entry.occurrence.id)}
                 >
-                  {entry.occurrence.status === "done" && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                  <div className="habit-entry-icon">
+                    <CategoryIcon accent={entry.accent} />
+                  </div>
+                  <div className="habit-entry-body">
+                    <p className="habit-entry-name">{entry.activity.name}</p>
+                    <p className="habit-entry-sub">{entry.subline}</p>
+                  </div>
+                  {/* Chevron — shown only on tappable entries */}
+                  {tappable && (
+                    <span className="habit-entry-log-arrow" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </span>
                   )}
-                </button>
-              </div>
-            ))}
+                  <button
+                    className={`habit-check${entry.occurrence.status === "done" ? " done" : ""}`}
+                    aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggle({
+                        occurrenceId: entry.occurrence.id,
+                        activityId: entry.activity.id,
+                        status: entry.occurrence.status === "done" ? "pending" : "done",
+                        date: todayStr,
+                      });
+                    }}
+                  >
+                    {entry.occurrence.status === "done" && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </section>
 
