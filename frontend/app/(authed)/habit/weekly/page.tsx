@@ -23,13 +23,13 @@ export default function HabitWeeklyPage() {
       <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
         <section
           className="page page-left page-seam-right"
-          style={{ gridColumn: "1 / 3", padding: "5% 6% 5%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "2rem" }}
+          style={{ gridColumn: "1 / 3", padding: "4% 5% 4%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "0.9rem" }}
           aria-label="ตาราง weekly tracker"
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <h1 className="tracker-section-title" style={{ margin: 0 }}>Weekly Tracker</h1>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>

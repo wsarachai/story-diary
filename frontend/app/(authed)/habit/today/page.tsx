@@ -40,7 +40,7 @@ function getCategoryClass(accent: string): string {
 function CategoryIcon({ accent }: { accent: string }) {
   if (accent === "#57a8db") {
     return (
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#57a8db" strokeWidth="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#57a8db" strokeWidth="2">
         <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/>
         <rect x="9" y="1" width="6" height="4" rx="1"/>
         <line x1="9" y1="12" x2="15" y2="12"/>
@@ -50,7 +50,7 @@ function CategoryIcon({ accent }: { accent: string }) {
   }
   if (accent === "#2eb563") {
     return (
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#2eb563" strokeWidth="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2eb563" strokeWidth="2">
         <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
         <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
       </svg>
@@ -58,7 +58,7 @@ function CategoryIcon({ accent }: { accent: string }) {
   }
   if (accent === "#e76f51") {
     return (
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#e76f51" strokeWidth="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e76f51" strokeWidth="2">
         <circle cx="12" cy="12" r="9"/>
         <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
         <line x1="9" y1="9" x2="9.01" y2="9"/>
@@ -67,7 +67,7 @@ function CategoryIcon({ accent }: { accent: string }) {
     );
   }
   return (
-    <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#ee8a4a" strokeWidth="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#ee8a4a" strokeWidth="2">
       <circle cx="12" cy="5" r="2"/>
       <path d="M6 11h12M12 7v4M9 21l3-7 3 7"/>
     </svg>
@@ -100,13 +100,13 @@ export default function HabitTodayPage() {
       <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
         <section
           className="page page-left page-seam-right"
-          style={{ gridColumn: "1 / 3", padding: "5% 6% 5%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "2rem", overflow: "hidden" }}
+          style={{ gridColumn: "1 / 3", padding: "4% 5% 4%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "0.9rem", overflow: "hidden" }}
           aria-label="รายการกิจกรรมวันนี้"
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <h1 className="tracker-section-title" style={{ margin: 0 }}>Daily Tracker</h1>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
@@ -155,7 +155,7 @@ export default function HabitTodayPage() {
                   }}
                 >
                   {entry.occurrence.status === "done" && (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   )}
