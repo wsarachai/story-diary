@@ -32,13 +32,6 @@
             "sourceMapPathOverrides": {
                 "webpack:///*": "${webRoot}/*"
             }
-        },
-        {
-            "name": "Backend: API debug",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "pnpm debug",
-            "cwd": "${workspaceFolder}/backend"
         }
     ],
     "compounds": [
@@ -47,14 +40,6 @@
             "configurations": [
                 "Frontend: Next.js dev",
                 "Frontend: Chrome (Browser Debug)"
-            ],
-            "stopOnEntry": false
-        },
-        {
-            "name": "Full Stack: Frontend + Backend",
-            "configurations": [
-                "Frontend: Next.js dev",
-                "Backend: API debug"
             ],
             "stopOnEntry": false
         }

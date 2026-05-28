@@ -12,7 +12,13 @@ export default function ChapterIntroPage() {
   const rawId = params?.id;
   const id = typeof rawId === "string" ? parseInt(rawId, 10) : NaN;
 
-  const { data: chapter, status: detailStatus } = useGetChapterQuery(id, { skip: isNaN(id) });
+  const {
+    data: chapter,
+    isError,
+    isLoading: isDetailLoading,
+    isUninitialized,
+    isSuccess,
+  } = useGetChapterQuery(id, { skip: isNaN(id) });
 
   useEffect(() => {
     if (isNaN(id)) {
@@ -22,12 +28,18 @@ export default function ChapterIntroPage() {
   }, [id, router]);
 
   useEffect(() => {
-    if (detailStatus === "rejected") {
+    if (isError) {
+      router.replace("/chapters/menu");
+      return;
+    }
+
+    // Guard against successful responses that still return no chapter payload.
+    if (isSuccess && !chapter) {
       router.replace("/chapters/menu");
     }
-  }, [detailStatus, router]);
+  }, [chapter, isError, isSuccess, router]);
 
-  const isLoading = detailStatus === "pending" || detailStatus === "uninitialized";
+  const isLoading = isDetailLoading || isUninitialized;
   const introTitle = chapter?.introTitle ?? "บทบรรยาย";
   const bgUrl = chapter?.backgroundImageUrl;
 
@@ -57,7 +69,11 @@ export default function ChapterIntroPage() {
         aria-label="บทบรรยาย"
       >
         {isLoading ? (
-          <div className="chapter-spinner" role="status" aria-label="กำลังโหลด" />
+          <div
+            className="chapter-spinner"
+            role="status"
+            aria-label="กำลังโหลด"
+          />
         ) : (
           <h1>{introTitle}</h1>
         )}
