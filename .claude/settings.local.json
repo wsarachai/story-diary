@@ -13,7 +13,9 @@
       "Bash(pnpm test *)",
       "Bash(git push *)",
       "Bash(npx vitest *)",
-      "Bash(xargs grep -l \"avatar\\\\|charImg\\\\|chapter-speaker\\\\|profile.*img\\\\|characterName\")"
+      "Bash(xargs grep -l \"avatar\\\\|charImg\\\\|chapter-speaker\\\\|profile.*img\\\\|characterName\")",
+      "Bash(git checkout *)",
+      "Bash(git merge *)"
     ]
   }
 }
