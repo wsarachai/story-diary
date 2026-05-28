@@ -101,13 +101,22 @@ function DashboardPanel() {
             {user?.characterName || "โปรไฟล์"}
           </span>
           <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-             <Image 
-               src={user?.gender === "female" ? "/images/chapter-speaker-girl-transparent.png" : "/images/chapter-speaker-girl-transparent.png"} 
-               alt="" 
-               width={24} 
-               height={24}
-               style={{ transform: "scale(2) translateY(2px)" }}
-             />
+            {user?.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatarUrl}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <Image
+                src="/images/chapter-speaker-girl-transparent.png"
+                alt=""
+                width={24}
+                height={24}
+                style={{ transform: "scale(2) translateY(2px)" }}
+              />
+            )}
           </div>
         </Link>
       </div>

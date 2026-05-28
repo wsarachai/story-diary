@@ -6,7 +6,14 @@
       "Bash(npx tsx:*)",
       "Bash(pnpm install:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cat)",
+      "Bash(2>&1)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm test *)",
+      "Bash(git push *)",
+      "Bash(npx vitest *)",
+      "Bash(xargs grep -l \"avatar\\\\|charImg\\\\|chapter-speaker\\\\|profile.*img\\\\|characterName\")"
     ]
   }
 }

@@ -137,6 +137,23 @@ describe("updateUser", () => {
       code: "PHONE_TAKEN",
     });
   });
+
+  it("updates avatarUrl and returns it in the profile", async () => {
+    const url = "data:image/jpeg;base64,/9j/abc123";
+    const updated = await updateUser(userId, { avatarUrl: url });
+    expect(updated.avatarUrl).toBe(url);
+  });
+
+  it("clears avatarUrl when null is passed", async () => {
+    await updateUser(userId, { avatarUrl: "data:image/jpeg;base64,/9j/abc123" });
+    const cleared = await updateUser(userId, { avatarUrl: null });
+    expect(cleared.avatarUrl).toBeNull();
+  });
+
+  it("updates gender and returns the new value", async () => {
+    const updated = await updateUser(userId, { gender: "female" });
+    expect(updated.gender).toBe("female");
+  });
 });
 
 describe("signToken", () => {
