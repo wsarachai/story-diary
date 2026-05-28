@@ -1,8 +1,8 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
+import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 
 interface MoodOption {
@@ -35,6 +35,14 @@ function EmotionCheckinInner() {
 
   const [mood, setMood]               = useState<MoodLevel>("neutral");
   const [sliderValue, setSliderValue] = useState(0);
+  const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
+
+  useEffect(() => {
+    if (existingCheckin) {
+      setMood(existingCheckin.mood);
+      setSliderValue(existingCheckin.sliderValue);
+    }
+  }, [existingCheckin]);
 
   if (!occId) { router.replace("/habit/today"); return null; }
 

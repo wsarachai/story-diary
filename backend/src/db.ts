@@ -762,6 +762,38 @@ export async function replaceMoodCheckin(doc: MoodCheckinDoc): Promise<void> {
   await moodCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
 }
 
+export async function findMedicineCheckin(occurrenceId: string): Promise<MedicineCheckinDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.medicineCheckins.find((c) => c.occurrence_id === occurrenceId);
+  }
+  return (await medicineCheckinsCollection().findOne({ occurrence_id: occurrenceId })) ?? undefined;
+}
+
+export async function findNutritionCheckin(occurrenceId: string): Promise<NutritionCheckinDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.nutritionCheckins.find((c) => c.occurrence_id === occurrenceId);
+  }
+  return (await nutritionCheckinsCollection().findOne({ occurrence_id: occurrenceId })) ?? undefined;
+}
+
+export async function findSymptomsCheckin(occurrenceId: string): Promise<SymptomsCheckinDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.symptomsCheckins.find((c) => c.occurrence_id === occurrenceId);
+  }
+  return (await symptomsCheckinsCollection().findOne({ occurrence_id: occurrenceId })) ?? undefined;
+}
+
+export async function findMoodCheckin(occurrenceId: string): Promise<MoodCheckinDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.moodCheckins.find((c) => c.occurrence_id === occurrenceId);
+  }
+  return (await moodCheckinsCollection().findOne({ occurrence_id: occurrenceId })) ?? undefined;
+}
+
 export async function listQuizQuestionsDocs(): Promise<QuizQuestionDoc[]> {
   await initializeDatabase();
   if (mode === "memory") {

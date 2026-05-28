@@ -1,8 +1,8 @@
 "use client";
-import { Suspense, useReducer } from "react";
+import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
+import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery, useGetNutritionCheckinQuery } from "@/store/habitsApi";
 
 interface State {
   breakfast: string;
@@ -10,10 +10,18 @@ interface State {
   dinner: string;
 }
 type Field = keyof State;
-type Action = { type: "SET"; field: Field; value: string };
+type Action =
+  | { type: "SET"; field: Field; value: string }
+  | { type: "RESET"; breakfast: string; lunch: string; dinner: string };
 
 function reducer(state: State, action: Action): State {
-  return { ...state, [action.field]: action.value };
+  if (action.type === "SET") {
+    return { ...state, [action.field]: action.value };
+  }
+  if (action.type === "RESET") {
+    return { breakfast: action.breakfast, lunch: action.lunch, dinner: action.dinner };
+  }
+  return state;
 }
 
 const MEALS: { field: Field; label: string; placeholder: string }[] = [
@@ -35,6 +43,13 @@ function NutritionCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { breakfast: "", lunch: "", dinner: "" });
+  const { data: existingCheckin } = useGetNutritionCheckinQuery(occId, { skip: !occId });
+
+  useEffect(() => {
+    if (existingCheckin) {
+      dispatch({ type: "RESET", breakfast: existingCheckin.breakfast, lunch: existingCheckin.lunch, dinner: existingCheckin.dinner });
+    }
+  }, [existingCheckin]);
 
   if (!occId) { router.replace("/habit/today"); return null; }
 

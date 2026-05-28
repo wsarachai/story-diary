@@ -1,8 +1,8 @@
 "use client";
-import { Suspense, useReducer } from "react";
+import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
+import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery, useGetMedicineCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck, MealSlot } from "@/types/habit";
 
 const MOCK_SIDE_EFFECTS: SymptomCheck[] = [
@@ -12,7 +12,9 @@ const MOCK_SIDE_EFFECTS: SymptomCheck[] = [
 ];
 
 interface State { sideEffects: SymptomCheck[] }
-type Action = { type: "TOGGLE"; id: string };
+type Action =
+  | { type: "TOGGLE"; id: string }
+  | { type: "RESET"; sideEffects: SymptomCheck[] };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "TOGGLE") {
@@ -21,6 +23,9 @@ function reducer(state: State, action: Action): State {
         s.id === action.id ? { ...s, checked: !s.checked } : s
       ),
     };
+  }
+  if (action.type === "RESET") {
+    return { sideEffects: action.sideEffects };
   }
   return state;
 }
@@ -45,6 +50,13 @@ function MedicineCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { sideEffects: MOCK_SIDE_EFFECTS });
+  const { data: existingCheckin } = useGetMedicineCheckinQuery(occId, { skip: !occId });
+
+  useEffect(() => {
+    if (existingCheckin?.sideEffects) {
+      dispatch({ type: "RESET", sideEffects: existingCheckin.sideEffects });
+    }
+  }, [existingCheckin]);
 
   if (!occId) { router.replace("/habit/today"); return null; }
 

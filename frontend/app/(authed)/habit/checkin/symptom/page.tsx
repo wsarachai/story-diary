@@ -1,8 +1,8 @@
 "use client";
-import { Suspense, useReducer } from "react";
+import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
-import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery } from "@/store/habitsApi";
+import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 
 const MOCK_SYMPTOMS: SymptomCheck[] = [
@@ -14,7 +14,9 @@ const MOCK_SYMPTOMS: SymptomCheck[] = [
 ];
 
 interface State { items: SymptomCheck[] }
-type Action = { type: "TOGGLE"; id: string };
+type Action =
+  | { type: "TOGGLE"; id: string }
+  | { type: "RESET"; items: SymptomCheck[] };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "TOGGLE") {
@@ -23,6 +25,9 @@ function reducer(state: State, action: Action): State {
         s.id === action.id ? { ...s, checked: !s.checked } : s
       ),
     };
+  }
+  if (action.type === "RESET") {
+    return { items: action.items };
   }
   return state;
 }
@@ -40,6 +45,13 @@ function SymptomCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { items: MOCK_SYMPTOMS });
+  const { data: existingCheckin } = useGetSymptomsCheckinQuery(occId, { skip: !occId });
+
+  useEffect(() => {
+    if (existingCheckin?.items) {
+      dispatch({ type: "RESET", items: existingCheckin.items });
+    }
+  }, [existingCheckin]);
 
   if (!occId) { router.replace("/habit/today"); return null; }
 

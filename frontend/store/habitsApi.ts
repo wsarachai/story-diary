@@ -139,6 +139,26 @@ export const habitsApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Habits"],
     }),
+    getMedicineCheckin: builder.query<MedicineCheckin | null, string>({
+      query: (occurrenceId) => `/habits/checkins/medicine/${occurrenceId}`,
+      transformResponse: (response: { checkin: MedicineCheckin | null }) => response.checkin,
+      providesTags: ["Habits"],
+    }),
+    getNutritionCheckin: builder.query<NutritionCheckin | null, string>({
+      query: (occurrenceId) => `/habits/checkins/nutrition/${occurrenceId}`,
+      transformResponse: (response: { checkin: NutritionCheckin | null }) => response.checkin,
+      providesTags: ["Habits"],
+    }),
+    getSymptomsCheckin: builder.query<UnusualSymptomsCheckin | null, string>({
+      query: (occurrenceId) => `/habits/checkins/symptoms/${occurrenceId}`,
+      transformResponse: (response: { checkin: UnusualSymptomsCheckin | null }) => response.checkin,
+      providesTags: ["Habits"],
+    }),
+    getMoodCheckin: builder.query<MoodCheckin | null, string>({
+      query: (occurrenceId) => `/habits/checkins/mood/${occurrenceId}`,
+      transformResponse: (response: { checkin: MoodCheckin | null }) => response.checkin,
+      providesTags: ["Habits"],
+    }),
   }),
 });
 
@@ -153,4 +173,8 @@ export const {
   useSaveNutritionCheckinMutation,
   useSaveSymptomsCheckinMutation,
   useSaveMoodCheckinMutation,
+  useGetMedicineCheckinQuery,
+  useGetNutritionCheckinQuery,
+  useGetSymptomsCheckinQuery,
+  useGetMoodCheckinQuery,
 } = habitsApi;

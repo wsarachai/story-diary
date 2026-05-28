@@ -22,6 +22,10 @@ import {
     saveNutritionCheckin,
     saveSymptomsCheckin,
     saveMoodCheckin,
+    getMedicineCheckinData,
+    getNutritionCheckinData,
+    getSymptomsCheckinData,
+    getMoodCheckinData,
     getWeeklyView,
     getMonthlyView,
     getMonthlySummary,
@@ -179,6 +183,42 @@ router.post("/occurrences/:id/toggle", requireAuth, async (req, res, next) => {
         const { status } = validate(ToggleOccurrenceSchema, req.body);
         const occurrence = await toggleOccurrence((req as any).userId!, String(req.params.id), status);
         res.status(200).json({ occurrence });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/checkins/medicine/:occurrenceId", requireAuth, async (req, res, next) => {
+    try {
+        const checkin = await getMedicineCheckinData((req as any).userId!, String(req.params.occurrenceId));
+        res.status(200).json({ checkin: checkin ?? null });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/checkins/nutrition/:occurrenceId", requireAuth, async (req, res, next) => {
+    try {
+        const checkin = await getNutritionCheckinData((req as any).userId!, String(req.params.occurrenceId));
+        res.status(200).json({ checkin: checkin ?? null });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/checkins/symptoms/:occurrenceId", requireAuth, async (req, res, next) => {
+    try {
+        const checkin = await getSymptomsCheckinData((req as any).userId!, String(req.params.occurrenceId));
+        res.status(200).json({ checkin: checkin ?? null });
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/checkins/mood/:occurrenceId", requireAuth, async (req, res, next) => {
+    try {
+        const checkin = await getMoodCheckinData((req as any).userId!, String(req.params.occurrenceId));
+        res.status(200).json({ checkin: checkin ?? null });
     } catch (err) {
         next(err);
     }
