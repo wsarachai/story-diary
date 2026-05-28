@@ -3552,6 +3552,296 @@ input:focus-visible,
   font-family: inherit;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Check-in pages – medicine & nutrition (ci-*)
+   Two-page spread: left = identity, right = form
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Compact action button (back / save) */
+.ci-btn {
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  border: 2px solid #1f1f1f;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ci-btn:hover {
+  transform: scale(1.07);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+.ci-btn svg {
+  width: 1.05em;
+  height: 1.05em;
+  stroke: #1f1f1f;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ci-btn--save {
+  border-color: #08c65a;
+}
+.ci-btn--save svg {
+  stroke: #08c65a;
+}
+.ci-btn--save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Page header (back + title or section label + save) */
+.ci-page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding-bottom: 0.9em;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.07);
+  flex-shrink: 0;
+}
+.ci-title {
+  margin: 0;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex: 1;
+  text-align: center;
+}
+.ci-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.6em;
+  flex-shrink: 0;
+}
+.ci-section-label {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.ci-section-label svg {
+  width: 1em;
+  height: 1em;
+  stroke: #e76f51;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Identity block (icon + name pill) */
+.ci-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85em;
+  flex-shrink: 0;
+}
+.ci-icon {
+  width: 3em;
+  height: 3em;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ci-icon svg {
+  width: 1.35em;
+  height: 1.35em;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.ci-icon--med {
+  background: rgba(155, 93, 229, 0.13);
+}
+.ci-icon--med svg {
+  stroke: #9b5de5;
+}
+.ci-icon--nutrition {
+  background: rgba(46, 181, 99, 0.13);
+}
+.ci-icon--nutrition svg {
+  stroke: #2eb563;
+}
+.ci-name-pill {
+  border-radius: 50px;
+  padding: 0.32em 0.95em;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ci-name-pill--med {
+  background: linear-gradient(130deg, #9b5de5, #7c3aed);
+  box-shadow: 0 3px 12px -3px rgba(124, 58, 237, 0.38);
+}
+.ci-name-pill--nutrition {
+  background: linear-gradient(130deg, #2eb563, #16a34a);
+  box-shadow: 0 3px 12px -3px rgba(22, 163, 74, 0.38);
+}
+
+/* Timing chips */
+.ci-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  flex-shrink: 0;
+}
+.ci-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  border-radius: 50px;
+  padding: 0.22em 0.65em;
+  font-size: 0.8em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ci-chip svg {
+  width: 0.8em;
+  height: 0.8em;
+  fill: none;
+  stroke-width: 2;
+}
+.ci-chip--timing {
+  background: #edf9fa;
+  border: 1.5px solid #59d6dc;
+  color: #0d6e74;
+}
+.ci-chip--timing svg { stroke: #0d6e74; }
+.ci-chip--slot {
+  background: #f3e8ff;
+  border: 1.5px solid #b896ed;
+  color: #6b21a8;
+}
+
+/* Hint text */
+.ci-hint {
+  margin: 0;
+  font-size: 0.78em;
+  color: #888;
+  line-height: 1.55;
+}
+
+/* ── Side-effects checklist ── */
+.ci-check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.ci-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 0.8em;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid #e8e3da;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ci-check-row:hover {
+  border-color: #b896ed;
+  background: #faf7ff;
+}
+.ci-check-row.is-checked {
+  background: #f3e8ff;
+  border-color: #9b5de5;
+}
+.ci-check-circle {
+  width: 1.65em;
+  height: 1.65em;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ci-check-row.is-checked .ci-check-circle {
+  background: #9b5de5;
+  border-color: #9b5de5;
+}
+.ci-check-circle svg {
+  width: 0.85em;
+  height: 0.85em;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ci-check-label {
+  flex: 1;
+  font-size: 0.88em;
+  font-weight: 500;
+  color: #2d2d2d;
+  transition: color 0.15s;
+}
+.ci-check-row.is-checked .ci-check-label {
+  color: #6b21a8;
+}
+
+/* ── Meal log (nutrition) ── */
+.ci-meal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  flex: 1;
+  min-height: 0;
+}
+.ci-meal-card {
+  background: #fff;
+  border: 1.5px solid #e8e3da;
+  border-radius: 12px;
+  padding: 0.6em 0.85em 0.75em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ci-meal-card:focus-within {
+  border-color: #59d6dc;
+  box-shadow: 0 0 0 3px rgba(89, 214, 220, 0.15);
+}
+.ci-meal-label {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ci-meal-input {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.9em;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  width: 100%;
+}
+.ci-meal-input::placeholder {
+  color: #bbb;
+}
+
 .activity-dot,
 .badge-dot {
   width: 1.8rem;
