@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from "vitest";
 import { clearTestData } from "@/lib/db";
+import type { WeekdayIndex } from "@/types/habit";
 import {
   createActivity,
   updateActivity,
@@ -21,7 +22,7 @@ const TODAY = "2026-05-28"; // Thursday (day 4)
 const DAILY = {
   category: "medicine" as const,
   name: "ยาเช้า",
-  schedule: { frequency: "daily" as const, weekdays: [] as number[] },
+  schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
   archived: false,
 };
 
@@ -171,14 +172,14 @@ describe("getTodayEntries", () => {
 
   it("filters daily activity by weekday (creates occurrence when scheduled)", async () => {
     // weekdays: [4] = Thursday only (TODAY is Thursday)
-    await createActivity(USER, { ...DAILY, schedule: { frequency: "daily", weekdays: [4] } });
+    await createActivity(USER, { ...DAILY, schedule: { frequency: "daily", weekdays: [4 as WeekdayIndex] } });
     const entries = await getTodayEntries(USER, TODAY);
     expect(entries).toHaveLength(1);
   });
 
   it("excludes daily activity on wrong weekday", async () => {
     // weekdays: [0] = Sunday only; TODAY is Thursday
-    await createActivity(USER, { ...DAILY, schedule: { frequency: "daily", weekdays: [0] } });
+    await createActivity(USER, { ...DAILY, schedule: { frequency: "daily", weekdays: [0 as WeekdayIndex] } });
     const entries = await getTodayEntries(USER, TODAY);
     expect(entries).toHaveLength(0);
   });

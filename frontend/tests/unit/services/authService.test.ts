@@ -44,7 +44,7 @@ describe("registerUser", () => {
     expect(profile.characterName).toBe(BASE.characterName);
     expect(profile.gender).toBe("male");
     expect(profile.id).toBeDefined();
-    expect((profile as Record<string, unknown>).password_hash).toBeUndefined();
+    expect((profile as unknown as Record<string, unknown>).password_hash).toBeUndefined();
   });
 
   it("throws PHONE_TAKEN when the same tel is registered twice", async () => {

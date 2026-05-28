@@ -19,6 +19,7 @@ export interface UserDoc {
   password_hash: string;
   character_name: string;
   gender: "male" | "female";
+  avatar_url?: string | null;
   created_at: string;
   updated_at: string;
 }

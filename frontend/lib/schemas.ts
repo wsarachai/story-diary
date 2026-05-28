@@ -30,6 +30,8 @@ export const UpdateUserSchema = z
     tel: z.string().trim().regex(/^0[0-9]{9}$/, "INVALID_FORMAT").optional(),
     characterName: z.string().trim().min(1, "REQUIRED").max(40, "TOO_LONG").optional(),
     gender: z.enum(["male", "female"]).optional(),
+    /** Base64 JPEG data URL from client-side canvas resize. Null clears avatar. */
+    avatarUrl: z.string().nullable().optional(),
   })
   .strict();
 

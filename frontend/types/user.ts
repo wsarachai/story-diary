@@ -34,6 +34,8 @@ export interface UserProfile {
     characterName: string;
     /** "male" | "female" — see ./auth.ts. */
     gender: Gender;
+    /** Base64 JPEG data URL uploaded by the user, or null if not set. */
+    avatarUrl?: string | null;
     /** ISO-8601 UTC. */
     createdAt: string;
     /** ISO-8601 UTC. Server-bumped on every PATCH. */
@@ -56,6 +58,8 @@ export interface UpdateUserRequest {
     tel?: string;
     characterName?: string;
     gender?: Gender;
+    /** Base64 JPEG data URL. Null clears the avatar. */
+    avatarUrl?: string | null;
 }
 
 /** Convenience alias used by the GET handler. Same shape as UserProfile. */

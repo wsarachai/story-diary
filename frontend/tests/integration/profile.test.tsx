@@ -47,7 +47,9 @@ describe("ProfilePage", () => {
       expect(screen.getByText("สุดหล่อ")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("สมชาย ใจดี")).toBeInTheDocument();
+    // name and characterName are now editable inputs
+    expect(screen.getByDisplayValue("สมชาย ใจดี")).toBeInTheDocument();
+    // phone is read-only text
     expect(screen.getByText("0812345678")).toBeInTheDocument();
     expect(screen.getByText("ข้อมูลส่วนตัว")).toBeInTheDocument();
   });

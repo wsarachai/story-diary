@@ -22,6 +22,7 @@ function rowToProfile(row: UserDoc): UserProfile {
         tel: row.tel,
         characterName: row.character_name,
         gender: row.gender,
+        avatarUrl: row.avatar_url ?? null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
@@ -82,7 +83,7 @@ export async function getUserById(id: string): Promise<UserProfile> {
 
 export async function updateUser(
     id: string,
-    patch: Partial<{ name: string; tel: string; characterName: string; gender: string }>
+    patch: Partial<{ name: string; tel: string; characterName: string; gender: string; avatarUrl: string | null }>
 ): Promise<UserProfile> {
     const row = await findUserById(id);
     if (!row) {
@@ -102,6 +103,7 @@ export async function updateUser(
     if (patch.tel !== undefined) updates.tel = patch.tel.trim();
     if (patch.characterName !== undefined) updates.character_name = patch.characterName.trim();
     if (patch.gender !== undefined) updates.gender = patch.gender as UserDoc["gender"];
+    if ("avatarUrl" in patch) updates.avatar_url = patch.avatarUrl ?? null;
 
     if (Object.keys(updates).length === 0) {
         throw Errors.validation("Request body must include at least one updatable field");

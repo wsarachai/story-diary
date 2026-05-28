@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { clearTestData } from "@/lib/db";
 import { getQuiz, submitQuiz } from "@/lib/services/minigameService";
+import type { AnswerLetter } from "@/types/minigame";
 
 beforeEach(() => {
   clearTestData();
@@ -55,8 +56,8 @@ describe("submitQuiz", () => {
     const quiz = await getQuiz();
     const answers: Record<string, {
       questionId: string;
-      selected: string;
-      correct: string;
+      selected: AnswerLetter;
+      correct: AnswerLetter;
       isCorrect: boolean;
       answeredAt: string;
     }> = {};
@@ -83,8 +84,8 @@ describe("submitQuiz", () => {
     const quiz = await getQuiz();
     const answers: Record<string, {
       questionId: string;
-      selected: string;
-      correct: string;
+      selected: AnswerLetter;
+      correct: AnswerLetter;
       isCorrect: boolean;
       answeredAt: string;
     }> = {};
