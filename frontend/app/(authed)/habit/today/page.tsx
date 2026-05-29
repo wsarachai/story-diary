@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useGetTodayHabitsQuery, useToggleOccurrenceMutation } from "@/store/habitsApi";
+import { useState } from "react";
+import { useGetTodayHabitsQuery, useToggleOccurrenceMutation, useDeleteActivityMutation } from "@/store/habitsApi";
 import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
 import type { HabitActivity } from "@/types/habit";
@@ -85,11 +86,52 @@ function CategoryIcon({ accent }: { accent: string }) {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6"/>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+    </svg>
+  );
+}
+
+interface DeleteConfirmProps {
+  activityName: string;
+  isDeleting: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function DeleteConfirmDialog({ activityName, isDeleting, onConfirm, onCancel }: DeleteConfirmProps) {
+  return (
+    <div className="delete-confirm-overlay" onClick={onCancel}>
+      <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
+        <p className="delete-confirm-title">ลบกิจกรรม?</p>
+        <p className="delete-confirm-body">
+          <strong>"{activityName}"</strong> และประวัติ check-in ทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้
+        </p>
+        <div className="delete-confirm-actions">
+          <button className="delete-confirm-cancel" onClick={onCancel} disabled={isDeleting}>
+            ยกเลิก
+          </button>
+          <button className="delete-confirm-ok" onClick={onConfirm} disabled={isDeleting}>
+            {isDeleting ? "กำลังลบ…" : "ลบกิจกรรม"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HabitTodayPage() {
   const router = useRouter();
   const todayStr = new Date().toISOString().split("T")[0];
   const { data, isLoading } = useGetTodayHabitsQuery(todayStr);
   const [toggle] = useToggleOccurrenceMutation();
+  const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const entries = data ? Object.values(data.activities).map(activity => ({
     activity,
@@ -111,6 +153,14 @@ export default function HabitTodayPage() {
       router.push(`${base}/emotion?${qs}`);
     }
     // Other physical categories: no tap navigation — use the ✓ toggle only
+  }
+
+  const confirmActivity = confirmId ? data?.activities[confirmId] : null;
+
+  async function handleDeleteConfirm() {
+    if (!confirmId) return;
+    await deleteActivity(confirmId);
+    setConfirmId(null);
   }
 
   return (
@@ -170,6 +220,16 @@ export default function HabitTodayPage() {
                     </span>
                   )}
                   <button
+                    className="habit-delete-btn"
+                    aria-label={`ลบ ${entry.activity.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmId(entry.activity.id);
+                    }}
+                  >
+                    <TrashIcon />
+                  </button>
+                  <button
                     className={`habit-check${entry.occurrence.status === "done" ? " done" : ""}`}
                     aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
                     onClick={(e) => {
@@ -196,6 +256,15 @@ export default function HabitTodayPage() {
 
         <IconRail />
       </section>
+
+      {confirmActivity && (
+        <DeleteConfirmDialog
+          activityName={confirmActivity.name}
+          isDeleting={isDeleting}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
     </main>
   );
 }

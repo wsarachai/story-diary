@@ -108,6 +108,13 @@ export const habitsApi = apiSlice.injectEndpoints({
       transformResponse: (response: { activity: HabitActivity }) => response.activity,
       invalidatesTags: ["Habits"],
     }),
+    deleteActivity: builder.mutation<void, string>({
+      query: (activityId) => ({
+        url: `/habits/activities/${activityId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Habits"],
+    }),
     saveMedicineCheckin: builder.mutation<void, MedicineCheckin & { date: string }>({
       query: (checkin) => ({
         url: "/habits/checkin/medicine",
@@ -170,6 +177,7 @@ export const {
   useGetMonthlySummaryQuery,
   useToggleOccurrenceMutation,
   useCreateActivityMutation,
+  useDeleteActivityMutation,
   useSaveMedicineCheckinMutation,
   useSaveNutritionCheckinMutation,
   useSaveSymptomsCheckinMutation,
