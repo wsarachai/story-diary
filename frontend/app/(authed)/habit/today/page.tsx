@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGetTodayHabitsQuery, useToggleOccurrenceMutation } from "@/store/habitsApi";
 import IconRail from "@/components/IconRail";
+import { DateFull } from "@/components/DateBadge";
 import type { HabitActivity } from "@/types/habit";
 
 function getAccent(activity: HabitActivity): string {
@@ -121,7 +122,10 @@ export default function HabitTodayPage() {
           aria-label="รายการกิจกรรมวันนี้"
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 className="tracker-section-title" style={{ margin: 0 }}>Daily Tracker</h1>
+            <div>
+              <h1 className="tracker-section-title" style={{ margin: 0 }}>Daily Tracker</h1>
+              <DateFull style={{ marginTop: "0.2em" }} />
+            </div>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>

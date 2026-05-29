@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useGetWeeklyHabitsQuery } from "@/store/habitsApi";
 import type { HabitOccurrenceStatus } from "@/types/habit";
 import IconRail from "@/components/IconRail";
+import { DateWeekRange } from "@/components/DateBadge";
 
 const DAY_LABELS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
@@ -27,7 +28,10 @@ export default function HabitWeeklyPage() {
           aria-label="ตาราง weekly tracker"
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 className="tracker-section-title" style={{ margin: 0 }}>Weekly Tracker</h1>
+            <div>
+              <h1 className="tracker-section-title" style={{ margin: 0 }}>Weekly Tracker</h1>
+              <DateWeekRange weekStart={data?.weekStartDate} style={{ marginTop: "0.2em" }} />
+            </div>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>

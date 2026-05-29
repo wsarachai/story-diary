@@ -2,6 +2,7 @@
 import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import { DateShort } from "@/components/DateBadge";
 import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery, useGetMedicineCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck, MealSlot } from "@/types/habit";
 
@@ -125,6 +126,7 @@ function MedicineCheckinInner() {
             </div>
           )}
 
+          <DateShort />
           <p className="ci-hint">กรุณาตรวจสอบและทำเครื่องหมายหากมีผลข้างเคียง<br/>หลังรับประทานยา</p>
         </section>
 

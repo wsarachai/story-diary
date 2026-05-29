@@ -5,6 +5,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import Image from "next/image";
 import { useGetMeQuery } from "@/store/authApi";
+import { DateFull } from "@/components/DateBadge";
 
 /**
  * s004 Home Screen — authenticated entry hub.
@@ -74,11 +75,14 @@ function DashboardPanel() {
       style={{
         height: "100%",
         display: "grid",
-        gridTemplateRows: "auto auto 1fr",
+        gridTemplateRows: "auto auto auto 1fr",
         gap: "1.5rem",
         padding: "7% 7% 6%",
       }}
     >
+      {/* Date */}
+      <DateFull />
+
       {/* Profile link */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Link

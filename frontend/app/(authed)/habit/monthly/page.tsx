@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useGetMonthlyHabitsQuery } from "@/store/habitsApi";
 import type { HabitOccurrenceStatus } from "@/types/habit";
 import IconRail from "@/components/IconRail";
+import { DateMonthYear } from "@/components/DateBadge";
 
 const TODAY_DAY = new Date().getDate();
 
@@ -32,7 +33,10 @@ export default function HabitMonthlyPage() {
           aria-label="ตาราง monthly tracker"
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 className="tracker-section-title" style={{ margin: 0 }}>Monthly Tracker</h1>
+            <div>
+              <h1 className="tracker-section-title" style={{ margin: 0 }}>Monthly Tracker</h1>
+              <DateMonthYear style={{ marginTop: "0.2em" }} />
+            </div>
             <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>

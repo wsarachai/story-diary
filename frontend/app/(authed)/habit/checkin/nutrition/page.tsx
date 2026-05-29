@@ -2,6 +2,7 @@
 import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import { DateShort } from "@/components/DateBadge";
 import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery, useGetNutritionCheckinQuery } from "@/store/habitsApi";
 
 interface State {
@@ -97,6 +98,7 @@ function NutritionCheckinInner() {
             <span className="ci-name-pill ci-name-pill--nutrition">{activity?.name ?? "โภชนาการ"}</span>
           </div>
 
+          <DateShort />
           <p className="ci-hint">บันทึกรายการอาหารที่รับประทานในแต่ละมื้อของวันนี้<br/>เพื่อติดตามโภชนาการ</p>
         </section>
 

@@ -2,6 +2,7 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import { DateShort } from "@/components/DateBadge";
 import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 
@@ -102,6 +103,7 @@ function EmotionCheckinInner() {
             </div>
           )}
 
+          <DateShort />
           <p className="ci-hint">เลือกระดับอารมณ์ที่ตรงกับความรู้สึกของคุณในวันนี้</p>
         </section>
 

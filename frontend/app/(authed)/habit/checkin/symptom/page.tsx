@@ -2,6 +2,7 @@
 import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import { DateShort } from "@/components/DateBadge";
 import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 
@@ -95,6 +96,7 @@ function SymptomCheckinInner() {
             </span>
           </div>
 
+          <DateShort />
           <p className="ci-hint">
             ทำเครื่องหมายอาการที่พบในวันนี้<br/>
             เพื่อติดตามสุขภาพของคุณ
