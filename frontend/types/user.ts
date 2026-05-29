@@ -36,6 +36,8 @@ export interface UserProfile {
     gender: Gender;
     /** Base64 JPEG data URL uploaded by the user, or null if not set. */
     avatarUrl?: string | null;
+    /** User role — "admin" grants access to the admin panel. */
+    role?: "user" | "admin";
     /** ISO-8601 UTC. */
     createdAt: string;
     /** ISO-8601 UTC. Server-bumped on every PATCH. */
