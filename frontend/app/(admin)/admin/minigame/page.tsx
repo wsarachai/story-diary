@@ -77,6 +77,7 @@ export default function AdminMinigamePage() {
   return (
     <div className="admin-layout">
       <AdminSidebar />
+      <div className="admin-main-wrapper">
       <main className="admin-main">
         <div className="admin-page-header">
           <h1 className="admin-page-title">Minigame Questions</h1>
@@ -191,6 +192,7 @@ export default function AdminMinigamePage() {
         {isLoading ? (
           <div className="chapter-spinner" />
         ) : (
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
@@ -228,8 +230,10 @@ export default function AdminMinigamePage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

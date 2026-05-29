@@ -13,6 +13,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="admin-layout">
       <AdminSidebar />
+      <div className="admin-main-wrapper">
       <main className="admin-main">
         <div className="admin-page-header">
           <h1 className="admin-page-title">Dashboard</h1>
@@ -38,6 +39,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }
