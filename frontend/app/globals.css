@@ -766,6 +766,48 @@ input:focus-visible,
   }
 }
 
+/* ── Skeleton shimmer (page-transition loading states) ─────────────── */
+.skel-line {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(88, 216, 222, 0.08) 0%,
+    rgba(88, 216, 222, 0.22) 50%,
+    rgba(88, 216, 222, 0.08) 100%
+  );
+  background-size: 300% 100%;
+  animation: skel-shimmer 1.6s ease-in-out infinite;
+}
+
+.skel-block {
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(88, 216, 222, 0.06) 0%,
+    rgba(88, 216, 222, 0.16) 50%,
+    rgba(88, 216, 222, 0.06) 100%
+  );
+  background-size: 300% 100%;
+  animation: skel-shimmer 1.6s ease-in-out infinite;
+}
+
+.skel-circle {
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(88, 216, 222, 0.10) 0%,
+    rgba(88, 216, 222, 0.25) 50%,
+    rgba(88, 216, 222, 0.10) 100%
+  );
+  background-size: 300% 100%;
+  animation: skel-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skel-shimmer {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    s010 — Chapter Scene (full-bleed)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
