@@ -15,6 +15,12 @@ import type { RegisterRequest } from "@/types/auth";
 
 const SALT_ROUNDS = 12;
 
+function resolveRole(row: UserDoc): "user" | "admin" {
+    if (row.role === "admin") return "admin";
+    const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    return adminIds.includes(row.id) ? "admin" : "user";
+}
+
 function rowToProfile(row: UserDoc): UserProfile {
     return {
         id: row.id,
@@ -23,6 +29,7 @@ function rowToProfile(row: UserDoc): UserProfile {
         characterName: row.character_name,
         gender: row.gender,
         avatarUrl: row.avatar_url ?? null,
+        role: resolveRole(row),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
@@ -49,6 +56,7 @@ export async function registerUser(input: RegisterRequest): Promise<UserProfile>
         password_hash: hash,
         character_name: input.characterName.trim(),
         gender: input.gender,
+        role: "user",
         created_at: now,
         updated_at: now,
     };
