@@ -4825,10 +4825,18 @@ input:focus-visible,
   z-index: 9999;
 }
 
-/* Root layout — escape book-shell body centering */
+/* Neutralise book-shell body when any admin page is mounted */
+body[data-admin] {
+  display: block !important;
+  padding: 0 !important;
+  background: #0d1117 !important;
+  overflow: hidden !important;
+}
+
+/* Root layout — fills the full viewport */
 .admin-layout {
-  position: fixed;
-  inset: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: row;
   background: #0d1117;
