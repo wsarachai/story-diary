@@ -3,6 +3,7 @@ import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { DateShort } from "@/components/DateBadge";
+import PageSpinner from "@/components/PageSpinner";
 import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery, useGetMedicineCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck, MealSlot } from "@/types/habit";
 
@@ -51,7 +52,7 @@ function MedicineCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { sideEffects: MOCK_SIDE_EFFECTS });
-  const { data: existingCheckin } = useGetMedicineCheckinQuery(occId, { skip: !occId });
+  const { data: existingCheckin, isLoading: checkinLoading } = useGetMedicineCheckinQuery(occId, { skip: !occId });
 
   useEffect(() => {
     if (existingCheckin?.sideEffects) {
@@ -127,7 +128,10 @@ function MedicineCheckinInner() {
           )}
 
           <DateShort />
-          <p className="ci-hint">กรุณาตรวจสอบและทำเครื่องหมายหากมีผลข้างเคียง<br/>หลังรับประทานยา</p>
+          {checkinLoading
+            ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
+            : <p className="ci-hint">กรุณาตรวจสอบและทำเครื่องหมายหากมีผลข้างเคียง<br/>หลังรับประทานยา</p>
+          }
         </section>
 
         {/* ── Right page: side effects ── */}

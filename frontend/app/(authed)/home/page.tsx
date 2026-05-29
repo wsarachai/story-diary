@@ -6,6 +6,7 @@ import IconRail from "@/components/IconRail";
 import Image from "next/image";
 import { useGetMeQuery } from "@/store/authApi";
 import { DateFull } from "@/components/DateBadge";
+import PageSpinner from "@/components/PageSpinner";
 
 /**
  * s004 Home Screen — authenticated entry hub.
@@ -68,7 +69,7 @@ function StoryCardPanel() {
 }
 
 function DashboardPanel() {
-  const { data: user } = useGetMeQuery();
+  const { data: user, isLoading: userLoading } = useGetMeQuery();
 
   return (
     <div
@@ -102,7 +103,10 @@ function DashboardPanel() {
           }}
         >
           <span style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {user?.characterName || "โปรไฟล์"}
+            {userLoading
+              ? <PageSpinner variant="small" label="กำลังโหลด…" />
+              : (user?.characterName || "โปรไฟล์")
+            }
           </span>
           <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {user?.avatarUrl ? (

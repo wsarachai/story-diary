@@ -5,6 +5,7 @@ import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
+import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
 
 function PlayButton({ clip }: { clip: VideoClip }) {
@@ -23,7 +24,7 @@ function PlayButton({ clip }: { clip: VideoClip }) {
 }
 
 export default function VideoClipsPage() {
-  const { data: collection } = useGetVideoClipsQuery();
+  const { data: collection, isLoading } = useGetVideoClipsQuery();
 
   const clips = collection?.clips ?? [];
   const leftClips = clips.filter((_, index) => (index + 1) % 2 === 1);
@@ -43,6 +44,9 @@ export default function VideoClipsPage() {
             {collection?.badge ?? "ดาวแห่งการเรียนรู้"}
           </Link>
 
+          {isLoading ? (
+            <PageSpinner variant="inline" height="14rem" label="กำลังโหลดวิดีโอ…" />
+          ) : (
           <div className="clips-grid-container">
             {leftClips.map((clip) => (
               <div key={clip.id} className="clips-grid-item">
@@ -55,12 +59,16 @@ export default function VideoClipsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       }
       right={
         <div className="video-clips-page">
           <div className="clip-section-label-spacer" aria-hidden="true" />
 
+          {isLoading ? (
+            <PageSpinner variant="inline" height="14rem" label="กำลังโหลดวิดีโอ…" />
+          ) : (
           <div className="clips-grid-container">
             {rightClips.map((clip) => (
               <div key={clip.id} className="clips-grid-item">
@@ -73,6 +81,7 @@ export default function VideoClipsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       }
     />

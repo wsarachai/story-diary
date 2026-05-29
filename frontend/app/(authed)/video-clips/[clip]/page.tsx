@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
+import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
 
 function toEmbedUrl(sourceUrl?: string): string {
@@ -41,7 +42,7 @@ function resolveClipByParam(clips: VideoClip[], clipParam: string): VideoClip | 
 }
 
 export default function VideoClipPlayerPage() {
-    const { data: collection } = useGetVideoClipsQuery();
+    const { data: collection, isLoading } = useGetVideoClipsQuery();
     const params = useParams<{ clip: string }>();
     const clipParam = params?.clip ?? "";
 
@@ -66,7 +67,9 @@ export default function VideoClipPlayerPage() {
                     </div>
 
                     <div className="clip-player-frame-wrap">
-                        {embedUrl ? (
+                        {isLoading ? (
+                            <PageSpinner label="กำลังโหลดวิดีโอ…" />
+                        ) : embedUrl ? (
                             <iframe
                                 className="clip-player-frame"
                                 src={embedUrl}
@@ -77,7 +80,7 @@ export default function VideoClipPlayerPage() {
                             />
                         ) : (
                             <div className="clip-player-fallback">ไม่พบวิดีโอจากพารามิเตอร์นี้</div>
-                        )}
+                        ) }
                     </div>
 
                     <div className="clip-player-caption">

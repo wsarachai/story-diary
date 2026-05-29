@@ -6,10 +6,11 @@ import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetEBooksQuery } from "@/store/ebookApi";
+import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
 
 export default function EBookViewerPage() {
-    const { data: collection } = useGetEBooksQuery();
+    const { data: collection, isLoading } = useGetEBooksQuery();
     const params = useParams<{ id: string }>();
     const ebookId = params?.id ?? "";
 
@@ -34,7 +35,9 @@ export default function EBookViewerPage() {
                     </div>
 
                     <div className="clip-player-frame-wrap" style={{ background: "#fff" }}>
-                        {activeEBook?.pdfUrl ? (
+                        {isLoading ? (
+                            <PageSpinner label="กำลังโหลด E-book…" />
+                        ) : activeEBook?.pdfUrl ? (
                             <iframe
                                 className="clip-player-frame"
                                 src={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
@@ -43,7 +46,7 @@ export default function EBookViewerPage() {
                             />
                         ) : (
                             <div className="clip-player-fallback" style={{ color: "#508db9" }}>ไม่พบไฟล์ PDF</div>
-                        )}
+                        ) }
                     </div>
 
                     <div className="clip-player-caption" style={{ color: "#2c5d80" }}>

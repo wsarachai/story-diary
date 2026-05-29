@@ -3,6 +3,7 @@ import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { DateShort } from "@/components/DateBadge";
+import PageSpinner from "@/components/PageSpinner";
 import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 
@@ -46,7 +47,7 @@ function SymptomCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { items: MOCK_SYMPTOMS });
-  const { data: existingCheckin } = useGetSymptomsCheckinQuery(occId, { skip: !occId });
+  const { data: existingCheckin, isLoading: checkinLoading } = useGetSymptomsCheckinQuery(occId, { skip: !occId });
 
   useEffect(() => {
     if (existingCheckin?.items) {
@@ -97,10 +98,10 @@ function SymptomCheckinInner() {
           </div>
 
           <DateShort />
-          <p className="ci-hint">
-            ทำเครื่องหมายอาการที่พบในวันนี้<br/>
-            เพื่อติดตามสุขภาพของคุณ
-          </p>
+          {checkinLoading
+            ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
+            : <p className="ci-hint">ทำเครื่องหมายอาการที่พบในวันนี้<br/>เพื่อติดตามสุขภาพของคุณ</p>
+          }
         </section>
 
         {/* ── Right page: symptom checklist ── */}

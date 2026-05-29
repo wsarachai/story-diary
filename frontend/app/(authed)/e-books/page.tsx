@@ -4,6 +4,7 @@ import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetEBooksQuery } from "@/store/ebookApi";
+import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
 
 function PlayButton({ ebook }: { ebook: EBookChapter }) {
@@ -23,7 +24,7 @@ function PlayButton({ ebook }: { ebook: EBookChapter }) {
 }
 
 export default function EBooksPage() {
-  const { data: collection } = useGetEBooksQuery();
+  const { data: collection, isLoading } = useGetEBooksQuery();
 
   const chapters = collection?.chapters ?? [];
   const leftChapters = chapters.filter((_, index) => (index + 1) % 2 === 1);
@@ -44,6 +45,9 @@ export default function EBooksPage() {
             {collection?.badge ?? "E-book"}
           </Link>
 
+          {isLoading ? (
+            <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
+          ) : (
           <div className="clips-grid-container">
             {leftChapters.map((ebook) => (
               <div key={ebook.id} className="clips-grid-item">
@@ -56,12 +60,16 @@ export default function EBooksPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       }
       right={
         <div className="video-clips-page">
           <div className="clip-section-label-spacer" aria-hidden="true" />
 
+          {isLoading ? (
+            <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
+          ) : (
           <div className="clips-grid-container">
             {rightChapters.map((ebook) => (
               <div key={ebook.id} className="clips-grid-item">
@@ -74,6 +82,7 @@ export default function EBooksPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       }
     />

@@ -3,6 +3,7 @@ import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { DateShort } from "@/components/DateBadge";
+import PageSpinner from "@/components/PageSpinner";
 import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery, useGetNutritionCheckinQuery } from "@/store/habitsApi";
 
 interface State {
@@ -44,7 +45,7 @@ function NutritionCheckinInner() {
   const activity = todayData?.activities[activityId];
 
   const [state, dispatch] = useReducer(reducer, { breakfast: "", lunch: "", dinner: "" });
-  const { data: existingCheckin } = useGetNutritionCheckinQuery(occId, { skip: !occId });
+  const { data: existingCheckin, isLoading: checkinLoading } = useGetNutritionCheckinQuery(occId, { skip: !occId });
 
   useEffect(() => {
     if (existingCheckin) {
@@ -99,7 +100,10 @@ function NutritionCheckinInner() {
           </div>
 
           <DateShort />
-          <p className="ci-hint">บันทึกรายการอาหารที่รับประทานในแต่ละมื้อของวันนี้<br/>เพื่อติดตามโภชนาการ</p>
+          {checkinLoading
+            ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
+            : <p className="ci-hint">บันทึกรายการอาหารที่รับประทานในแต่ละมื้อของวันนี้<br/>เพื่อติดตามโภชนาการ</p>
+          }
         </section>
 
         {/* ── Right page: meal log ── */}

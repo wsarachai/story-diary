@@ -6,6 +6,7 @@ import Image from "next/image";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetChapterSummariesQuery } from "@/store/chaptersApi";
+import PageSpinner from "@/components/PageSpinner";
 import type { ChapterId } from "@/types/chapters";
 
 function ChapterRow({
@@ -73,7 +74,7 @@ function ChapterRow({
 }
 
 export default function ChaptersMenuPage() {
-  const { data: summaries = [] } = useGetChapterSummariesQuery();
+  const { data: summaries = [], isLoading } = useGetChapterSummariesQuery();
   const [lockHintFor, setLockHintFor] = useState<ChapterId | null>(null);
   const [shakingId, setShakingId] = useState<ChapterId | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -106,6 +107,9 @@ export default function ChaptersMenuPage() {
         <div className="chapters-menu-page">
           <h1 className="chapter-title">เนื้อเรื่อง</h1>
           <div className="chapter-title-rule" aria-hidden="true" />
+          {isLoading ? (
+            <PageSpinner variant="inline" height="12rem" label="กำลังโหลดบท…" />
+          ) : (
           <ol className="chapter-list" aria-label="รายการบทฝั่งซ้าย">
             {leftChapters.map((s, i) => (
               <ChapterRow
@@ -120,6 +124,7 @@ export default function ChaptersMenuPage() {
               />
             ))}
           </ol>
+          )}
         </div>
       }
       right={
@@ -129,6 +134,9 @@ export default function ChaptersMenuPage() {
             <h1 className="chapter-title">placeholder</h1>
             <div className="chapter-title-rule" />
           </div>
+          {isLoading ? (
+            <PageSpinner variant="inline" height="12rem" label="กำลังโหลดบท…" />
+          ) : (
           <ol
             className="chapter-list chapter-list-right"
             aria-label="รายการบทฝั่งขวา"
@@ -146,6 +154,7 @@ export default function ChaptersMenuPage() {
               />
             ))}
           </ol>
+          )}
         </div>
       }
     />
