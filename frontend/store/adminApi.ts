@@ -45,6 +45,7 @@ export const adminApi = apiSlice.injectEndpoints({
     // Chapters
     getAdminChapters: builder.query<ChapterSummary[], void>({
       query: () => "/admin/chapters",
+      transformResponse: (res: { chapters: ChapterSummary[] }) => res.chapters,
       providesTags: ["Admin"],
     }),
     createChapter: builder.mutation<Chapter, CreateChapterRequest>({
@@ -63,6 +64,7 @@ export const adminApi = apiSlice.injectEndpoints({
     // EBooks
     getAdminEBooks: builder.query<EBookChapter[], void>({
       query: () => "/admin/e-books",
+      transformResponse: (res: { chapters: EBookChapter[] }) => res.chapters,
       providesTags: ["Admin"],
     }),
     createEBook: builder.mutation<EBookChapter, CreateEBookRequest>({
@@ -81,6 +83,7 @@ export const adminApi = apiSlice.injectEndpoints({
     // Minigame questions
     getAdminQuestions: builder.query<QuizQuestion[], void>({
       query: () => "/admin/minigame/questions",
+      transformResponse: (res: { questions: QuizQuestion[] }) => res.questions,
       providesTags: ["Admin"],
     }),
     createQuestion: builder.mutation<QuizQuestion, CreateQuestionRequest>({
