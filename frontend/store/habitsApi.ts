@@ -105,6 +105,7 @@ export const habitsApi = apiSlice.injectEndpoints({
         method: "POST",
         body: activity,
       }),
+      transformResponse: (response: { activity: HabitActivity }) => response.activity,
       invalidatesTags: ["Habits"],
     }),
     saveMedicineCheckin: builder.mutation<void, MedicineCheckin & { date: string }>({

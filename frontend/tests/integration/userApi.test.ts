@@ -14,6 +14,7 @@ import { authApi } from "@/store/authApi";
 import { userApi } from "@/store/userApi";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
+import { MOCK_USER, MOCK_TOKEN } from "../fixtures";
 
 function createTestStore() {
   return configureStore({
@@ -25,19 +26,9 @@ function createTestStore() {
   });
 }
 
-const MOCK_USER = {
-  id: "u1",
-  name: "สมชาย ใจดี",
-  tel: "0812345678",
-  characterName: "สุดหล่อ",
-  gender: "male",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
-
 describe("userApi – updateProfile mutation", () => {
   beforeEach(() => {
-    localStorage.setItem("auth_token", "test-token");
+    localStorage.setItem("auth_token", MOCK_TOKEN);
   });
 
   it("sends PATCH /api/users/me with the request body", async () => {
@@ -71,7 +62,7 @@ describe("userApi – updateProfile mutation", () => {
       .dispatch(userApi.endpoints.updateProfile.initiate({ name: "สมชาย ใจดี" }))
       .unwrap();
 
-    expect(capturedAuth).toBe("Bearer test-token");
+    expect(capturedAuth).toBe(`Bearer ${MOCK_TOKEN}`);
   });
 
   it("updates the getMe cache after a successful update", async () => {

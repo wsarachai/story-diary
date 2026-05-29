@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
 import { store } from "@/store/index";
 import { apiSlice } from "@/store/apiSlice";
+import { MOCK_USER } from "../fixtures";
 
 const replaceMock = vi.fn();
 
@@ -16,16 +17,6 @@ vi.mock("next/navigation", () => ({
   }),
   usePathname: () => "/profile",
 }));
-
-const MOCK_USER = {
-  id: "u1",
-  name: "สมชาย ใจดี",
-  tel: "0812345678",
-  characterName: "สุดหล่อ",
-  gender: "male",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
 
 function renderProfile() {
   return render(

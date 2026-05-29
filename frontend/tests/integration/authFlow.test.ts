@@ -13,6 +13,7 @@ import { apiSlice } from "@/store/apiSlice";
 import { authApi } from "@/store/authApi";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
+import { MOCK_USER, MOCK_TOKEN, MOCK_CREDENTIALS } from "../fixtures";
 
 function createTestStore() {
   return configureStore({
@@ -23,8 +24,6 @@ function createTestStore() {
       ),
   });
 }
-
-const MOCK_USER = { id: "usr-001", tel: "0812345678", name: "สมชาย ใจดี" };
 
 describe("Auth Flow Integration", () => {
   beforeEach(() => {
@@ -38,22 +37,19 @@ describe("Auth Flow Integration", () => {
     const store = createTestStore();
     server.use(
       http.post("/api/auth/login", () =>
-        HttpResponse.json({ user: MOCK_USER, token: "valid-jwt-token" })
+        HttpResponse.json({ user: MOCK_USER, token: MOCK_TOKEN })
       )
     );
 
     await store
       .dispatch(
-        authApi.endpoints.login.initiate({
-          username: "0812345678",
-          password: "password123",
-        })
+        authApi.endpoints.login.initiate(MOCK_CREDENTIALS)
       )
       .unwrap();
 
     // onQueryStarted runs async; wait for the side-effect
     await vi.waitFor(() => {
-      expect(localStorage.getItem("auth_token")).toBe("valid-jwt-token");
+      expect(localStorage.getItem("auth_token")).toBe(MOCK_TOKEN);
     });
   });
 
