@@ -33,6 +33,10 @@ import type {
     NutritionCheckin,
     UnusualSymptomsCheckin,
     MoodCheckin,
+    MoodLevel,
+    MealRelation,
+    MealSlot,
+    SymptomCheck,
     MonthlyGoal,
     MonthlyResults,
 } from "@/types/habit";
@@ -334,6 +338,40 @@ export async function getMedicineCheckin(userId: string, occurrenceId: string): 
         mealRelation: doc.meal_relation as MedicineCheckin["mealRelation"],
         mealSlots: JSON.parse(doc.meal_slots_json),
         sideEffects: JSON.parse(doc.side_effects_json),
+    };
+}
+
+export async function getNutritionCheckin(userId: string, occurrenceId: string): Promise<NutritionCheckin | null> {
+    await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const doc = await findNutritionCheckinByOccurrence(occurrenceId);
+    if (!doc) return null;
+    return {
+        occurrenceId: doc.occurrence_id,
+        activityName: doc.activity_name,
+        breakfast: doc.breakfast,
+        lunch: doc.lunch,
+        dinner: doc.dinner,
+    };
+}
+
+export async function getSymptomsCheckin(userId: string, occurrenceId: string): Promise<UnusualSymptomsCheckin | null> {
+    await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const doc = await findSymptomsCheckinByOccurrence(occurrenceId);
+    if (!doc) return null;
+    return {
+        occurrenceId: doc.occurrence_id,
+        items: JSON.parse(doc.items_json) as SymptomCheck[],
+    };
+}
+
+export async function getMoodCheckin(userId: string, occurrenceId: string): Promise<MoodCheckin | null> {
+    await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const doc = await findMoodCheckinByOccurrence(occurrenceId);
+    if (!doc) return null;
+    return {
+        occurrenceId: doc.occurrence_id,
+        mood: doc.mood as MoodLevel,
+        sliderValue: doc.slider_value,
     };
 }
 

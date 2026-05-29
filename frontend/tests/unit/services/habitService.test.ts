@@ -10,6 +10,13 @@ import {
   getTodayEntries,
   toggleOccurrence,
   saveMedicineCheckin,
+  getMedicineCheckin,
+  saveNutritionCheckin,
+  getNutritionCheckin,
+  saveSymptomsCheckin,
+  getSymptomsCheckin,
+  saveMoodCheckin,
+  getMoodCheckin,
   getWeeklyView,
   getMonthlyView,
   getMonthlySummary,
@@ -248,6 +255,303 @@ describe("saveMedicineCheckin", () => {
         sideEffects: [],
       })
     ).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// getMedicineCheckin (pre-populate round-trip)
+// ────────────────────────────────────────────────────────────────────
+describe("getMedicineCheckin", () => {
+  it("returns null before any checkin is saved", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["breakfast" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const result = await getMedicineCheckin(USER, entries[0].occurrence.id);
+    expect(result).toBeNull();
+  });
+
+  it("returns saved checkin data after saveMedicineCheckin", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["breakfast" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const occ = entries[0].occurrence;
+
+    await saveMedicineCheckin(USER, {
+      occurrenceId: occ.id,
+      medicineName: "ยาเช้า",
+      mealRelation: "after",
+      mealSlots: ["breakfast"],
+      sideEffects: [{ id: "se1", label: "คลื่นไส้", checked: true }],
+    });
+
+    const loaded = await getMedicineCheckin(USER, occ.id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.medicineName).toBe("ยาเช้า");
+    expect(loaded!.mealRelation).toBe("after");
+    expect(loaded!.mealSlots).toEqual(["breakfast"]);
+    expect(loaded!.sideEffects).toHaveLength(1);
+    expect(loaded!.sideEffects[0]).toMatchObject({ id: "se1", label: "คลื่นไส้", checked: true });
+  });
+
+  it("returns latest values when checkin is overwritten", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["dinner" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const occ = entries[0].occurrence;
+
+    await saveMedicineCheckin(USER, { occurrenceId: occ.id, medicineName: "ยาเช้า", mealRelation: "after", mealSlots: ["dinner"], sideEffects: [] });
+    await saveMedicineCheckin(USER, { occurrenceId: occ.id, medicineName: "ยาเช้า", mealRelation: "before", mealSlots: ["dinner"], sideEffects: [{ id: "se2", label: "ปวดท้อง", checked: true }] });
+
+    const loaded = await getMedicineCheckin(USER, occ.id);
+    expect(loaded!.mealRelation).toBe("before");
+    expect(loaded!.sideEffects[0].checked).toBe(true);
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(getMedicineCheckin(USER, "no-such-id")).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// saveNutritionCheckin + getNutritionCheckin
+// ────────────────────────────────────────────────────────────────────
+describe("saveNutritionCheckin", () => {
+  it("saves the checkin and marks occurrence as done", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, {
+      occurrenceId: occ.id,
+      activityName: "บันทึกอาหาร",
+      breakfast: "ข้าวต้ม",
+      lunch: "ข้าวราดแกง",
+      dinner: "ต้มยำ",
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(
+      saveNutritionCheckin(USER, { occurrenceId: "bad-id", activityName: "X", breakfast: "", lunch: "", dinner: "" })
+    ).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("getNutritionCheckin", () => {
+  it("returns null before any checkin is saved", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const result = await getNutritionCheckin(USER, entry.occurrence.id);
+    expect(result).toBeNull();
+  });
+
+  it("returns saved data after saveNutritionCheckin", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, {
+      occurrenceId: occ.id,
+      activityName: "บันทึกอาหาร",
+      breakfast: "ข้าวต้ม",
+      lunch: "ข้าวราดแกง",
+      dinner: "ต้มยำ",
+    });
+
+    const loaded = await getNutritionCheckin(USER, occ.id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.activityName).toBe("บันทึกอาหาร");
+    expect(loaded!.breakfast).toBe("ข้าวต้ม");
+    expect(loaded!.lunch).toBe("ข้าวราดแกง");
+    expect(loaded!.dinner).toBe("ต้มยำ");
+  });
+
+  it("returns latest values when overwritten", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, { occurrenceId: occ.id, activityName: "X", breakfast: "ข้าว", lunch: "", dinner: "" });
+    await saveNutritionCheckin(USER, { occurrenceId: occ.id, activityName: "X", breakfast: "โจ๊ก", lunch: "ผัดผัก", dinner: "ปลา" });
+
+    const loaded = await getNutritionCheckin(USER, occ.id);
+    expect(loaded!.breakfast).toBe("โจ๊ก");
+    expect(loaded!.dinner).toBe("ปลา");
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(getNutritionCheckin(USER, "no-such-id")).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// saveSymptomsCheckin + getSymptomsCheckin
+// ────────────────────────────────────────────────────────────────────
+const PHYSICAL_SYMPTOMS = {
+  category: "physical" as const,
+  physicalCategory: "symptoms" as const,
+  name: "ติดตามอาการ",
+  schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+  archived: false,
+};
+
+describe("saveSymptomsCheckin", () => {
+  it("saves the checkin and marks occurrence as done", async () => {
+    await createActivity(USER, PHYSICAL_SYMPTOMS);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveSymptomsCheckin(USER, {
+      occurrenceId: occ.id,
+      items: [
+        { id: "s1", label: "เหนื่อยง่าย", checked: true },
+        { id: "s2", label: "ปวดหัว", checked: false },
+      ],
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(
+      saveSymptomsCheckin(USER, { occurrenceId: "bad-id", items: [] })
+    ).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("getSymptomsCheckin", () => {
+  it("returns null before any checkin is saved", async () => {
+    await createActivity(USER, PHYSICAL_SYMPTOMS);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const result = await getSymptomsCheckin(USER, entry.occurrence.id);
+    expect(result).toBeNull();
+  });
+
+  it("returns saved items after saveSymptomsCheckin", async () => {
+    await createActivity(USER, PHYSICAL_SYMPTOMS);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    const items = [
+      { id: "s1", label: "เหนื่อยง่าย", checked: true },
+      { id: "s2", label: "ปวดหัว", checked: false },
+      { id: "s3", label: "คลื่นไส้", checked: true },
+    ];
+
+    await saveSymptomsCheckin(USER, { occurrenceId: occ.id, items });
+
+    const loaded = await getSymptomsCheckin(USER, occ.id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.items).toHaveLength(3);
+    expect(loaded!.items[0]).toMatchObject({ id: "s1", checked: true });
+    expect(loaded!.items[1]).toMatchObject({ id: "s2", checked: false });
+  });
+
+  it("preserves checked=false items (not just truthy ones)", async () => {
+    await createActivity(USER, PHYSICAL_SYMPTOMS);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveSymptomsCheckin(USER, { occurrenceId: occ.id, items: [{ id: "s1", label: "X", checked: false }] });
+
+    const loaded = await getSymptomsCheckin(USER, occ.id);
+    expect(loaded!.items[0].checked).toBe(false);
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(getSymptomsCheckin(USER, "no-such-id")).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// saveMoodCheckin + getMoodCheckin
+// ────────────────────────────────────────────────────────────────────
+const PHYSICAL_EMOTION = {
+  category: "physical" as const,
+  physicalCategory: "emotion-management" as const,
+  name: "บันทึกอารมณ์",
+  schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+  archived: false,
+};
+
+describe("saveMoodCheckin", () => {
+  it("saves the checkin and marks occurrence as done", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: "good", sliderValue: 40 });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+  });
+
+  it("accepts all 5 mood levels", async () => {
+    const levels = ["very-bad", "bad", "neutral", "good", "very-good"] as const;
+    for (const mood of levels) {
+      clearTestData();
+      await createActivity(USER, PHYSICAL_EMOTION);
+      const [entry] = await getTodayEntries(USER, TODAY);
+      await expect(saveMoodCheckin(USER, { occurrenceId: entry.occurrence.id, mood, sliderValue: 0 })).resolves.toBeUndefined();
+    }
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(
+      saveMoodCheckin(USER, { occurrenceId: "bad-id", mood: "neutral", sliderValue: 0 })
+    ).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("getMoodCheckin", () => {
+  it("returns null before any checkin is saved", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const result = await getMoodCheckin(USER, entry.occurrence.id);
+    expect(result).toBeNull();
+  });
+
+  it("returns saved mood and sliderValue after saveMoodCheckin", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: "very-good", sliderValue: 80 });
+
+    const loaded = await getMoodCheckin(USER, occ.id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.mood).toBe("very-good");
+    expect(loaded!.sliderValue).toBe(80);
+  });
+
+  it("returns negative slider values correctly", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: "very-bad", sliderValue: -100 });
+
+    const loaded = await getMoodCheckin(USER, occ.id);
+    expect(loaded!.mood).toBe("very-bad");
+    expect(loaded!.sliderValue).toBe(-100);
+  });
+
+  it("returns latest values when overwritten", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: "bad", sliderValue: -40 });
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: "good", sliderValue: 60 });
+
+    const loaded = await getMoodCheckin(USER, occ.id);
+    expect(loaded!.mood).toBe("good");
+    expect(loaded!.sliderValue).toBe(60);
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(getMoodCheckin(USER, "no-such-id")).rejects.toBeInstanceOf(AppError);
   });
 });
 
