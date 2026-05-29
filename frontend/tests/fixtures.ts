@@ -17,8 +17,8 @@
  *  SUMMARY       – the /habits/monthly-summary response payload
  */
 
+import type { UserProfile } from "@/types/user";
 import type {
-  UserProfile,
   HabitActivity,
   HabitOccurrence,
   MedicineCheckin,

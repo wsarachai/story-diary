@@ -19,11 +19,6 @@
  * // Simplest — fresh store, MSW handles the network
  * const { getByText } = renderWithProviders(<MyPage />);
  *
- * // Pre-seed the RTK Query cache (skip the network round-trip)
- * const { store } = renderWithProviders(<MyPage />, {
- *   preloadedState: buildCacheState({ getMe: MOCK_USER }),
- * });
- *
  * // Share one store across multiple renders in the same test
  * const { store } = renderWithProviders(<ComponentA />);
  * renderWithProviders(<ComponentB />, { store });
@@ -32,94 +27,37 @@
  * ───
  * renderWithProviders(ui, options?) → RenderResult & { store }
  *
- *   options.preloadedState  – partial Redux state to pre-seed the store
- *   options.store           – use an existing store (skips store creation)
- *   options.*               – forwarded to @testing-library/react render()
+ *   options.store  – use an existing store (skips store creation)
+ *   options.*      – forwarded to @testing-library/react render()
  */
 
 import React from "react";
-import { configureStore, type PreloadedState } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import { render, type RenderOptions, type RenderResult } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { apiSlice } from "@/store/apiSlice";
-import type { RootState } from "@/store/index";
 
-// ─── store factory ───────────────────────────────────────────────────────────
+// ─── store factory ────────────────────────────────────────────────────────────
 
 /**
- * Creates an isolated test store with the same shape as the production store
- * but without the singleton reference.
+ * Creates an isolated test store — exact same shape as the integration tests
+ * that already pass (no preloadedState to avoid RTK 2.x generic conflicts).
+ * All test data is supplied via MSW handlers instead.
  */
-export function createTestStore(preloadedState?: PreloadedState<RootState>) {
+export function createTestStore() {
   return configureStore({
-    reducer: {
-      [apiSlice.reducerPath]: apiSlice.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware({
-        serializableCheck: false,
-        immutableCheck: false,
-      }).concat(apiSlice.middleware),
-    preloadedState,
+    reducer: { [apiSlice.reducerPath]: apiSlice.reducer },
+    middleware: (gdm) =>
+      gdm({ serializableCheck: false, immutableCheck: false })
+        .concat(apiSlice.middleware),
   });
 }
 
 export type TestStore = ReturnType<typeof createTestStore>;
 
-// ─── cache pre-seeder ─────────────────────────────────────────────────────────
-
-/**
- * Helper to build a preloadedState that seeds specific RTK Query cache entries
- * so the component never has to make a network request in tests that only care
- * about UI behaviour (not the fetch itself).
- *
- * Example:
- *   renderWithProviders(<ProfilePage />, {
- *     preloadedState: buildCacheState({ 'getMe(undefined)': MOCK_USER }),
- *   });
- */
-export function buildCacheState(
-  queries: Record<string, unknown>
-): PreloadedState<RootState> {
-  const queryState: Record<string, unknown> = {};
-  for (const [key, data] of Object.entries(queries)) {
-    queryState[key] = {
-      status: "fulfilled",
-      endpointName: key.split("(")[0],
-      requestId: `test-${key}`,
-      data,
-      fulfilledTimeStamp: Date.now(),
-      isUninitialized: false,
-      isLoading: false,
-      isSuccess: true,
-      isError: false,
-    };
-  }
-  return {
-    [apiSlice.reducerPath]: {
-      queries: queryState,
-      mutations: {},
-      provided: {},
-      subscriptions: {},
-      config: {
-        online: true,
-        focused: true,
-        middlewareRegistered: true,
-        refetchOnFocus: false,
-        refetchOnReconnect: false,
-        refetchOnMountOrArgChange: false,
-        keepUnusedDataFor: 60,
-        reducerPath: apiSlice.reducerPath,
-      },
-    },
-  } as PreloadedState<RootState>;
-}
-
-// ─── renderWithProviders ─────────────────────────────────────────────────────
+// ─── renderWithProviders ──────────────────────────────────────────────────────
 
 interface Options extends Omit<RenderOptions, "wrapper"> {
-  /** Partial Redux initial state — good for pre-seeding RTK Query cache. */
-  preloadedState?: PreloadedState<RootState>;
   /**
    * Pass an existing TestStore to share one store across multiple renders
    * in the same test.  When omitted a fresh store is created.
@@ -134,10 +72,10 @@ interface Result extends RenderResult {
 
 export function renderWithProviders(
   ui: React.ReactElement,
-  { preloadedState, store, ...renderOptions }: Options = {}
+  { store, ...renderOptions }: Options = {}
 ): Result {
-  // ← create a fresh store every call (unless caller supplies one)
-  const testStore = store ?? createTestStore(preloadedState);
+  // ← fresh store every call (unless caller shares one explicitly)
+  const testStore = store ?? createTestStore();
 
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <Provider store={testStore}>{children}</Provider>;

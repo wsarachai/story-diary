@@ -3,6 +3,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { DateShort } from "@/components/DateBadge";
+import PageSpinner from "@/components/PageSpinner";
 import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 
@@ -36,7 +37,7 @@ function EmotionCheckinInner() {
 
   const [mood, setMood]               = useState<MoodLevel>("neutral");
   const [sliderValue, setSliderValue] = useState(0);
-  const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
+  const { data: existingCheckin, isLoading: checkinLoading } = useGetMoodCheckinQuery(occId, { skip: !occId });
 
   useEffect(() => {
     if (existingCheckin) {
@@ -104,7 +105,10 @@ function EmotionCheckinInner() {
           )}
 
           <DateShort />
-          <p className="ci-hint">เลือกระดับอารมณ์ที่ตรงกับความรู้สึกของคุณในวันนี้</p>
+          {checkinLoading
+            ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
+            : <p className="ci-hint">เลือกระดับอารมณ์ที่ตรงกับความรู้สึกของคุณในวันนี้</p>
+          }
         </section>
 
         {/* ── Right page: mood picker ── */}

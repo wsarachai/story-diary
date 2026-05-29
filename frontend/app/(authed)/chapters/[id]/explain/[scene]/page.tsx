@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/chaptersApi";
 import { useGetMeQuery } from "@/store/authApi";
+import PageSpinner from "@/components/PageSpinner";
 
 /** Milliseconds between each revealed character — tuned to natural speech pace. */
 const TYPEWRITER_SPEED_MS = 60;
@@ -133,6 +134,14 @@ export default function ChapterScenePage() {
       router.push("/chapters/menu");
     }
   };
+
+  if (detailStatus === "pending" || detailStatus === "uninitialized") {
+    return (
+      <main className="screen chapter-details-screen" aria-label="กำลังโหลดบท">
+        <PageSpinner label="กำลังโหลดบท…" />
+      </main>
+    );
+  }
 
   if (!chapter || isNaN(sceneIndex)) return null;
 
