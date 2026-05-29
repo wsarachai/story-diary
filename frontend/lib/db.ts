@@ -20,6 +20,7 @@ export interface UserDoc {
   character_name: string;
   gender: "male" | "female";
   avatar_url?: string | null;
+  role?: "user" | "admin";
   created_at: string;
   updated_at: string;
 }
