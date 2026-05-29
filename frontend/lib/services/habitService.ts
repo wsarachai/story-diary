@@ -6,6 +6,10 @@ import {
     findOccurrenceById,
     listHabitActivitiesByUser,
     listOccurrencesByActivityAndDateRange,
+    findMedicineCheckinByOccurrence,
+    findNutritionCheckinByOccurrence,
+    findSymptomsCheckinByOccurrence,
+    findMoodCheckinByOccurrence,
     replaceMedicineCheckin,
     replaceMoodCheckin,
     replaceNutritionCheckin,
@@ -318,6 +322,19 @@ export async function toggleOccurrence(
     }
 
     return rowToOccurrence(updated);
+}
+
+export async function getMedicineCheckin(userId: string, occurrenceId: string): Promise<MedicineCheckin | null> {
+    await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const doc = await findMedicineCheckinByOccurrence(occurrenceId);
+    if (!doc) return null;
+    return {
+        occurrenceId: doc.occurrence_id,
+        medicineName: doc.medicine_name,
+        mealRelation: doc.meal_relation as MedicineCheckin["mealRelation"],
+        mealSlots: JSON.parse(doc.meal_slots_json),
+        sideEffects: JSON.parse(doc.side_effects_json),
+    };
 }
 
 export async function saveMedicineCheckin(userId: string, data: MedicineCheckin): Promise<void> {

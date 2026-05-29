@@ -707,6 +707,38 @@ export async function listOccurrencesByActivityAndDateRange(activityId: string, 
   ).toArray();
 }
 
+export async function findMedicineCheckinByOccurrence(occurrenceId: string): Promise<MedicineCheckinDoc | null> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.medicineCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
+  }
+  return medicineCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
+export async function findNutritionCheckinByOccurrence(occurrenceId: string): Promise<NutritionCheckinDoc | null> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.nutritionCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
+  }
+  return nutritionCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
+export async function findSymptomsCheckinByOccurrence(occurrenceId: string): Promise<SymptomsCheckinDoc | null> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.symptomsCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
+  }
+  return symptomsCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
+export async function findMoodCheckinByOccurrence(occurrenceId: string): Promise<MoodCheckinDoc | null> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.moodCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
+  }
+  return moodCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
 export async function replaceMedicineCheckin(doc: MedicineCheckinDoc): Promise<void> {
   await initializeDatabase();
   if (mode === "memory") {

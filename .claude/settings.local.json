@@ -22,7 +22,21 @@
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "mcp__Claude_in_Chrome__navigate",
       "mcp__Claude_in_Chrome__computer",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(find src/ -type f)",
+      "Bash(ls -la src/)",
+      "Bash(rmdir src *)",
+      "Bash(rm -rf src)",
+      "Bash(git reset *)",
+      "Bash(git rm *)",
+      "Bash(gh pr *)",
+      "Bash(git stash *)",
+      "Bash(where gh *)",
+      "Bash(winget list *)",
+      "PowerShell($env:PATH -split \";\" | ForEach-Object { if \\(Test-Path \"$_\\\\gh.exe\"\\) { \"$_\\\\gh.exe\" } })",
+      "Bash(git -C \"C:\\\\Users\\\\ASUS\\\\workspaces\\\\projects\\\\story-diary\" remote get-url origin)",
+      "Read(//c/Users/ASUS/**)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('scripts',{}\\)\\)\")"
     ]
   }
 }
