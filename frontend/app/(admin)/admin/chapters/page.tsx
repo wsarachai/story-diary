@@ -69,6 +69,7 @@ export default function AdminChaptersPage() {
   return (
     <div className="admin-layout">
       <AdminSidebar />
+      <div className="admin-main-wrapper">
       <main className="admin-main">
         <div className="admin-page-header">
           <h1 className="admin-page-title">Chapters</h1>
@@ -146,6 +147,7 @@ export default function AdminChaptersPage() {
         {isLoading ? (
           <div className="chapter-spinner" />
         ) : (
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
@@ -193,8 +195,10 @@ export default function AdminChaptersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

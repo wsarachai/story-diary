@@ -59,6 +59,7 @@ export default function AdminEBooksPage() {
   return (
     <div className="admin-layout">
       <AdminSidebar />
+      <div className="admin-main-wrapper">
       <main className="admin-main">
         <div className="admin-page-header">
           <h1 className="admin-page-title">E-Books</h1>
@@ -110,6 +111,7 @@ export default function AdminEBooksPage() {
         {isLoading ? (
           <div className="chapter-spinner" />
         ) : (
+          <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
               <tr>
@@ -154,8 +156,10 @@ export default function AdminEBooksPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </main>
+      </div>
     </div>
   );
 }
