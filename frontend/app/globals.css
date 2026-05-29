@@ -234,36 +234,63 @@ input:focus-visible,
 }
 
 /* ── Admin gear icon in the rail ─────────────────────── */
-.icon-rail-admin {
+.icon-rail-admin-wrap {
   margin-top: auto;
-  color: rgba(88, 166, 255, 0.7);
-  border: 1.5px dashed rgba(88, 166, 255, 0.35);
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  padding-top: 0.9rem;
+  border-top: 1.5px solid rgba(0, 0, 0, 0.1);
+}
+.icon-rail-admin {
+  background: #1e3a5f;
+  color: #a8d4ff;
+  transition: background 0.15s, color 0.15s, transform 0.12s;
+  box-shadow: 0 8px 16px -10px rgba(0, 0, 0, 0.45);
 }
 .icon-rail-admin:hover {
-  color: #58a6ff;
-  background: rgba(88, 166, 255, 0.12);
-  border-color: rgba(88, 166, 255, 0.6);
+  background: #264d7a;
+  color: #cce5ff;
+  transform: translateX(2px);
 }
 
 /* ── Admin card on home page ─────────────────────────── */
 .admin-home-card {
+  position: relative;
+  border-radius: 48px;
+  background: #1e3a5f;
+  padding: 1.4rem 1.8rem;
+  text-decoration: none;
+  color: #cce5ff;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1.1rem;
-  border-radius: 14px;
-  background: rgba(88, 166, 255, 0.1);
-  border: 1.5px solid rgba(88, 166, 255, 0.3);
-  text-decoration: none;
-  color: #1a5fa8;
-  font-size: 0.88rem;
-  font-weight: 600;
-  transition: background 0.15s, border-color 0.15s;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 8px 24px -10px rgba(30, 58, 95, 0.55);
+  transition: background 0.15s, transform 0.12s;
 }
 .admin-home-card:hover {
-  background: rgba(88, 166, 255, 0.18);
-  border-color: rgba(88, 166, 255, 0.55);
+  background: #264d7a;
+  transform: translateY(-1px);
+}
+.admin-home-card-text h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #cce5ff;
+  line-height: 1.1;
+}
+.admin-home-card-text p {
+  margin: 0.25rem 0 0;
+  font-size: 14px;
+  color: rgba(180, 215, 255, 0.65);
+}
+.admin-home-card-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #a8d4ff;
 }
 
 @media (max-width: 900px) {
