@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
   useGetAdminQuestionsQuery,
@@ -31,6 +31,13 @@ export default function AdminMinigamePage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateQuestionRequest>(EMPTY_FORM);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showForm) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
 
   function openCreate() {
     setEditId(null);
@@ -87,7 +94,7 @@ export default function AdminMinigamePage() {
         </div>
 
         {showForm && (
-          <div className="admin-form-card">
+          <div className="admin-form-card" ref={formRef}>
             <h2>{editId !== null ? "แก้ไขคำถาม" : "เพิ่มคำถามใหม่"}</h2>
             <form onSubmit={handleSubmit}>
               <div className="admin-form-grid">

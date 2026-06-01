@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
   useGetAdminEBooksQuery,
@@ -22,6 +22,13 @@ export default function AdminEBooksPage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateEBookRequest>(EMPTY_FORM);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showForm) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
 
   function openCreate() {
     setEditId(null);
@@ -69,7 +76,7 @@ export default function AdminEBooksPage() {
         </div>
 
         {showForm && (
-          <div className="admin-form-card">
+          <div className="admin-form-card" ref={formRef}>
             <h2>{editId !== null ? "แก้ไข E-Book" : "เพิ่ม E-Book ใหม่"}</h2>
             <form onSubmit={handleSubmit}>
               <div className="admin-form-grid">
