@@ -4958,6 +4958,11 @@ body[data-admin] {
   color: #e6edf3;
 }
 
+/* ── Mobile floating menu trigger ────────────────────── */
+.admin-mobile-trigger {
+  display: none;
+}
+
 /* ── Main content area ───────────────────────────────── */
 .admin-main-wrapper {
   flex: 1;
@@ -5202,9 +5207,6 @@ body[data-admin] {
 
 /* ── Responsive: mobile (≤768px) ─────────────────────── */
 @media (max-width: 768px) {
-  /* Stack topbar above main content (sidebar is fixed, out of flow) */
-  .admin-layout { flex-direction: column; }
-
   /* Sidebar becomes a slide-over panel */
   .admin-sidebar {
     position: fixed;
@@ -5223,11 +5225,30 @@ body[data-admin] {
     display: block;
   }
 
-  /* Show top bar */
-  .admin-topbar { display: flex; }
+  /* Small floating trigger icon — top-left corner */
+  .admin-mobile-trigger {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    top: 0.85rem;
+    left: 0.85rem;
+    z-index: 35;
+    width: 34px;
+    height: 34px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .admin-mobile-trigger:hover {
+    background: #21262d;
+    color: #e6edf3;
+  }
 
-  /* Main scrolls under the top bar */
-  .admin-main { padding: 1.25rem 1rem; }
+  /* Offset main content so it doesn't sit behind the trigger */
+  .admin-main { padding: 1.25rem 1rem; padding-left: 3.5rem; }
 
   /* Stat cards: 1 column */
   .admin-stat-grid {
