@@ -49,3 +49,4 @@ temp/
 # Playwright test helpers (local dev only)
 test_typewriter.py
 run_test.py
+.claude/settings.local.json
