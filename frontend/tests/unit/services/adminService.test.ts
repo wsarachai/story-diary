@@ -14,6 +14,11 @@ import {
   adminCreateQuestion,
   adminUpdateQuestion,
   adminDeleteQuestion,
+  adminGetChapter,
+  adminListScenes,
+  adminCreateScene,
+  adminUpdateScene,
+  adminDeleteScene,
 } from "@/lib/services/adminService";
 import { AppError } from "@/lib/errors";
 
@@ -240,5 +245,99 @@ describe("adminDeleteQuestion", () => {
 
   it("throws 404 for missing id", async () => {
     await expect(adminDeleteQuestion("ghost")).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+// ── Chapter Scenes ────────────────────────────────────────────────────────────
+
+describe("adminGetChapter", () => {
+  it("returns chapter fields for a valid id", async () => {
+    const ch = await adminGetChapter(1);
+    expect(ch.id).toBe(1);
+    expect(ch.title).toBe("บทที่ 1: เริ่มต้นการเดินทาง");
+    expect(ch.scenes).toHaveLength(0);
+  });
+
+  it("throws 404 for missing chapter", async () => {
+    await expect(adminGetChapter(9999)).rejects.toMatchObject({ statusCode: 404, code: "CHAPTER_NOT_FOUND" });
+  });
+});
+
+describe("adminListScenes", () => {
+  it("returns seeded scenes for chapter 1", async () => {
+    const scenes = await adminListScenes(1);
+    expect(scenes.length).toBeGreaterThan(0);
+    expect(scenes[0]).toHaveProperty("id");
+    expect(scenes[0]).toHaveProperty("index");
+    expect(scenes[0]).toHaveProperty("speakerName");
+    expect(scenes[0]).toHaveProperty("text");
+  });
+
+  it("returns empty array for chapter with no scenes", async () => {
+    const scenes = await adminListScenes(9999);
+    expect(scenes).toHaveLength(0);
+  });
+});
+
+describe("adminCreateScene", () => {
+  it("creates a scene and returns it", async () => {
+    const scene = await adminCreateScene(1, {
+      idx: 99,
+      speakerName: "ทดสอบ",
+      speakerImageUrl: "/img/test.png",
+      text: "ข้อความทดสอบ",
+    });
+    expect(scene.index).toBe(99);
+    expect(scene.speakerName).toBe("ทดสอบ");
+    expect(scene.speakerImageUrl).toBe("/img/test.png");
+    expect(scene.text).toBe("ข้อความทดสอบ");
+    expect(typeof scene.id).toBe("string");
+  });
+
+  it("new scene appears in list", async () => {
+    const before = await adminListScenes(1);
+    await adminCreateScene(1, { idx: 50, speakerName: "ผู้บรรยาย", text: "เพิ่มใหม่" });
+    const after = await adminListScenes(1);
+    expect(after.length).toBe(before.length + 1);
+  });
+
+  it("throws 404 for non-existent chapter", async () => {
+    await expect(
+      adminCreateScene(9999, { idx: 0, speakerName: "x", text: "x" })
+    ).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+describe("adminUpdateScene", () => {
+  it("updates scene text", async () => {
+    const scenes = await adminListScenes(1);
+    const id = scenes[0].id;
+    const updated = await adminUpdateScene(id, { text: "ข้อความใหม่" });
+    expect(updated.text).toBe("ข้อความใหม่");
+  });
+
+  it("updates speakerName", async () => {
+    const scenes = await adminListScenes(1);
+    const id = scenes[0].id;
+    const updated = await adminUpdateScene(id, { speakerName: "ชื่อใหม่" });
+    expect(updated.speakerName).toBe("ชื่อใหม่");
+  });
+
+  it("throws 404 for missing scene", async () => {
+    await expect(adminUpdateScene("ghost-id", { text: "x" })).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+describe("adminDeleteScene", () => {
+  it("removes scene from list", async () => {
+    const scenes = await adminListScenes(1);
+    const id = scenes[0].id;
+    await adminDeleteScene(id);
+    const after = await adminListScenes(1);
+    expect(after.some((s) => s.id === id)).toBe(false);
+  });
+
+  it("throws 404 for missing scene", async () => {
+    await expect(adminDeleteScene("ghost")).rejects.toMatchObject({ statusCode: 404 });
   });
 });
