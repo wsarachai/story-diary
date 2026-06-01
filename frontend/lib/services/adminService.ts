@@ -15,9 +15,13 @@ import {
   insertQuizQuestionDoc,
   updateQuizQuestionDoc,
   deleteQuizQuestionDoc,
+  listChapterScenesByChapterId,
+  insertChapterSceneDoc,
+  updateChapterSceneDoc,
+  deleteChapterSceneDoc,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
-import type { ChapterSummary, Chapter } from "@/types/chapters";
+import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion } from "@/types/minigame";
 import type {
@@ -89,6 +93,85 @@ export async function adminUpdateChapter(id: number, body: UpdateChapterRequest)
 export async function adminDeleteChapter(id: number): Promise<void> {
   const deleted = await deleteChapterDoc(id);
   if (!deleted) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+}
+
+// ── Admin: Chapter detail + Scene CRUD ───────────────────────────────────────
+
+export async function adminGetChapter(id: number): Promise<Chapter> {
+  const row = await findChapterById(id);
+  if (!row) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+  return {
+    id: row.id,
+    title: row.title,
+    introTitle: row.intro_title,
+    ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
+    lockState: row.lock_state,
+    progress: "not-started",
+    scenes: [],
+  };
+}
+
+function sceneDocToModel(doc: { id: string; chapter_id: number; idx: number; speaker_name: string; speaker_image_url?: string | null; text: string }): ChapterScene {
+  return {
+    id: doc.id,
+    index: doc.idx,
+    speakerName: doc.speaker_name,
+    ...(doc.speaker_image_url ? { speakerImageUrl: doc.speaker_image_url } : {}),
+    text: doc.text,
+  };
+}
+
+export async function adminListScenes(chapterId: number): Promise<ChapterScene[]> {
+  const rows = await listChapterScenesByChapterId(chapterId);
+  return rows.map(sceneDocToModel);
+}
+
+export interface CreateSceneRequest {
+  idx: number;
+  speakerName: string;
+  speakerImageUrl?: string;
+  text: string;
+}
+
+export type UpdateSceneRequest = Partial<CreateSceneRequest>;
+
+export async function adminCreateScene(chapterId: number, body: CreateSceneRequest): Promise<ChapterScene> {
+  const chapter = await findChapterById(chapterId);
+  if (!chapter) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${chapterId} not found`);
+
+  const id = `scene-${uuidv4().slice(0, 8)}`;
+  await insertChapterSceneDoc({
+    id,
+    chapter_id: chapterId,
+    idx: body.idx,
+    speaker_name: body.speakerName,
+    speaker_image_url: body.speakerImageUrl ?? null,
+    text: body.text,
+  });
+  return {
+    id,
+    index: body.idx,
+    speakerName: body.speakerName,
+    ...(body.speakerImageUrl ? { speakerImageUrl: body.speakerImageUrl } : {}),
+    text: body.text,
+  };
+}
+
+export async function adminUpdateScene(sceneId: string, body: UpdateSceneRequest): Promise<ChapterScene> {
+  const patch: Record<string, unknown> = {};
+  if (body.idx !== undefined) patch.idx = body.idx;
+  if (body.speakerName !== undefined) patch.speaker_name = body.speakerName;
+  if (body.speakerImageUrl !== undefined) patch.speaker_image_url = body.speakerImageUrl || null;
+  if (body.text !== undefined) patch.text = body.text;
+
+  const updated = await updateChapterSceneDoc(sceneId, patch as Parameters<typeof updateChapterSceneDoc>[1]);
+  if (!updated) throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
+  return sceneDocToModel(updated);
+}
+
+export async function adminDeleteScene(sceneId: string): Promise<void> {
+  const deleted = await deleteChapterSceneDoc(sceneId);
+  if (!deleted) throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
 }
 
 // ── EBooks ────────────────────────────────────────────────────────────────────

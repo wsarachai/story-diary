@@ -957,3 +957,42 @@ export async function deleteQuizQuestionDoc(id: string): Promise<boolean> {
   const result = await quizQuestionsCollection().deleteOne({ id });
   return result.deletedCount > 0;
 }
+
+// ── Admin: Chapter Scene CRUD ─────────────────────────────────────────────────
+
+export async function insertChapterSceneDoc(scene: ChapterSceneDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.chapterScenes.push({ ...scene });
+    return;
+  }
+  await chapterScenesCollection().insertOne(scene);
+}
+
+export async function updateChapterSceneDoc(id: string, patch: Partial<ChapterSceneDoc>): Promise<ChapterSceneDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.chapterScenes.findIndex((s) => s.id === id);
+    if (index === -1) return undefined;
+    memoryStore.chapterScenes[index] = { ...memoryStore.chapterScenes[index], ...patch };
+    return memoryStore.chapterScenes[index];
+  }
+  const result = await chapterScenesCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function deleteChapterSceneDoc(id: string): Promise<boolean> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.chapterScenes.findIndex((s) => s.id === id);
+    if (index === -1) return false;
+    memoryStore.chapterScenes.splice(index, 1);
+    return true;
+  }
+  const result = await chapterScenesCollection().deleteOne({ id });
+  return result.deletedCount > 0;
+}
