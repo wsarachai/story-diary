@@ -1,0 +1,186 @@
+import { v4 as uuidv4 } from "uuid";
+import {
+  listChaptersDocs,
+  findChapterById,
+  getNextChapterId,
+  insertChapterDoc,
+  updateChapterDoc,
+  deleteChapterDoc,
+  listEBooksDocs,
+  insertEBookDoc,
+  updateEBookDoc,
+  deleteEBookDoc,
+  listQuizQuestionsDocs,
+  findQuizQuestionById,
+  insertQuizQuestionDoc,
+  updateQuizQuestionDoc,
+  deleteQuizQuestionDoc,
+} from "@/lib/db";
+import { Errors } from "@/lib/errors";
+import type { ChapterSummary, Chapter } from "@/types/chapters";
+import type { EBookChapter } from "@/types/ebook";
+import type { QuizQuestion } from "@/types/minigame";
+import type {
+  CreateChapterRequest,
+  UpdateChapterRequest,
+  CreateEBookRequest,
+  UpdateEBookRequest,
+  CreateQuestionRequest,
+  UpdateQuestionRequest,
+} from "@/store/adminApi";
+
+// ── Chapters ──────────────────────────────────────────────────────────────────
+
+export async function adminListChapters(): Promise<ChapterSummary[]> {
+  const rows = await listChaptersDocs();
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    lockState: row.lock_state,
+    progress: "not-started" as const,
+  }));
+}
+
+function chapterDocToModel(row: Awaited<ReturnType<typeof findChapterById>>): Chapter {
+  if (!row) throw Errors.notFound("CHAPTER_NOT_FOUND", "Chapter not found");
+  return {
+    id: row.id,
+    title: row.title,
+    introTitle: row.intro_title,
+    ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
+    lockState: row.lock_state,
+    progress: "not-started",
+    scenes: [],
+  };
+}
+
+export async function adminCreateChapter(body: CreateChapterRequest): Promise<Chapter> {
+  const id = await getNextChapterId();
+  const rows = await listChaptersDocs();
+  const sortOrder = rows.length + 1;
+
+  await insertChapterDoc({
+    id,
+    title: body.title,
+    intro_title: body.introTitle,
+    lock_state: body.lockState,
+    background_image_url: body.backgroundImageUrl ?? null,
+    sort_order: sortOrder,
+  });
+
+  const saved = await findChapterById(id);
+  return chapterDocToModel(saved);
+}
+
+export async function adminUpdateChapter(id: number, body: UpdateChapterRequest): Promise<Chapter> {
+  const existing = await findChapterById(id);
+  if (!existing) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+
+  const patch: Record<string, unknown> = {};
+  if (body.title !== undefined) patch.title = body.title;
+  if (body.introTitle !== undefined) patch.intro_title = body.introTitle;
+  if (body.lockState !== undefined) patch.lock_state = body.lockState;
+  if (body.backgroundImageUrl !== undefined) patch.background_image_url = body.backgroundImageUrl || null;
+
+  const updated = await updateChapterDoc(id, patch as Parameters<typeof updateChapterDoc>[1]);
+  return chapterDocToModel(updated);
+}
+
+export async function adminDeleteChapter(id: number): Promise<void> {
+  const deleted = await deleteChapterDoc(id);
+  if (!deleted) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+}
+
+// ── EBooks ────────────────────────────────────────────────────────────────────
+
+export async function adminListEBooks(): Promise<EBookChapter[]> {
+  const rows = await listEBooksDocs();
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    pdfUrl: row.pdf_url,
+  }));
+}
+
+export async function adminCreateEBook(body: CreateEBookRequest): Promise<EBookChapter> {
+  const id = `ebk-${uuidv4().slice(0, 8)}`;
+  await insertEBookDoc({ id, title: body.title, pdf_url: body.pdfUrl });
+  return { id, title: body.title, pdfUrl: body.pdfUrl };
+}
+
+export async function adminUpdateEBook(id: string, body: UpdateEBookRequest): Promise<EBookChapter> {
+  const patch: Record<string, unknown> = {};
+  if (body.title !== undefined) patch.title = body.title;
+  if (body.pdfUrl !== undefined) patch.pdf_url = body.pdfUrl;
+
+  const updated = await updateEBookDoc(id, patch as Parameters<typeof updateEBookDoc>[1]);
+  if (!updated) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
+  return { id: updated.id, title: updated.title, pdfUrl: updated.pdf_url };
+}
+
+export async function adminDeleteEBook(id: string): Promise<void> {
+  const deleted = await deleteEBookDoc(id);
+  if (!deleted) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
+}
+
+// ── Quiz Questions ────────────────────────────────────────────────────────────
+
+function questionDocToModel(row: NonNullable<Awaited<ReturnType<typeof findQuizQuestionById>>>): QuizQuestion {
+  return {
+    id: row.id,
+    number: row.number,
+    text: row.text,
+    options: [
+      { letter: "A" as const, text: row.option_a },
+      { letter: "B" as const, text: row.option_b },
+      { letter: "C" as const, text: row.option_c },
+      { letter: "D" as const, text: row.option_d },
+    ],
+    correctAnswer: row.correct_answer,
+    ...(row.explanation ? { explanation: row.explanation } : {}),
+  };
+}
+
+export async function adminListQuestions(): Promise<QuizQuestion[]> {
+  const rows = await listQuizQuestionsDocs();
+  return rows.map(questionDocToModel);
+}
+
+export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<QuizQuestion> {
+  const id = `q-${uuidv4().slice(0, 8)}`;
+  await insertQuizQuestionDoc({
+    id,
+    number: body.number,
+    text: body.text,
+    option_a: body.optionA,
+    option_b: body.optionB,
+    option_c: body.optionC,
+    option_d: body.optionD,
+    correct_answer: body.correctAnswer,
+    explanation: body.explanation ?? null,
+  });
+  const saved = await findQuizQuestionById(id);
+  if (!saved) throw Errors.internal("Failed to create question");
+  return questionDocToModel(saved);
+}
+
+export async function adminUpdateQuestion(id: string, body: UpdateQuestionRequest): Promise<QuizQuestion> {
+  const patch: Record<string, unknown> = {};
+  if (body.number !== undefined) patch.number = body.number;
+  if (body.text !== undefined) patch.text = body.text;
+  if (body.optionA !== undefined) patch.option_a = body.optionA;
+  if (body.optionB !== undefined) patch.option_b = body.optionB;
+  if (body.optionC !== undefined) patch.option_c = body.optionC;
+  if (body.optionD !== undefined) patch.option_d = body.optionD;
+  if (body.correctAnswer !== undefined) patch.correct_answer = body.correctAnswer;
+  if (body.explanation !== undefined) patch.explanation = body.explanation;
+
+  const updated = await updateQuizQuestionDoc(id, patch as Parameters<typeof updateQuizQuestionDoc>[1]);
+  if (!updated) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+  return questionDocToModel(updated);
+}
+
+export async function adminDeleteQuestion(id: string): Promise<void> {
+  const deleted = await deleteQuizQuestionDoc(id);
+  if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+}

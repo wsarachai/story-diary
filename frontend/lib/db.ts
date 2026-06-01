@@ -820,3 +820,138 @@ export async function listEBooksDocs(): Promise<EBookDoc[]> {
   }
   return eBooksCollection().find({}).toArray();
 }
+
+// ── Admin: Chapter CRUD ───────────────────────────────────────────────────────
+
+export async function getNextChapterId(): Promise<number> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const max = memoryStore.chapters.reduce((m, c) => Math.max(m, c.id), 0);
+    return max + 1;
+  }
+  const last = await chaptersCollection().findOne({}, { sort: { id: -1 } });
+  return (last?.id ?? 0) + 1;
+}
+
+export async function insertChapterDoc(chapter: ChapterDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.chapters.push({ ...chapter });
+    return;
+  }
+  await chaptersCollection().insertOne(chapter);
+}
+
+export async function updateChapterDoc(id: number, patch: Partial<ChapterDoc>): Promise<ChapterDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.chapters.findIndex((c) => c.id === id);
+    if (index === -1) return undefined;
+    memoryStore.chapters[index] = { ...memoryStore.chapters[index], ...patch };
+    return memoryStore.chapters[index];
+  }
+  const result = await chaptersCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function deleteChapterDoc(id: number): Promise<boolean> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.chapters.findIndex((c) => c.id === id);
+    if (index === -1) return false;
+    memoryStore.chapters.splice(index, 1);
+    return true;
+  }
+  const result = await chaptersCollection().deleteOne({ id });
+  return result.deletedCount > 0;
+}
+
+// ── Admin: EBook CRUD ─────────────────────────────────────────────────────────
+
+export async function insertEBookDoc(ebook: EBookDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.eBooks.push({ ...ebook });
+    return;
+  }
+  await eBooksCollection().insertOne(ebook);
+}
+
+export async function updateEBookDoc(id: string, patch: Partial<EBookDoc>): Promise<EBookDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.eBooks.findIndex((e) => e.id === id);
+    if (index === -1) return undefined;
+    memoryStore.eBooks[index] = { ...memoryStore.eBooks[index], ...patch };
+    return memoryStore.eBooks[index];
+  }
+  const result = await eBooksCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function deleteEBookDoc(id: string): Promise<boolean> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.eBooks.findIndex((e) => e.id === id);
+    if (index === -1) return false;
+    memoryStore.eBooks.splice(index, 1);
+    return true;
+  }
+  const result = await eBooksCollection().deleteOne({ id });
+  return result.deletedCount > 0;
+}
+
+// ── Admin: Quiz Question CRUD ─────────────────────────────────────────────────
+
+export async function findQuizQuestionById(id: string): Promise<QuizQuestionDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.quizQuestions.find((q) => q.id === id);
+  }
+  return (await quizQuestionsCollection().findOne({ id })) ?? undefined;
+}
+
+export async function insertQuizQuestionDoc(question: QuizQuestionDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.quizQuestions.push({ ...question });
+    return;
+  }
+  await quizQuestionsCollection().insertOne(question);
+}
+
+export async function updateQuizQuestionDoc(id: string, patch: Partial<QuizQuestionDoc>): Promise<QuizQuestionDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.quizQuestions.findIndex((q) => q.id === id);
+    if (index === -1) return undefined;
+    memoryStore.quizQuestions[index] = { ...memoryStore.quizQuestions[index], ...patch };
+    return memoryStore.quizQuestions[index];
+  }
+  const result = await quizQuestionsCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function deleteQuizQuestionDoc(id: string): Promise<boolean> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.quizQuestions.findIndex((q) => q.id === id);
+    if (index === -1) return false;
+    memoryStore.quizQuestions.splice(index, 1);
+    return true;
+  }
+  const result = await quizQuestionsCollection().deleteOne({ id });
+  return result.deletedCount > 0;
+}
