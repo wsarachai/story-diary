@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import type { Chapter, ChapterSummary, ChapterLockState } from "@/types/chapters";
+import type { Chapter, ChapterSummary, ChapterLockState, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, AnswerLetter } from "@/types/minigame";
 
@@ -13,6 +13,17 @@ export interface CreateChapterRequest {
 }
 
 export type UpdateChapterRequest = Partial<CreateChapterRequest>;
+
+// ── Scene admin payloads ────────────────────────────────────────────────────
+
+export interface CreateSceneRequest {
+  idx: number;
+  speakerName: string;
+  speakerImageUrl?: string;
+  text: string;
+}
+
+export type UpdateSceneRequest = Partial<CreateSceneRequest>;
 
 // ── EBook admin payloads ────────────────────────────────────────────────────
 
@@ -61,6 +72,29 @@ export const adminApi = apiSlice.injectEndpoints({
       invalidatesTags: ["Admin"],
     }),
 
+    // Chapter detail + Scenes
+    getAdminChapter: builder.query<Chapter, number>({
+      query: (id) => `/admin/chapters/${id}`,
+      providesTags: ["Admin"],
+    }),
+    getAdminScenes: builder.query<ChapterScene[], number>({
+      query: (chapterId) => `/admin/chapters/${chapterId}/scenes`,
+      transformResponse: (res: { scenes: ChapterScene[] }) => res.scenes,
+      providesTags: ["Admin"],
+    }),
+    createScene: builder.mutation<ChapterScene, { chapterId: number; body: CreateSceneRequest }>({
+      query: ({ chapterId, body }) => ({ url: `/admin/chapters/${chapterId}/scenes`, method: "POST", body }),
+      invalidatesTags: ["Admin"],
+    }),
+    updateScene: builder.mutation<ChapterScene, { sceneId: string; body: UpdateSceneRequest }>({
+      query: ({ sceneId, body }) => ({ url: `/admin/chapters/scenes/${sceneId}`, method: "PATCH", body }),
+      invalidatesTags: ["Admin"],
+    }),
+    deleteScene: builder.mutation<void, string>({
+      query: (sceneId) => ({ url: `/admin/chapters/scenes/${sceneId}`, method: "DELETE" }),
+      invalidatesTags: ["Admin"],
+    }),
+
     // EBooks
     getAdminEBooks: builder.query<EBookChapter[], void>({
       query: () => "/admin/e-books",
@@ -106,6 +140,11 @@ export const {
   useCreateChapterMutation,
   useUpdateChapterMutation,
   useDeleteChapterMutation,
+  useGetAdminChapterQuery,
+  useGetAdminScenesQuery,
+  useCreateSceneMutation,
+  useUpdateSceneMutation,
+  useDeleteSceneMutation,
   useGetAdminEBooksQuery,
   useCreateEBookMutation,
   useUpdateEBookMutation,
