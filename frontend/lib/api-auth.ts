@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { findUserById } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 
 export function requireAuth(request: Request): string {
@@ -13,4 +14,13 @@ export function requireAuth(request: Request): string {
   } catch {
     throw Errors.unauthenticated();
   }
+}
+
+export async function requireAdmin(request: Request): Promise<string> {
+  const userId = requireAuth(request);
+  const user = await findUserById(userId);
+  if (!user || user.role !== "admin") {
+    throw Errors.forbidden();
+  }
+  return userId;
 }
