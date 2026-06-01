@@ -5202,6 +5202,9 @@ body[data-admin] {
 
 /* ── Responsive: mobile (≤768px) ─────────────────────── */
 @media (max-width: 768px) {
+  /* Stack topbar above main content (sidebar is fixed, out of flow) */
+  .admin-layout { flex-direction: column; }
+
   /* Sidebar becomes a slide-over panel */
   .admin-sidebar {
     position: fixed;
