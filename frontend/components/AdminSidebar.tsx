@@ -90,7 +90,7 @@ const navItems = [
   { label: "Home", href: "/home" },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ hideTopbar = false }: { hideTopbar?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -112,27 +112,29 @@ export default function AdminSidebar() {
   return (
     <>
       {/* ── Mobile top bar ─────────────────────────── */}
-      <div className="admin-topbar">
-        <button
-          className="admin-hamburger"
-          aria-label="เปิดเมนู"
-          onClick={() => setOpen(true)}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            style={{ width: "1.2rem", height: "1.2rem" }}
+      {!hideTopbar && (
+        <div className="admin-topbar">
+          <button
+            className="admin-hamburger"
+            aria-label="เปิดเมนู"
+            onClick={() => setOpen(true)}
           >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <span className="admin-topbar-title">Admin Panel</span>
-      </div>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              style={{ width: "1.2rem", height: "1.2rem" }}
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <span className="admin-topbar-title">Admin Panel</span>
+        </div>
+      )}
 
       {/* ── Overlay backdrop ────────────────────────── */}
       <div

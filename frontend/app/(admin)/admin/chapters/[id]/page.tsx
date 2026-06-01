@@ -106,7 +106,7 @@ export default function AdminChapterDetailPage() {
   if (chapterLoading) {
     return (
       <div className="admin-layout">
-        <AdminSidebar />
+        <AdminSidebar hideTopbar />
         <div className="admin-main-wrapper">
           <main className="admin-main"><div className="chapter-spinner" /></main>
         </div>
@@ -116,7 +116,7 @@ export default function AdminChapterDetailPage() {
 
   return (
     <div className="admin-layout">
-      <AdminSidebar />
+      <AdminSidebar hideTopbar />
       <div className="admin-main-wrapper">
         <main className="admin-main">
 
