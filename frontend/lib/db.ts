@@ -1,4 +1,5 @@
 import { MongoClient, ServerApiVersion, type Db } from "mongodb";
+import dns from "dns";
 
 type DatabaseMode = "memory" | "mongo";
 
@@ -395,6 +396,7 @@ export async function initializeDatabase(): Promise<void> {
     return;
   }
 
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
   mongoClient = new MongoClient(buildMongoUri(), {
     serverApi: {
       version: ServerApiVersion.v1,
