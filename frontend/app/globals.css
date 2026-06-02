@@ -304,6 +304,7 @@ input:focus-visible,
     min-height: calc(100dvh - 16px);
     border-radius: 10px;
     aspect-ratio: auto;
+    font-size: 1rem;
   }
 
   .book-shell,

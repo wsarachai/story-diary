@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGetMeQuery, useRegisterMutation } from "@/store/authApi";
 import type { Gender } from "@/types/auth";
@@ -143,7 +144,7 @@ export default function RegisterPage() {
             <h1
               style={{
                 margin: "0 0 3.38rem",
-                fontSize: "56px",
+                fontSize: "3.5em",
                 lineHeight: 1.05,
                 fontWeight: 500,
                 textAlign: "center",
@@ -156,7 +157,7 @@ export default function RegisterPage() {
             <div style={{ display: "grid", gap: "1.4rem", marginTop: "3rem" }}>
               {/* Name */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
-                <label htmlFor="name" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
+                <label htmlFor="name" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   ชื่อ
                 </label>
                 <input
@@ -167,14 +168,14 @@ export default function RegisterPage() {
                   value={form.name}
                   onChange={(e) => { dispatchForm({ type: "SET", field: "name", value: e.target.value }); }}
                   aria-describedby={form.errors.name ? "err-name" : undefined}
-                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.name ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
+                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.name ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "1.25em", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
               </div>
-              {form.errors.name && <span id="err-name" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.name}</span>}
+              {form.errors.name && <span id="err-name" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.name}</span>}
 
               {/* Phone number (tel) */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
-                <label htmlFor="tel" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
+                <label htmlFor="tel" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   เบอร์โทร
                 </label>
                 <input
@@ -186,14 +187,14 @@ export default function RegisterPage() {
                   value={form.tel}
                   onChange={(e) => { dispatchForm({ type: "SET", field: "tel", value: e.target.value }); }}
                   aria-describedby={form.errors.tel ? "err-tel" : undefined}
-                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.tel ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
+                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.tel ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "1.25em", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
               </div>
-              {form.errors.tel && <span id="err-tel" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.tel}</span>}
+              {form.errors.tel && <span id="err-tel" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.tel}</span>}
 
               {/* Password */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
-                <label htmlFor="password" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
+                <label htmlFor="password" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   Password
                 </label>
                 <input
@@ -204,14 +205,14 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={(e) => { dispatchForm({ type: "SET", field: "password", value: e.target.value }); }}
                   aria-describedby={form.errors.password ? "err-password" : undefined}
-                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.password ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
+                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.password ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "1.25em", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
               </div>
-              {form.errors.password && <span id="err-password" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.password}</span>}
+              {form.errors.password && <span id="err-password" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.password}</span>}
 
               {/* Confirm Password */}
               <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
-                <label htmlFor="confirm-password" style={{ fontSize: "30px", lineHeight: 1, whiteSpace: "nowrap" }}>
+                <label htmlFor="confirm-password" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   ยืนยันรหัสผ่าน
                 </label>
                 <input
@@ -222,10 +223,10 @@ export default function RegisterPage() {
                   value={form.confirmPassword}
                   onChange={(e) => { dispatchForm({ type: "SET", field: "confirmPassword", value: e.target.value }); }}
                   aria-describedby={form.errors.confirmPassword ? "err-confirm" : undefined}
-                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.confirmPassword ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "20px", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
+                  style={{ width: "100%", border: 0, borderBottom: `6px solid ${form.errors.confirmPassword ? "#c0392b" : "#161616"}`, background: "transparent", fontSize: "1.25em", padding: "0.2rem 0.25rem 0.1rem", outline: "none", fontFamily: "inherit", color: "var(--ink)" }}
                 />
               </div>
-              {form.errors.confirmPassword && <span id="err-confirm" style={{ fontSize: "16px", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.confirmPassword}</span>}
+              {form.errors.confirmPassword && <span id="err-confirm" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.confirmPassword}</span>}
             </div>
           </section>
 
@@ -246,7 +247,7 @@ export default function RegisterPage() {
                 <p
                   role="alert"
                   aria-live="polite"
-                  style={{ margin: 0, fontSize: "22px", color: "#c0392b", textAlign: "center" }}
+                  style={{ margin: 0, fontSize: "1.375em", color: "#c0392b", textAlign: "center" }}
                 >
                   {topError}
                 </p>
@@ -256,7 +257,7 @@ export default function RegisterPage() {
               <label
                 htmlFor="character-name"
                 style={{
-                  width: "380px",
+                  width: "min(380px, 100%)",
                   border: 0,
                   borderRadius: "999px",
                   background: "var(--panel-blue)",
@@ -277,7 +278,7 @@ export default function RegisterPage() {
                     borderRadius: "999px",
                     background: "var(--field-fill)",
                     color: "var(--ink)",
-                    fontSize: "24px",
+                    fontSize: "1.5em",
                     textAlign: "center",
                     padding: "0.55rem 1rem",
                     outline: "none",
@@ -285,7 +286,7 @@ export default function RegisterPage() {
                   }}
                 />
               </label>
-              {form.errors.characterName && <span id="err-char" style={{ fontSize: "16px", color: "#c0392b" }}>{form.errors.characterName}</span>}
+              {form.errors.characterName && <span id="err-char" style={{ fontSize: "1em", color: "#c0392b" }}>{form.errors.characterName}</span>}
 
               {/* Gender radio group */}
               <div
@@ -325,7 +326,7 @@ export default function RegisterPage() {
                     style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
                   />
                   <MaleFigure selected={form.gender === "male"} />
-                  <span style={{ fontSize: "32px", lineHeight: 1 }}>ชาย</span>
+                  <span style={{ fontSize: "2em", lineHeight: 1 }}>ชาย</span>
                 </label>
 
                 {/* Female */}
@@ -350,7 +351,7 @@ export default function RegisterPage() {
                     style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
                   />
                   <FemaleFigure selected={form.gender === "female"} />
-                  <span style={{ fontSize: "32px", lineHeight: 1 }}>หญิง</span>
+                  <span style={{ fontSize: "2em", lineHeight: 1 }}>หญิง</span>
                 </label>
               </div>
 
@@ -361,7 +362,7 @@ export default function RegisterPage() {
                 className="rounded-pill-button"
                 style={{
                   padding: "0.45em 1.1em",
-                  fontSize: "40px",
+                  fontSize: "2.5em",
                   fontWeight: 600,
                   marginTop: "0.3rem",
                   opacity: isSubmitting ? 0.6 : 1,
@@ -370,6 +371,19 @@ export default function RegisterPage() {
               >
                 {isSubmitting ? "กำลังสร้างบัญชี…" : "ยืนยัน"}
               </button>
+
+              <Link
+                href="/login"
+                style={{
+                  fontSize: "1.375em",
+                  color: "var(--ink)",
+                  opacity: 0.65,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "3px",
+                }}
+              >
+                มีบัญชีแล้ว? เข้าสู่ระบบ
+              </Link>
             </div>
           </section>
         </section>
@@ -384,7 +398,7 @@ export default function RegisterPage() {
 
 function MaleFigure({ selected }: { selected: boolean }) {
   const style: React.CSSProperties = {
-    width: "160px",
+    width: "clamp(80px, 33vw, 160px)",
     aspectRatio: "0.55 / 1",
     position: "relative",
     color: "#9dc6f2",
@@ -407,7 +421,7 @@ function MaleFigure({ selected }: { selected: boolean }) {
 
 function FemaleFigure({ selected }: { selected: boolean }) {
   const style: React.CSSProperties = {
-    width: "160px",
+    width: "clamp(80px, 33vw, 160px)",
     aspectRatio: "0.55 / 1",
     position: "relative",
     color: "#050505",
