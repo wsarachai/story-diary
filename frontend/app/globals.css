@@ -293,6 +293,19 @@ input:focus-visible,
   color: #a8d4ff;
 }
 
+/* ── Login field label ───────────────────────────────── */
+.login-field-label {
+  font-size: 1.875em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .login-field-label {
+    font-size: 1.25em;
+  }
+}
+
 /* ── Register gender figure ──────────────────────────── */
 /* Width drives height via aspect-ratio: 0.55/1 in the inline style.     */
 /* Desktop uses vh so the figure scales with the book's available height. */

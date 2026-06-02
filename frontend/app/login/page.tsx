@@ -59,7 +59,7 @@ function LoginForm() {
     <form
       onSubmit={handleSubmit}
       style={{
-        width: "540px",
+        width: "min(540px, 100%)",
         display: "grid",
         justifyItems: "center",
         gap: "1.4rem",
@@ -68,7 +68,7 @@ function LoginForm() {
       <h1
         style={{
           margin: "0 0 2.25rem",
-          fontSize: "56px",
+          fontSize: "3.5em",
           lineHeight: 1.05,
           fontWeight: 600,
         }}
@@ -91,7 +91,7 @@ function LoginForm() {
           gap: "0.65rem",
         }}
       >
-        <span style={{ fontSize: "30px", fontWeight: 600, whiteSpace: "nowrap" }}>
+        <span className="login-field-label">
           เบอร์โทร
         </span>
         <input
@@ -115,7 +115,7 @@ function LoginForm() {
             borderRadius: "999px",
             background: "var(--field-fill)",
             color: "var(--ink)",
-            fontSize: "20px",
+            fontSize: "1.25em",
             padding: "0.95rem 1.25rem",
             outline: "none",
             fontFamily: "inherit",
@@ -138,7 +138,7 @@ function LoginForm() {
           gap: "0.65rem",
         }}
       >
-        <span style={{ fontSize: "30px", fontWeight: 600, whiteSpace: "nowrap" }}>
+        <span className="login-field-label">
           รหัสผ่าน
         </span>
         <input
@@ -160,7 +160,7 @@ function LoginForm() {
             borderRadius: "999px",
             background: "var(--field-fill)",
             color: "var(--ink)",
-            fontSize: "20px",
+            fontSize: "1.25em",
             padding: "0.95rem 1.25rem",
             outline: "none",
             fontFamily: "inherit",
@@ -176,7 +176,7 @@ function LoginForm() {
         style={{
           marginTop: "1.5rem",
           padding: "0.58em 1.2em",
-          fontSize: "40px",
+          fontSize: "2.5em",
           fontWeight: 600,
           boxShadow: "0 14px 28px -18px rgba(0,0,0,0.45)",
           opacity: isSubmitting ? 0.6 : 1,
@@ -194,7 +194,7 @@ function LoginForm() {
           aria-live="polite"
           style={{
             margin: 0,
-            fontSize: "22px",
+            fontSize: "1.375em",
             textAlign: "center",
             color: "#c0392b",
           }}
@@ -203,7 +203,7 @@ function LoginForm() {
         </p>
       )}
 
-      <p style={{ margin: "0.3rem 0 0", fontSize: "22px", textAlign: "center" }}>
+      <p style={{ margin: "0.3rem 0 0", fontSize: "1.375em", textAlign: "center" }}>
         ยังไม่เคยลงทะเบียน?{" "}
         <Link href="/register" className="story-link">
           สร้างบัญชี
