@@ -51,3 +51,7 @@ test_typewriter.py
 run_test.py
 .claude/settings.local.json
 .claude/settings.json
+
+# Python bytecode files
+*.pyc
+*.pyd
