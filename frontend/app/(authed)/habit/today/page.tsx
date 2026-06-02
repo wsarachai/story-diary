@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useGetTodayHabitsQuery, useToggleOccurrenceMutation, useDeleteActivityMutation } from "@/store/habitsApi";
+import { useGetMeQuery } from "@/store/authApi";
 import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
+import { localDateStr } from "@/lib/utils/date";
 import type { HabitActivity } from "@/types/habit";
 
 function getAccent(activity: HabitActivity): string {
@@ -127,7 +129,8 @@ function DeleteConfirmDialog({ activityName, isDeleting, onConfirm, onCancel }: 
 
 export default function HabitTodayPage() {
   const router = useRouter();
-  const todayStr = new Date().toISOString().split("T")[0];
+  const { data: me } = useGetMeQuery();
+  const todayStr = localDateStr(me?.timezone);
   const { data, isLoading } = useGetTodayHabitsQuery(todayStr);
   const [toggle] = useToggleOccurrenceMutation();
   const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();

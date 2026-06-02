@@ -38,6 +38,7 @@ describe("requireAdmin", () => {
       character_name: "Char",
       gender: "female",
       role: "user",
+      timezone: "Asia/Bangkok",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -56,6 +57,7 @@ describe("requireAdmin", () => {
       password_hash: "x",
       character_name: "Char",
       gender: "male",
+      timezone: "Asia/Bangkok",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -74,6 +76,7 @@ describe("requireAdmin", () => {
       character_name: "Char",
       gender: "male",
       role: "admin",
+      timezone: "Asia/Bangkok",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -91,6 +94,7 @@ describe("requireAdmin", () => {
       character_name: "Char",
       gender: "male",
       role: "admin",
+      timezone: "Asia/Bangkok",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });

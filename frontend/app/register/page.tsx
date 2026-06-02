@@ -117,6 +117,7 @@ export default function RegisterPage() {
         password: form.password,
         characterName: form.characterName.trim(),
         gender: form.gender!,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }).unwrap();
       router.replace("/home");
     } catch {

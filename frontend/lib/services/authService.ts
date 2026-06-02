@@ -10,6 +10,7 @@ import {
     type UserDoc,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { DEFAULT_TIMEZONE } from "@/lib/utils/date";
 import type { UserProfile } from "@/types/user";
 import type { RegisterRequest } from "@/types/auth";
 
@@ -30,9 +31,16 @@ function rowToProfile(row: UserDoc): UserProfile {
         gender: row.gender,
         avatarUrl: row.avatar_url ?? null,
         role: resolveRole(row),
+        timezone: row.timezone ?? DEFAULT_TIMEZONE,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
+}
+
+/** Returns the stored IANA timezone for a user, falling back to DEFAULT_TIMEZONE. */
+export async function getUserTimezone(userId: string): Promise<string> {
+    const row = await findUserById(userId);
+    return row?.timezone ?? DEFAULT_TIMEZONE;
 }
 
 export function signToken(userId: string): string {
@@ -57,6 +65,7 @@ export async function registerUser(input: RegisterRequest): Promise<UserProfile>
         character_name: input.characterName.trim(),
         gender: input.gender,
         role: "user",
+        timezone: input.timezone ?? DEFAULT_TIMEZONE,
         created_at: now,
         updated_at: now,
     };

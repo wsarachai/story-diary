@@ -63,6 +63,8 @@ export interface RegisterInput {
     confirmPassword: string;
     characterName: string;
     gender: Gender;
+    /** IANA timezone string auto-detected from the browser (e.g. "Asia/Bangkok"). */
+    timezone?: string;
 }
 
 /** What the API actually receives on POST /api/auth/register. */

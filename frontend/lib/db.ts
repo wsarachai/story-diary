@@ -22,6 +22,8 @@ export interface UserDoc {
   gender: "male" | "female";
   avatar_url?: string | null;
   role?: "user" | "admin";
+  /** IANA timezone string, e.g. "Asia/Bangkok". Used to compute local calendar dates. */
+  timezone: string;
   created_at: string;
   updated_at: string;
 }

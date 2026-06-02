@@ -38,6 +38,8 @@ export interface UserProfile {
     avatarUrl?: string | null;
     /** User role — "admin" grants access to the admin panel. */
     role?: "user" | "admin";
+    /** IANA timezone string, e.g. "Asia/Bangkok". Stored at registration. */
+    timezone: string;
     /** ISO-8601 UTC. */
     createdAt: string;
     /** ISO-8601 UTC. Server-bumped on every PATCH. */

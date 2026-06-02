@@ -16,6 +16,7 @@ export const RegisterSchema = z.object({
   password: z.string().min(8, "TOO_SHORT").max(128, "TOO_LONG"),
   characterName: z.string().trim().min(1, "REQUIRED").max(40, "TOO_LONG"),
   gender: z.enum(["male", "female"]),
+  timezone: z.string().optional(),
 });
 
 export const LoginSchema = z.object({
