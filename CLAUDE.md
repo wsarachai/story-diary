@@ -2,11 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## UI/UX Workflow Rules
-- BEFORE adding or modifying any UI elements, components, or screens, you MUST invoke and consult the `ui-ux-pro-max` skill/guidelines first.
-- Do not write any UI code until a design plan has been established using the `ui-ux-pro-max` framework.
-
-
+  
 ## Repository Layout
 
 ```

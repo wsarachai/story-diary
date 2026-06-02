@@ -55,3 +55,8 @@ run_test.py
 # Python bytecode files
 *.pyc
 *.pyd
+frontend/public/images/character.psd
+
+# Webapp-testing ad-hoc artifacts (local only)
+.claude/skills/webapp-testing/*.png
+.claude/skills/webapp-testing/*.py
