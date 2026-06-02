@@ -238,7 +238,7 @@ export default function RegisterPage() {
                 display: "grid",
                 justifyItems: "center",
                 alignContent: "start",
-                gap: "1.6rem",
+                gap: "1.4rem",
                 padding: "8% 10% 7%",
               }}
             >
@@ -325,7 +325,7 @@ export default function RegisterPage() {
                     onChange={() => dispatchForm({ type: "SET_GENDER", value: "male" })}
                     style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
                   />
-                  <MaleFigure selected={form.gender === "male"} />
+                  <MaleFigure selected={form.gender === "male"} className="register-gender-figure" />
                   <span style={{ fontSize: "2em", lineHeight: 1 }}>ชาย</span>
                 </label>
 
@@ -350,7 +350,7 @@ export default function RegisterPage() {
                     onChange={() => dispatchForm({ type: "SET_GENDER", value: "female" })}
                     style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
                   />
-                  <FemaleFigure selected={form.gender === "female"} />
+                  <FemaleFigure selected={form.gender === "female"} className="register-gender-figure" />
                   <span style={{ fontSize: "2em", lineHeight: 1 }}>หญิง</span>
                 </label>
               </div>
@@ -396,9 +396,8 @@ export default function RegisterPage() {
 // Figure sub-components
 // ──────────────────────────────────────────────────────────
 
-function MaleFigure({ selected }: { selected: boolean }) {
+function MaleFigure({ selected, className }: { selected: boolean; className?: string }) {
   const style: React.CSSProperties = {
-    width: "clamp(80px, 33vw, 160px)",
     aspectRatio: "0.55 / 1",
     position: "relative",
     color: "#9dc6f2",
@@ -408,7 +407,7 @@ function MaleFigure({ selected }: { selected: boolean }) {
   };
   const part: React.CSSProperties = { position: "absolute", display: "block", background: "currentColor" };
   return (
-    <span aria-hidden="true" style={style}>
+    <span aria-hidden="true" style={style} className={className}>
       <span style={{ ...part, left: "50%", top: 0, width: "26%", aspectRatio: "1", borderRadius: "50%", transform: "translateX(-50%)" }} />
       <span style={{ ...part, left: "50%", top: "18%", width: "36%", height: "44%", borderRadius: "24px", transform: "translateX(-50%)" }} />
       <span style={{ ...part, width: "10%", height: "32%", top: "22%", left: "17%", borderRadius: "999px", transform: "rotate(17deg)", transformOrigin: "top center" }} />
@@ -419,9 +418,8 @@ function MaleFigure({ selected }: { selected: boolean }) {
   );
 }
 
-function FemaleFigure({ selected }: { selected: boolean }) {
+function FemaleFigure({ selected, className }: { selected: boolean; className?: string }) {
   const style: React.CSSProperties = {
-    width: "clamp(80px, 33vw, 160px)",
     aspectRatio: "0.55 / 1",
     position: "relative",
     color: "#050505",
@@ -431,11 +429,11 @@ function FemaleFigure({ selected }: { selected: boolean }) {
   };
   const part: React.CSSProperties = { position: "absolute", display: "block", background: "currentColor" };
   return (
-    <span aria-hidden="true" style={style}>
+    <span aria-hidden="true" style={style} className={className}>
       {/* Head */}
       <span style={{ ...part, left: "50%", top: 0, width: "26%", aspectRatio: "1", borderRadius: "50%", transform: "translateX(-50%)" }} />
-      {/* Torso (triangle/dress top) */}
-      <span style={{ position: "absolute", left: "50%", top: "18%", width: 0, height: 0, borderLeft: "30px solid transparent", borderRight: "30px solid transparent", borderBottom: "95px solid currentColor", background: "transparent", transform: "translateX(-50%)" }} />
+      {/* Torso (dress top) — clip-path triangle scales with figure */}
+      <span style={{ ...part, left: "50%", top: "18%", width: "36%", height: "44%", clipPath: "polygon(50% 0, 0% 100%, 100% 100%)", transform: "translateX(-50%)" }} />
       {/* Skirt */}
       <span style={{ ...part, left: "50%", top: "33%", width: "42%", height: "20%", clipPath: "polygon(18% 0, 82% 0, 100% 100%, 0 100%)", transform: "translateX(-50%)" }} />
       {/* Arms */}

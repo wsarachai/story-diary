@@ -293,6 +293,19 @@ input:focus-visible,
   color: #a8d4ff;
 }
 
+/* ── Register gender figure ──────────────────────────── */
+/* Width drives height via aspect-ratio: 0.55/1 in the inline style.     */
+/* Desktop uses vh so the figure scales with the book's available height. */
+.register-gender-figure {
+  width: clamp(80px, 33vw, 160px);
+}
+
+@media (min-width: 901px) {
+  .register-gender-figure {
+    width: clamp(65px, 7vh, 110px);
+  }
+}
+
 /* ── Register line field ─────────────────────────────── */
 .register-line-field {
   display: grid;
