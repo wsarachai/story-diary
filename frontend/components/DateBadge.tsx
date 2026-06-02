@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import styles from "./DateBadge.module.css";
 
 /** Thai month abbreviations (0-indexed). */
 const MONTH_SHORT = [
@@ -85,7 +86,7 @@ interface BadgeProps {
 }
 
 /** Today's full day + date — for the Home dashboard. */
-export function DateFull({ style }: BadgeProps) {
+export function DateFull({ className, style }: BadgeProps) {
   const [label, setLabel] = useState("");
   useEffect(() => {
     setLabel(formatFull(new Date()));
@@ -94,14 +95,8 @@ export function DateFull({ style }: BadgeProps) {
   return (
     <time
       dateTime={new Date().toISOString().slice(0, 10)}
-      style={{
-        display: "inline-block",
-        fontSize: "0.78em",
-        fontWeight: 500,
-        color: "var(--panel-blue-deep)",
-        letterSpacing: "0.02em",
-        ...style,
-      }}
+      className={`${styles.dateFull}${className ? ` ${className}` : ""}`}
+      style={style}
     >
       {label}
     </time>
@@ -109,7 +104,7 @@ export function DateFull({ style }: BadgeProps) {
 }
 
 /** "29 พ.ค. 2568" — compact badge for checkin pages. */
-export function DateShort({ style }: BadgeProps) {
+export function DateShort({ className, style }: BadgeProps) {
   const [label, setLabel] = useState("");
   useEffect(() => {
     setLabel(formatShort(new Date()));
@@ -118,20 +113,8 @@ export function DateShort({ style }: BadgeProps) {
   return (
     <time
       dateTime={new Date().toISOString().slice(0, 10)}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.28em",
-        fontSize: "0.72em",
-        fontWeight: 600,
-        color: "rgba(13,18,23,0.45)",
-        background: "rgba(88,216,222,0.13)",
-        border: "1px solid rgba(88,216,222,0.35)",
-        borderRadius: "999px",
-        padding: "0.18em 0.7em",
-        letterSpacing: "0.01em",
-        ...style,
-      }}
+      className={`${styles.dateShort}${className ? ` ${className}` : ""}`}
+      style={style}
     >
       <svg
         viewBox="0 0 24 24"
@@ -139,7 +122,7 @@ export function DateShort({ style }: BadgeProps) {
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-        style={{ width: "0.95em", height: "0.95em", flexShrink: 0, opacity: 0.7 }}
+        className={styles.dateShortIcon}
         aria-hidden="true"
       >
         <rect x="3" y="4" width="18" height="18" rx="3" />
@@ -153,7 +136,7 @@ export function DateShort({ style }: BadgeProps) {
 }
 
 /** "พฤษภาคม 2568" — for the monthly tracker header. */
-export function DateMonthYear({ style }: BadgeProps) {
+export function DateMonthYear({ className, style }: BadgeProps) {
   const [label, setLabel] = useState("");
   useEffect(() => {
     setLabel(formatMonthYear(new Date()));
@@ -162,14 +145,8 @@ export function DateMonthYear({ style }: BadgeProps) {
   return (
     <time
       dateTime={new Date().toISOString().slice(0, 7)}
-      style={{
-        fontSize: "0.72em",
-        fontWeight: 600,
-        color: "var(--panel-blue-deep)",
-        opacity: 0.75,
-        letterSpacing: "0.03em",
-        ...style,
-      }}
+      className={`${styles.dateMonthYear}${className ? ` ${className}` : ""}`}
+      style={style}
     >
       {label}
     </time>
@@ -177,7 +154,7 @@ export function DateMonthYear({ style }: BadgeProps) {
 }
 
 /** "26 พ.ค. – 1 มิ.ย. 2568" — for the weekly tracker header. */
-export function DateWeekRange({ weekStart, style }: BadgeProps & { weekStart?: string }) {
+export function DateWeekRange({ weekStart, className, style }: BadgeProps & { weekStart?: string }) {
   const [label, setLabel] = useState("");
   useEffect(() => {
     if (weekStart) {
@@ -194,14 +171,8 @@ export function DateWeekRange({ weekStart, style }: BadgeProps & { weekStart?: s
   if (!label) return null;
   return (
     <time
-      style={{
-        fontSize: "0.72em",
-        fontWeight: 600,
-        color: "var(--panel-blue-deep)",
-        opacity: 0.75,
-        letterSpacing: "0.03em",
-        ...style,
-      }}
+      className={`${styles.dateWeekRange}${className ? ` ${className}` : ""}`}
+      style={style}
     >
       {label}
     </time>

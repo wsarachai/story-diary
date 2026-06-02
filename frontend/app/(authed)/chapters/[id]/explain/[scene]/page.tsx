@@ -7,6 +7,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/chaptersApi";
 import { useGetMeQuery } from "@/store/authApi";
 import PageSpinner from "@/components/PageSpinner";
+import styles from "../../../chapters.module.css";
+import layoutStyles from "@/components/BookShellLayout.module.css";
 
 /** Milliseconds between each revealed character — tuned to natural speech pace. */
 const TYPEWRITER_SPEED_MS = 60;
@@ -14,7 +16,7 @@ const TYPEWRITER_SPEED_MS = 60;
 function SpeakerPlaceholder() {
   return (
     <svg
-      className="speaker-figure"
+      className={styles.speakerFigure}
       viewBox="0 0 200 400"
       aria-hidden="true"
       fill="none"
@@ -137,7 +139,7 @@ export default function ChapterScenePage() {
 
   if (detailStatus === "pending" || detailStatus === "uninitialized") {
     return (
-      <main className="screen chapter-details-screen" aria-label="กำลังโหลดบท">
+      <main className={`${layoutStyles.screen} ${styles.chapterDetailsScreen}`} aria-label="กำลังโหลดบท">
         <PageSpinner label="กำลังโหลดบท…" />
       </main>
     );
@@ -152,25 +154,25 @@ export default function ChapterScenePage() {
 
   return (
     <main
-      className="screen chapter-details-screen"
+      className={`${layoutStyles.screen} ${styles.chapterDetailsScreen}`}
       aria-label="Story Diary Chapters Explain Details"
     >
       <Link
         href="/chapters/menu"
-        className="chapter-scene-exit"
+        className={styles.chapterSceneExit}
         aria-label="กลับไปหน้าเลือกบท"
       >
-        <span className="chapter-scene-exit-icon" aria-hidden="true">
+        <span className={styles.chapterSceneExitIcon} aria-hidden="true">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M14.5 5L7.5 12L14.5 19" />
           </svg>
         </span>
-        <span className="chapter-scene-exit-label">กลับ</span>
+        <span className={styles.chapterSceneExitLabel}>กลับ</span>
       </Link>
 
       {bgUrl ? (
         <Image
-          className="chapter-details-bg"
+          className={styles.chapterDetailsBg}
           src={bgUrl}
           alt=""
           fill
@@ -179,14 +181,14 @@ export default function ChapterScenePage() {
         />
       ) : (
         <div
-          className="chapter-details-bg"
-          style={{ background: "var(--book-fill)", zIndex: -2 }}
+          className={`${styles.chapterDetailsBg} ${styles.fallbackBg}`}
+          style={{ zIndex: -2 }}
         />
       )}
 
       {scene.speakerImageUrl ? (
         <Image
-          className="speaker-figure"
+          className={styles.speakerFigure}
           src={scene.speakerImageUrl}
           alt="ตัวละครผู้พูด"
           width={540}
@@ -197,13 +199,13 @@ export default function ChapterScenePage() {
         <SpeakerPlaceholder />
       )}
 
-      <section className="dialog-panel" aria-label="บทสนทนา">
-        <h1 className="speaker-name">
+      <section className={styles.dialogPanel} aria-label="บทสนทนา">
+        <h1 className={styles.speakerName}>
           {scene.speakerName === "ชื่อตัวละคร"
             ? (currentUser?.characterName ?? scene.speakerName)
             : scene.speakerName}
         </h1>
-        <p className="dialog-text">
+        <p className={styles.dialogText}>
           {typingDone ? (
             // Typing skipped — render full text directly
             fullText.split("\n").map((line, i, arr) => (
@@ -220,9 +222,9 @@ export default function ChapterScenePage() {
             />
           )}
         </p>
-        <div className="dialog-next" aria-hidden="true" />
+        <div className={styles.dialogNext} aria-hidden="true" />
         <button
-          className="dialog-next-link"
+          className={styles.dialogNextLink}
           onClick={handleAdvance}
           aria-label={
             !typingDone

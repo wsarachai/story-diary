@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useGetMeQuery } from "@/store/authApi";
+import styles from "./Admin.module.css";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -19,11 +20,11 @@ export default function AdminShell({ children }: AdminShellProps) {
   }, [isLoading, user, router]);
 
   if (isLoading) {
-    return <div className="admin-loading">กำลังโหลด…</div>;
+    return <div className={styles.adminLoading}>กำลังโหลด…</div>;
   }
 
   if (!user || user.role !== "admin") {
-    return <div className="admin-loading">กำลังโหลด…</div>;
+    return <div className={styles.adminLoading}>กำลังโหลด…</div>;
   }
 
   return <>{children}</>;

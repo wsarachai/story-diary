@@ -2,8 +2,11 @@
 import { useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveMoodCheckinMutation } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
+import styles from "../../../HabitAdd.module.css";
+import checkinStyles from "../../../../checkin/HabitCheckin.module.css";
 
 const MOOD_LEVELS: { level: MoodLevel; emoji: string; label: string }[] = [
   { level: "very-bad", emoji: "😞", label: "แย่มาก" },
@@ -62,75 +65,83 @@ export default function ExploreEmotionPage() {
     ? `hsl(${120 * (sliderPct / 100)}, 70%, 50%)`
     : `hsl(${360 - 40 * ((100 - sliderPct) / 100)}, 70%, 50%)`;
 
-  return (
-    <main className="screen" aria-label="Story Diary Explore Emotion">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="สำรวจอารมณ์ตนเอง">
-          <div className="create-card checkin-card mood-card" role="dialog" aria-modal="true" aria-labelledby="mood-title">
-            <header className="create-header">
-              <button className="action-btn" aria-label="ยกเลิก" onClick={handleCancel}>
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-              <h2 className="create-title" id="mood-title">สำรวจอารมณ์ตนเอง</h2>
+  const leftPage = (
+    <div className={styles.authoringPage} aria-label="สำรวจอารมณ์ตนเอง">
+      <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="mood-title">
+        <header className={styles.createHeader}>
+          <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <h2 className={styles.createTitle} id="mood-title">สำรวจอารมณ์ตนเอง</h2>
+          <button
+            className={`${styles.actionBtn} ${saving ? styles.saving : ""}`}
+            aria-label="บันทึก"
+            onClick={handleSave}
+            disabled={saving}
+            style={{ borderColor: "#08c65a" }}
+          >
+            {saving
+              ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
+              : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+            }
+          </button>
+        </header>
+
+        <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555", textAlign: "center" }}>วันนี้คุณรู้สึกอย่างไร?</p>
+          <div className={checkinStyles.ciMoodRow} role="radiogroup" aria-label="ระดับอารมณ์">
+            {MOOD_LEVELS.map(({ level, emoji, label }) => (
               <button
-                className={`action-btn${saving ? " saving" : ""}`}
-                aria-label="บันทึก"
-                onClick={handleSave}
-                disabled={saving}
-                style={{ borderColor: "#08c65a" }}
+                key={level}
+                className={`${checkinStyles.ciMoodBtn} ${state.mood === level ? checkinStyles.isSelected : ""}`}
+                role="radio"
+                aria-checked={state.mood === level}
+                aria-label={label}
+                onClick={() => dispatchLocal({ type: "SET_MOOD", mood: level })}
               >
-                {saving
-                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
-                }
+                <span className={checkinStyles.ciMoodEmoji}>{emoji}</span>
+                <span className={checkinStyles.ciMoodLabel}>{label}</span>
               </button>
-            </header>
-
-            <div className="mood-body">
-              <p className="mood-prompt">วันนี้คุณรู้สึกอย่างไร?</p>
-              <div className="mood-emoji-row" role="radiogroup" aria-label="ระดับอารมณ์">
-                {MOOD_LEVELS.map(({ level, emoji, label }) => (
-                  <button
-                    key={level}
-                    className={`mood-emoji${state.mood === level ? " is-selected" : ""}`}
-                    role="radio"
-                    aria-checked={state.mood === level}
-                    aria-label={label}
-                    onClick={() => dispatchLocal({ type: "SET_MOOD", mood: level })}
-                  >
-                    <span className="mood-emoji-face">{emoji}</span>
-                    <span className="mood-emoji-label">{label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mood-slider-wrap">
-                <span className="mood-slider-sign mood-slider-neg">−</span>
-                <input
-                  type="range"
-                  className="mood-slider"
-                  min="-100"
-                  max="100"
-                  value={state.sliderValue}
-                  aria-label="ระดับอารมณ์ละเอียด"
-                  style={{ ["--slider-color" as string]: sliderColor }}
-                  onChange={(e) => dispatchLocal({ type: "SET_SLIDER", value: Number(e.target.value) })}
-                />
-                <span className="mood-slider-sign mood-slider-pos">+</span>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
-        <IconRail />
-      </section>
-      <dialog ref={discardRef} className="discard-dialog" aria-modal="true">
+
+          <div className={checkinStyles.ciMoodSliderWrap}>
+            <div className={checkinStyles.ciMoodSliderLabels} style={{ fontSize: "2em" }}>
+              <span className={checkinStyles.ciMoodSliderSign}>−</span>
+              <span className={checkinStyles.ciMoodSliderSign}>+</span>
+            </div>
+            <input
+              type="range"
+              className={checkinStyles.ciMoodSlider}
+              min="-100"
+              max="100"
+              value={state.sliderValue}
+              aria-label="ระดับอารมณ์ละเอียด"
+              style={{ background: sliderColor }}
+              onChange={(e) => dispatchLocal({ type: "SET_SLIDER", value: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <BookShellLayout
+        left={leftPage}
+        right={<div />}
+        rail={<IconRail />}
+        ariaLabel="Story Diary Explore Emotion"
+      />
+      <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
-        <div className="discard-dialog-btns">
-          <button className="discard-btn-cancel" onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className="discard-btn-leave" onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical/emotion"); }}>ละทิ้ง</button>
+        <div className={styles.discardDialogBtns}>
+          <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
+          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical/emotion"); }}>ละทิ้ง</button>
         </div>
       </dialog>
-    </main>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
+import styles from "./chapters.module.css";
 
 export default function ChaptersPage() {
   return (
@@ -8,26 +9,20 @@ export default function ChaptersPage() {
       tight
       rail={<IconRail />}
       left={
-        <div
-          style={{
-            display: "grid",
-            placeItems: "center",
-            height: "100%",
-          }}
-        >
-          <div className="chapter-diamond-wrap">
+        <div className={styles.chapterDiamondLeftWrap}>
+          <div className={styles.chapterDiamondWrap}>
             <Link
               href="/chapters/menu"
-              className="chapter-diamond-wrap-link"
+              className={styles.chapterDiamondWrapLink}
               aria-label="ไปหน้าเมนูบท"
             >
-              <div className="chapter-diamond">
-                <div className="chapter-diamond-inner">
+              <div className={styles.chapterDiamond}>
+                <div className={styles.chapterDiamondInner}>
                   <h1>เนื้อเรื่อง</h1>
-                  <div className="diamond-motif" aria-hidden="true">
+                  <div className={styles.diamondMotif} aria-hidden="true">
                     ✦ ✧ ✦ ✦ ✧ ✦
                   </div>
-                  <div className="diamond-tail" aria-hidden="true" />
+                  <div className={styles.diamondTail} aria-hidden="true" />
                 </div>
               </div>
             </Link>
@@ -35,11 +30,11 @@ export default function ChaptersPage() {
         </div>
       }
       right={
-        <div className="chapters-dashboard">
-          <section className="chapter-card chapter-card-top">
+        <div className={styles.chaptersDashboard}>
+          <section className={[styles.chapterCard, styles.chapterCardTop].join(" ")}>
             <Link
               href="/video-clips"
-              className="learning-logo"
+              className={styles.learningLogo}
               aria-label="ดาวแห่งการเรียนรู้ — ไปหน้าคลิปวิดีโอ"
             >
               <h2>
@@ -52,16 +47,16 @@ export default function ChaptersPage() {
             </Link>
           </section>
 
-          <section className="chapter-card chapter-card-bottom">
+          <section className={[styles.chapterCard, styles.chapterCardBottom].join(" ")}>
             <Link
               href="/e-books"
-              className="ebook-link-overlay"
+              className={styles.ebookLinkOverlay}
               aria-label="ไปหน้า E-book"
             >
-              <div className="ebook-arch" aria-hidden="true" />
-              <div className="ebook-step" aria-hidden="true" />
-              <div className="ebook-step s2" aria-hidden="true" />
-              <div className="ebook-step s3" aria-hidden="true" />
+              <div className={styles.ebookArch} aria-hidden="true" />
+              <div className={styles.ebookStep} aria-hidden="true" />
+              <div className={[styles.ebookStep, styles.s2].join(" ")} aria-hidden="true" />
+              <div className={[styles.ebookStep, styles.s3].join(" ")} aria-hidden="true" />
               <h2>E-book</h2>
             </Link>
           </section>

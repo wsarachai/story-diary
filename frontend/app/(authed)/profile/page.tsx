@@ -9,6 +9,8 @@ import { useGetMeQuery, useLogoutMutation } from "@/store/authApi";
 import { useUpdateProfileMutation } from "@/store/userApi";
 import type { User } from "@/types/auth";
 import type { UpdateUserRequest } from "@/types/user";
+import styles from "./profile.module.css";
+import sharedStyles from "@/components/Shared.module.css";
 
 // ── Client-side image resize: max 256×256 JPEG via canvas ───────────────────
 function resizeToBase64(file: File): Promise<string> {
@@ -74,19 +76,19 @@ function AvatarPanel({ user }: { user: User }) {
   };
 
   return (
-    <div className="prof-left">
+    <div className={styles.profLeft}>
       {/* decorative teal backdrop blob */}
-      <div className="prof-backdrop" aria-hidden="true" />
+      <div className={styles.profBackdrop} aria-hidden="true" />
 
       {/* avatar + camera button */}
-      <div className="prof-avatar-wrap">
-        <div className="prof-avatar-ring">
+      <div className={styles.profAvatarWrap}>
+        <div className={styles.profAvatarRing}>
           {hasAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatarUrl!}
               alt="รูปโปรไฟล์"
-              className="prof-avatar-photo"
+              className={styles.profAvatarPhoto}
             />
           ) : (
             <Image
@@ -94,7 +96,7 @@ function AvatarPanel({ user }: { user: User }) {
               alt="ตัวละคร"
               width={220}
               height={220}
-              className="prof-avatar-char"
+              className={styles.profAvatarChar}
               priority
             />
           )}
@@ -102,13 +104,13 @@ function AvatarPanel({ user }: { user: User }) {
 
         {/* floating camera FAB */}
         <button
-          className="prof-cam-fab"
+          className={styles.profCamFab}
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
           aria-label="เปลี่ยนรูปโปรไฟล์"
         >
           {uploading ? (
-            <span className="prof-cam-spinner" aria-hidden="true" />
+            <span className={styles.profCamSpinner} aria-hidden="true" />
           ) : (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -122,14 +124,14 @@ function AvatarPanel({ user }: { user: User }) {
         ref={fileRef}
         type="file"
         accept="image/*"
-        className="sr-only"
+        className={styles.srOnly}
         onChange={handleFileChange}
         tabIndex={-1}
       />
 
-      <h1 className="prof-char-name">{user.characterName}</h1>
+      <h1 className={styles.profCharName}>{user.characterName}</h1>
 
-      <span className={`prof-gender-badge prof-gender-badge--${user.gender}`}>
+      <span className={`${styles.profGenderBadge} ${user.gender === "female" ? styles.profGenderBadgeFemale : styles.profGenderBadgeMale}`}>
         {user.gender === "female" ? "หญิง" : "ชาย"}
       </span>
     </div>
@@ -174,23 +176,23 @@ function EditPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
   });
 
   return (
-    <div className="prof-right">
+    <div className={styles.profRight}>
       {/* header */}
-      <header className="prof-header">
-        <h2 className="prof-title">ข้อมูลส่วนตัว</h2>
-        <div className="prof-title-rule" aria-hidden="true" />
+      <header className={styles.profHeader}>
+        <h2 className={styles.profTitle}>ข้อมูลส่วนตัว</h2>
+        <div className={styles.profTitleRule} aria-hidden="true" />
       </header>
 
       {/* form fields */}
-      <div className="prof-fields">
+      <div className={styles.profFields}>
         {/* name */}
-        <div className="prof-line-field">
-          <label className="prof-line-label" htmlFor="prof-name">
+        <div className={styles.profLineField}>
+          <label className={styles.profLineLabel} htmlFor="prof-name">
             ชื่อ-นามสกุล
           </label>
           <input
             id="prof-name"
-            className="prof-line-input"
+            className={styles.profLineInput}
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             maxLength={80}
@@ -198,13 +200,13 @@ function EditPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
         </div>
 
         {/* character name */}
-        <div className="prof-line-field">
-          <label className="prof-line-label" htmlFor="prof-char">
+        <div className={styles.profLineField}>
+          <label className={styles.profLineLabel} htmlFor="prof-char">
             ชื่อตัวละคร
           </label>
           <input
             id="prof-char"
-            className="prof-line-input"
+            className={styles.profLineInput}
             value={form.characterName}
             onChange={(e) => set("characterName", e.target.value)}
             maxLength={40}
@@ -212,26 +214,26 @@ function EditPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
         </div>
 
         {/* phone — read-only */}
-        <div className="prof-line-field">
-          <span className="prof-line-label">เบอร์โทรศัพท์</span>
-          <p className="prof-line-static">{user.tel}</p>
+        <div className={styles.profLineField}>
+          <span className={styles.profLineLabel}>เบอร์โทรศัพท์</span>
+          <p className={styles.profLineStatic}>{user.tel}</p>
         </div>
 
         {/* join date — read-only */}
-        <div className="prof-line-field">
-          <span className="prof-line-label">สมาชิกตั้งแต่</span>
-          <p className="prof-line-static">{createdDate}</p>
+        <div className={styles.profLineField}>
+          <span className={styles.profLineLabel}>สมาชิกตั้งแต่</span>
+          <p className={styles.profLineStatic}>{createdDate}</p>
         </div>
 
         {/* gender */}
-        <div className="prof-line-field">
-          <span className="prof-line-label">เพศ</span>
-          <div className="prof-gender-row" role="group" aria-label="เลือกเพศ">
+        <div className={styles.profLineField}>
+          <span className={styles.profLineLabel}>เพศ</span>
+          <div className={styles.profGenderRow} role="group" aria-label="เลือกเพศ">
             {(["female", "male"] as const).map((g) => (
               <button
                 key={g}
                 type="button"
-                className={`prof-gender-opt prof-gender-opt--${g}${form.gender === g ? " is-active" : ""}`}
+                className={`${styles.profGenderOpt} ${g === "female" ? styles.profGenderOptFemale : styles.profGenderOptMale}${form.gender === g ? ` ${styles.isActive}` : ""}`}
                 onClick={() => set("gender", g)}
                 aria-pressed={form.gender === g}
               >
@@ -244,29 +246,29 @@ function EditPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
 
       {/* save / error feedback */}
       {isSuccess && !dirty && (
-        <p className="prof-feedback prof-feedback--ok" role="status">
+        <p className={`${styles.profFeedback} ${styles.profFeedbackOk}`} role="status">
           บันทึกเรียบร้อยแล้ว ✓
         </p>
       )}
       {isError && (
-        <p className="prof-feedback prof-feedback--err" role="alert">
+        <p className={`${styles.profFeedback} ${styles.profFeedbackErr}`} role="alert">
           เกิดข้อผิดพลาด กรุณาลองอีกครั้ง
         </p>
       )}
 
       {/* actions */}
-      <footer className="prof-footer">
+      <footer className={styles.profFooter}>
         {dirty && (
-          <div className="prof-edit-btns">
+          <div className={styles.profEditBtns}>
             <button
-              className="rounded-pill-button prof-btn-save"
+              className={`${sharedStyles.roundedPillButton} ${styles.profBtnSave}`}
               onClick={handleSave}
               disabled={isLoading}
             >
               {isLoading ? "กำลังบันทึก…" : "บันทึก"}
             </button>
             <button
-              className="rounded-pill-button prof-btn-cancel"
+              className={`${sharedStyles.roundedPillButton} ${styles.profBtnCancel}`}
               onClick={handleCancel}
               disabled={isLoading}
             >
@@ -275,7 +277,7 @@ function EditPanel({ user, onLogout }: { user: User; onLogout: () => void }) {
           </div>
         )}
         <button
-          className="rounded-pill-button prof-btn-logout"
+          className={`${sharedStyles.roundedPillButton} ${styles.profBtnLogout}`}
           onClick={onLogout}
         >
           ออกจากระบบ

@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
+import styles from "./Quiz.module.css";
+import BookShellLayout from "@/components/BookShellLayout";
 
 function QuizInner() {
   const router = useRouter();
@@ -64,104 +66,108 @@ function QuizInner() {
 
   const letters: AnswerLetter[] = ["A", "B", "C", "D"];
 
-  return (
-    <main className="screen" aria-label="Story Diary Minigame Quiz">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-
-        {/* Left: progress + question */}
-        <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
-          <div className="quiz-progress-row">
-            <p className="quiz-counter">
-              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
-            </p>
-            <div className="quiz-progress-bar" aria-hidden="true">
-              <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
-            </div>
-          </div>
-          <p className="quiz-question-label">โจทย์</p>
-          <div className="quiz-question-card" aria-live="polite">
-            <p className="quiz-question-text">
-              {question.text.split("\n").map((line, i) => (
-                <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
-              ))}
-            </p>
-          </div>
-        </section>
-
-        {/* Right: options + submit */}
-        <section className="page quiz-page-right" aria-label="ตัวเลือกคำตอบ">
-          <div className="quiz-options" role="group" aria-label="เลือกคำตอบ">
-            {letters.map((letter) => {
-              const opt = question.options.find((o) => o.letter === letter);
-              if (!opt) return null;
-              const isSelected = pendingSelection === letter;
-              return (
-                <button
-                  key={letter}
-                  className={`quiz-option${isSelected ? " is-selected" : ""}`}
-                  aria-label={`ตัวเลือก ${letter}`}
-                  aria-pressed={isSelected}
-                  onClick={() => handleSelect(letter)}
-                >
-                  <span className="option-letter">{letter}</span>
-                  <span className="option-text">{opt.text}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="quiz-submit-row">
-            <button
-              className="quiz-submit-btn"
-              disabled={!pendingSelection}
-              aria-label="ส่งคำตอบ"
-              onClick={handleSubmit}
-            >
-              ส่ง →
-            </button>
-          </div>
-        </section>
-
-        {/* Locked rail (DS-2) */}
-        <nav className="icon-rail" aria-label="Main navigation">
-          {[
-            { href: "/home", icon: "/icons/home.svg", label: "ไปหน้าแรก", activeAccent: "#ff3131" },
-            { href: "/chapters", icon: "/icons/book.svg", label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
-            { href: "/habit", icon: "/icons/edit.svg", label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
-            { href: "/minigame", icon: "/icons/game.svg", label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
-          ].map(({ href, icon, label, activeAccent }) => (
-            <button
-              key={href}
-              className={`icon-rail-link${href === "/minigame" || href.startsWith("/minigame/") ? " is-active" : ""}`}
-              aria-label={label}
-              onClick={() => handleRailNavigate(href)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                ["--rail-accent" as string]: activeAccent,
-              }}
-            >
-              <Image src={icon} alt="" width={72} height={72} style={{ display: "block", width: "100%", height: "100%", borderRadius: "0 1.3rem 1.3rem 0" }} />
-            </button>
+  const left = (
+    <div className={styles.quizPageLeft} aria-label="คำถาม">
+      <div className={styles.quizProgressRow}>
+        <p className={styles.quizCounter}>
+          บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+        </p>
+        <div className={styles.quizProgressBar} aria-hidden="true">
+          <div className={styles.quizProgressFill} style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+      <p className={styles.quizQuestionLabel}>โจทย์</p>
+      <div className={styles.quizQuestionCard} aria-live="polite">
+        <p className={styles.quizQuestionText}>
+          {question.text.split("\n").map((line, i) => (
+            <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
           ))}
-        </nav>
-      </section>
+        </p>
+      </div>
+    </div>
+  );
 
+  const right = (
+    <div className={styles.quizPageRight} aria-label="ตัวเลือกคำตอบ">
+      <div className={styles.quizOptions} role="group" aria-label="เลือกคำตอบ">
+        {letters.map((letter) => {
+          const opt = question.options.find((o) => o.letter === letter);
+          if (!opt) return null;
+          const isSelected = pendingSelection === letter;
+          return (
+            <button
+              key={letter}
+              className={`${styles.quizOption}${isSelected ? ` ${styles.isSelected}` : ""}`}
+              aria-label={`ตัวเลือก ${letter}`}
+              aria-pressed={isSelected}
+              onClick={() => handleSelect(letter)}
+            >
+              <span className={styles.optionLetter}>{letter}</span>
+              <span className={styles.optionText}>{opt.text}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className={styles.quizSubmitRow}>
+        <button
+          className={styles.quizSubmitBtn}
+          disabled={!pendingSelection}
+          aria-label="ส่งคำตอบ"
+          onClick={handleSubmit}
+        >
+          ส่ง →
+        </button>
+      </div>
+    </div>
+  );
+
+  const customRail = (
+    <nav className={styles.iconRail} aria-label="Main navigation">
+      {[
+        { href: "/home", icon: "/icons/home.svg", label: "ไปหน้าแรก", activeAccent: "#ff3131" },
+        { href: "/chapters", icon: "/icons/book.svg", label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
+        { href: "/habit", icon: "/icons/edit.svg", label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
+        { href: "/minigame", icon: "/icons/game.svg", label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
+      ].map(({ href, icon, label, activeAccent }) => {
+        const isActive = href === "/minigame" || href.startsWith("/minigame/");
+        return (
+          <button
+            key={href}
+            className={`${styles.iconRailLink}${isActive ? ` ${styles.isActive}` : ""}`}
+            aria-label={label}
+            onClick={() => handleRailNavigate(href)}
+            style={{
+              ["--rail-accent" as string]: activeAccent,
+            }}
+          >
+            <Image src={icon} alt="" width={72} height={72} />
+          </button>
+        );
+      })}
+    </nav>
+  );
+
+  return (
+    <BookShellLayout
+      tight
+      left={left}
+      right={right}
+      rail={customRail}
+    >
       {/* DS-2 abandon dialog */}
-      <dialog ref={dialogRef} className="abandon-dialog" aria-modal="true">
+      <dialog ref={dialogRef} className={styles.abandonDialog} aria-modal="true">
         <h2>ออกจากการทดสอบ?</h2>
         <p>คะแนนของคุณจะหายไปหากออกก่อนทำเสร็จ</p>
-        <div className="abandon-dialog-btns">
-          <button className="abandon-btn-stay" onClick={() => dialogRef.current?.close()}>
+        <div className={styles.abandonDialogBtns}>
+          <button className={styles.abandonBtnStay} onClick={() => dialogRef.current?.close()}>
             เล่นต่อ
           </button>
-          <button className="abandon-btn-leave" onClick={handleAbandon}>
+          <button className={styles.abandonBtnLeave} onClick={handleAbandon}>
             ออก
           </button>
         </div>
       </dialog>
-    </main>
+    </BookShellLayout>
   );
 }
 

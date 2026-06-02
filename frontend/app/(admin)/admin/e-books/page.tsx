@@ -10,6 +10,7 @@ import {
   type CreateEBookRequest,
 } from "@/store/adminApi";
 import type { EBookChapter } from "@/types/ebook";
+import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateEBookRequest = { title: "", pdfUrl: "" };
 
@@ -64,50 +65,50 @@ export default function AdminEBooksPage() {
   }
 
   return (
-    <div className="admin-layout">
+    <div className={styles.adminLayout}>
       <AdminSidebar />
-      <div className="admin-main-wrapper">
-      <main className="admin-main">
-        <div className="admin-page-header">
-          <h1 className="admin-page-title">E-Books</h1>
-          <button className="admin-btn admin-btn-primary" onClick={openCreate}>
+      <div className={styles.adminMainWrapper}>
+      <main className={styles.adminMain}>
+        <div className={styles.adminPageHeader}>
+          <h1 className={styles.adminPageTitle}>E-Books</h1>
+          <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
             + เพิ่ม E-Book
           </button>
         </div>
 
         {showForm && (
-          <div className="admin-form-card" ref={formRef}>
+          <div className={styles.adminFormCard} ref={formRef}>
             <h2>{editId !== null ? "แก้ไข E-Book" : "เพิ่ม E-Book ใหม่"}</h2>
             <form onSubmit={handleSubmit}>
-              <div className="admin-form-grid">
-                <div className="admin-form-field">
-                  <label className="admin-label">Title</label>
+              <div className={styles.adminFormGrid}>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>Title</label>
                   <input
-                    className="admin-input"
+                    className={styles.adminInput}
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     required
                   />
                 </div>
-                <div className="admin-form-field">
-                  <label className="admin-label">PDF URL</label>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>PDF URL</label>
                   <input
-                    className="admin-input"
+                    className={styles.adminInput}
                     value={form.pdfUrl}
                     onChange={(e) => setForm({ ...form, pdfUrl: e.target.value })}
                     required
                   />
                 </div>
               </div>
-              <div className="admin-form-actions">
+              <div className={styles.adminFormActions}>
                 <button
                   type="button"
-                  className="admin-btn admin-btn-secondary"
+                  className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
                   onClick={closeForm}
                 >
                   ยกเลิก
                 </button>
-                <button type="submit" className="admin-btn admin-btn-primary">
+                <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
                   {editId !== null ? "บันทึก" : "เพิ่ม"}
                 </button>
               </div>
@@ -116,10 +117,10 @@ export default function AdminEBooksPage() {
         )}
 
         {isLoading ? (
-          <div className="chapter-spinner" />
+          <div className={styles.adminSpinner} />
         ) : (
-          <div className="admin-table-wrap">
-          <table className="admin-table">
+          <div className={styles.adminTableWrap}>
+          <table className={styles.adminTable}>
             <thead>
               <tr>
                 <th>ID</th>
@@ -138,21 +139,21 @@ export default function AdminEBooksPage() {
                       href={eb.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#58a6ff", wordBreak: "break-all" }}
+                      className={styles.adminLink}
                     >
                       {eb.pdfUrl}
                     </a>
                   </td>
                   <td>
-                    <div className="admin-table-actions">
+                    <div className={styles.adminTableActions}>
                       <button
-                        className="admin-btn admin-btn-secondary"
+                        className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
                         onClick={() => openEdit(eb)}
                       >
                         Edit
                       </button>
                       <button
-                        className="admin-btn admin-btn-danger"
+                        className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
                         onClick={() => handleDelete(eb.id)}
                       >
                         Delete

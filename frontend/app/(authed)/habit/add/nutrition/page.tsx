@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
+import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { NUTRITION_PRESETS, type NutritionPresetKey } from "@/types/habit";
+import styles from "../HabitAdd.module.css";
 
 const PRESET_KEYS: NutritionPresetKey[] = [
   "nutrition_5_groups",
@@ -12,42 +14,44 @@ const PRESET_KEYS: NutritionPresetKey[] = [
 
 export default function AddNutritionPage() {
   return (
-    <main className="screen" aria-label="Story Diary Create Nutrition">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="เลือกโภชนาการ">
-          <div className="create-card" role="dialog" aria-modal="true" aria-labelledby="nutrition-title">
-            <header className="create-header">
+    <BookShellLayout
+      tight
+      rail={<IconRail />}
+      mergedOnly
+      merged={
+        <div className={styles.authoringPage} aria-label="เลือกโภชนาการ">
+          <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="nutrition-title">
+            <header className={styles.createHeader}>
               <Link
-                className="action-btn"
+                className={styles.actionBtn}
                 href="/habit/add"
                 aria-label="กลับ"
               >
                 <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               </Link>
-              <h2 className="create-title" id="nutrition-title">โภชนาการ</h2>
-              <div className="action-btn" aria-hidden="true" style={{ visibility: "hidden" }} />
+              <h2 className={styles.createTitle} id="nutrition-title">โภชนาการ</h2>
+              <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
             </header>
-            <div className="nutrition-list" role="list" aria-label="ประเภทโภชนาการ">
+            <div className={styles.nutritionList} role="list" aria-label="ประเภทโภชนาการ">
               {PRESET_KEYS.map((key) => (
                 <Link
                   key={key}
-                  className="nutrition-item"
+                  className={styles.nutritionItem}
                   role="listitem"
                   href={`/habit/add/medicine?type=${key}`}
                   aria-label={NUTRITION_PRESETS[key]}
                 >
-                  <span className="nutrition-item-dot" aria-hidden="true" />
-                  <span className="nutrition-item-label">{NUTRITION_PRESETS[key]}</span>
-                  <svg className="nutrition-item-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                  <span className={styles.nutritionItemDot} aria-hidden="true" />
+                  <span className={styles.nutritionItemLabel}>{NUTRITION_PRESETS[key]}</span>
+                  <svg className={styles.nutritionItemChevron} viewBox="0 0 24 24" aria-hidden="true">
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
                 </Link>
               ))}
             </div>
           </div>
-        </section>
-        <IconRail />
-      </section>
-    </main>
+        </div>
+      }
+    />
   );
 }

@@ -6,13 +6,13 @@ import IconRail from "@/components/IconRail";
 import { useGetEBooksQuery } from "@/store/ebookApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
+import styles from "./EBooks.module.css";
 
 function PlayButton({ ebook }: { ebook: EBookChapter }) {
   return (
     <Link
       href={`/e-books/${ebook.id}`}
-      className="clip-play-button"
-      style={{ opacity: 1 }}
+      className={styles.clipPlayButton}
       aria-label={`อ่าน ${ebook.title}`}
       title={`อ่าน ${ebook.title}`}
     >
@@ -35,11 +35,10 @@ export default function EBooksPage() {
       tight
       rail={<IconRail />}
       left={
-        <div className="video-clips-page">
+        <div className={styles.eBooksPage}>
           <Link
             href="/chapters"
-            className="clip-section-label-badge"
-            style={{ background: "#508db9" }}
+            className={styles.clipSectionLabelBadge}
             aria-label="E-book — กลับหน้าบท"
           >
             {collection?.badge ?? "E-book"}
@@ -48,13 +47,13 @@ export default function EBooksPage() {
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
           ) : (
-          <div className="clips-grid-container">
+          <div className={styles.clipsGridContainer}>
             {leftChapters.map((ebook) => (
-              <div key={ebook.id} className="clips-grid-item">
-                <div className="clip-thumbnail" style={{ background: "#508db9" }} aria-label={`E-book ${ebook.title}`}>
+              <div key={ebook.id} className={styles.clipsGridItem}>
+                <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
                   <PlayButton ebook={ebook} />
                 </div>
-                <div className="clip-caption" style={{ color: "#508db9" }} aria-label={ebook.title}>
+                <div className={styles.clipCaption} aria-label={ebook.title}>
                   {ebook.title}
                 </div>
               </div>
@@ -64,19 +63,19 @@ export default function EBooksPage() {
         </div>
       }
       right={
-        <div className="video-clips-page">
-          <div className="clip-section-label-spacer" aria-hidden="true" />
+        <div className={styles.eBooksPage}>
+          <div className={styles.clipSectionLabelSpacer} aria-hidden="true" />
 
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
           ) : (
-          <div className="clips-grid-container">
+          <div className={styles.clipsGridContainer}>
             {rightChapters.map((ebook) => (
-              <div key={ebook.id} className="clips-grid-item">
-                <div className="clip-thumbnail" style={{ background: "#508db9" }} aria-label={`E-book ${ebook.title}`}>
+              <div key={ebook.id} className={styles.clipsGridItem}>
+                <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
                   <PlayButton ebook={ebook} />
                 </div>
-                <div className="clip-caption" style={{ color: "#508db9" }} aria-label={ebook.title}>
+                <div className={styles.clipCaption} aria-label={ebook.title}>
                   {ebook.title}
                 </div>
               </div>

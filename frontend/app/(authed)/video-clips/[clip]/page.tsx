@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -8,6 +8,7 @@ import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
+import styles from "../VideoClipPlayer.module.css";
 
 function toEmbedUrl(sourceUrl?: string): string {
     if (!sourceUrl) return "";
@@ -58,20 +59,20 @@ export default function VideoClipPlayerPage() {
             right={<div />}
             mergedOnly
             merged={
-                <div className="clip-player-page">
-                    <div className="clip-player-page-header">
-                        <Link href="/video-clips" className="clip-player-back" aria-label="กลับหน้าวิดีโอคลิป">
+                <div className={styles.clipPlayerPage}>
+                    <div className={styles.clipPlayerPageHeader}>
+                        <Link href="/video-clips" className={styles.clipPlayerBack} aria-label="กลับหน้าวิดีโอคลิป">
                             กลับ
                         </Link>
-                        <h1 className="clip-player-title">{activeClip?.caption ?? "ไม่พบคลิป"}</h1>
+                        <h1 className={styles.clipPlayerTitle}>{activeClip?.caption ?? "ไม่พบคลิป"}</h1>
                     </div>
 
-                    <div className="clip-player-frame-wrap">
+                    <div className={styles.clipPlayerFrameWrap}>
                         {isLoading ? (
                             <PageSpinner label="กำลังโหลดวิดีโอ…" />
                         ) : embedUrl ? (
                             <iframe
-                                className="clip-player-frame"
+                                className={styles.clipPlayerFrame}
                                 src={embedUrl}
                                 title={activeClip?.caption ?? "วิดีโอคลิป"}
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -79,11 +80,11 @@ export default function VideoClipPlayerPage() {
                                 allowFullScreen
                             />
                         ) : (
-                            <div className="clip-player-fallback">ไม่พบวิดีโอจากพารามิเตอร์นี้</div>
+                            <div className={styles.clipPlayerFallback}>ไม่พบวิดีโอจากพารามิเตอร์นี้</div>
                         ) }
                     </div>
 
-                    <div className="clip-player-caption">
+                    <div className={styles.clipPlayerCaption}>
                         {activeClip ? `กำลังเล่น: ${activeClip.caption}` : "กรุณาตรวจสอบลิงก์คลิป"}
                     </div>
                 </div>

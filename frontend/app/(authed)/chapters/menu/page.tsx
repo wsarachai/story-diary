@@ -8,6 +8,7 @@ import IconRail from "@/components/IconRail";
 import { useGetChapterSummariesQuery } from "@/store/chaptersApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { ChapterId } from "@/types/chapters";
+import styles from "../chapters.module.css";
 
 function ChapterRow({
   id,
@@ -36,25 +37,25 @@ function ChapterRow({
   };
 
   return (
-    <li className={`chapter-row${isShaking ? " chapter-row-shaking" : ""}`}>
+    <li className={[styles.chapterRow, isShaking && styles.chapterRowShaking].filter(Boolean).join(" ")}>
       <Link
         href={`/chapters/${id}/explain`}
-        className="chapter-row-link"
+        className={styles.chapterRowLink}
         aria-label={`ไปหน้าบทบรรยาย บทที่ ${id}`}
         aria-disabled={isLocked ? "true" : undefined}
         onClick={handleClick}
       >
-        <div className="pin" aria-hidden="true">
-          <div className="pin-circle">{num}</div>
-          <div className="pin-tip" />
-          <div className="pin-base" />
-          {hasLinkLine && <div className="pin-link-line" />}
+        <div className={styles.pin} aria-hidden="true">
+          <div className={styles.pinCircle}>{num}</div>
+          <div className={styles.pinTip} />
+          <div className={styles.pinBase} />
+          {hasLinkLine && <div className={styles.pinLinkLine} />}
         </div>
-        <div className="chapter-pill">
-          <span className="chapter-pill-text">{title}</span>
+        <div className={styles.chapterPill}>
+          <span className={styles.chapterPillText}>{title}</span>
           {isLocked && (
             <Image
-              className="lock-icon"
+              className={styles.lockIcon}
               src="/icons/lock-key.svg"
               alt="ล็อก"
               width={53}
@@ -65,7 +66,7 @@ function ChapterRow({
         </div>
       </Link>
       {showHint && (
-        <div role="status" className="chapter-lock-hint">
+        <div role="status" className={styles.chapterLockHint}>
           บทนี้ยังไม่ปลดล็อก
         </div>
       )}
@@ -104,13 +105,13 @@ export default function ChaptersMenuPage() {
       tight
       rail={<IconRail />}
       left={
-        <div className="chapters-menu-page">
-          <h1 className="chapter-title">เนื้อเรื่อง</h1>
-          <div className="chapter-title-rule" aria-hidden="true" />
+        <div className={styles.chaptersMenuPage}>
+          <h1 className={styles.chapterTitle}>เนื้อเรื่อง</h1>
+          <div className={styles.chapterTitleRule} aria-hidden="true" />
           {isLoading ? (
             <PageSpinner variant="inline" height="12rem" label="กำลังโหลดบท…" />
           ) : (
-          <ol className="chapter-list" aria-label="รายการบทฝั่งซ้าย">
+          <ol className={styles.chapterList} aria-label="รายการบทฝั่งซ้าย">
             {leftChapters.map((s, i) => (
               <ChapterRow
                 key={s.id}
@@ -128,17 +129,17 @@ export default function ChaptersMenuPage() {
         </div>
       }
       right={
-        <div className="chapters-menu-page">
+        <div className={styles.chaptersMenuPage}>
           {/* Invisible spacer mirrors the left-side title + rule so lists align */}
-          <div aria-hidden="true" style={{ visibility: "hidden" }}>
-            <h1 className="chapter-title">placeholder</h1>
-            <div className="chapter-title-rule" />
+          <div aria-hidden="true" className={styles.hiddenPlaceholder}>
+            <h1 className={styles.chapterTitle}>placeholder</h1>
+            <div className={styles.chapterTitleRule} />
           </div>
           {isLoading ? (
             <PageSpinner variant="inline" height="12rem" label="กำลังโหลดบท…" />
           ) : (
           <ol
-            className="chapter-list chapter-list-right"
+            className={[styles.chapterList, styles.chapterListRight].join(" ")}
             aria-label="รายการบทฝั่งขวา"
           >
             {rightChapters.map((s, i) => (

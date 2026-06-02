@@ -1,14 +1,19 @@
 import React from "react";
+import styles from "./BookShellLayout.module.css";
 
 interface BookShellLayoutProps {
-  left: React.ReactNode;
-  right: React.ReactNode;
+  left?: React.ReactNode;
+  right?: React.ReactNode;
   merged?: React.ReactNode;
   mergedOnly?: boolean;
   /** When true, applies tight gap (s003/s004). */
   tight?: boolean;
   /** Optional persistent right-edge rail (s004+). */
   rail?: React.ReactNode;
+  /** Custom aria-label for the main container. */
+  ariaLabel?: string;
+  /** Optional children rendered at the root level (e.g. for absolute dialogs). */
+  children?: React.ReactNode;
 }
 
 /**
@@ -22,24 +27,27 @@ export default function BookShellLayout({
   mergedOnly = false,
   tight = false,
   rail,
+  ariaLabel = "Story Diary",
+  children,
 }: BookShellLayoutProps) {
   return (
-    <main className="screen screen-landscape" aria-label="Story Diary">
+    <main className={styles.screen} aria-label={ariaLabel}>
       <section
-        className={`book-shell${tight ? " book-shell-tight" : ""}`}
+        className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}`}
         style={rail ? { gridTemplateColumns: "1fr 1fr auto" } : undefined}
       >
         {mergedOnly && merged ? (
-          <section className="page page-merged-only">{merged}</section>
+          <section className={`${styles.page} ${styles.pageMergedOnly}`}>{merged}</section>
         ) : (
           <>
-            <section className="page page-left page-seam-right">{left}</section>
-            <section className="page page-right">{right}</section>
-            {merged ? <section className="book-shell-merged-layer">{merged}</section> : null}
+            <section className={`${styles.page} ${styles.pageLeft} ${styles.pageSeamRight}`}>{left}</section>
+            <section className={`${styles.page} ${styles.pageRight}`}>{right}</section>
+            {merged ? <section className={styles.bookShellMergedLayer}>{merged}</section> : null}
           </>
         )}
         {rail}
       </section>
+      {children}
     </main>
   );
 }

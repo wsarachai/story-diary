@@ -1,0 +1,462 @@
+/* Compact action button (back / save) */
+.ciBtn {
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  border: 2px solid #1f1f1f;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ciBtn:hover {
+  transform: scale(1.07);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+.ciBtn svg {
+  width: 1.05em;
+  height: 1.05em;
+  stroke: #1f1f1f;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ciBtnSave {
+  border-color: #08c65a;
+}
+
+.ciBtnSave svg {
+  stroke: #08c65a;
+}
+
+.ciBtnSave:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Page header (back + title or section label + save) */
+.ciPageHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding-bottom: 0.9em;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.07);
+  flex-shrink: 0;
+}
+
+.ciTitle {
+  margin: 0;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex: 1;
+  text-align: center;
+}
+
+.ciSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.6em;
+  flex-shrink: 0;
+}
+
+.ciSectionLabel {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.ciSectionLabel svg {
+  width: 1em;
+  height: 1em;
+  stroke: #e76f51;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Identity block (icon + name pill) */
+.ciIdentity {
+  display: flex;
+  align-items: center;
+  gap: 0.85em;
+  flex-shrink: 0;
+}
+
+.ciIcon {
+  width: 3em;
+  height: 3em;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.ciIcon svg {
+  width: 1.35em;
+  height: 1.35em;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ciIconMed {
+  background: rgba(155, 93, 229, 0.13);
+}
+
+.ciIconMed svg {
+  stroke: #9b5de5;
+}
+
+.ciIconNutrition {
+  background: rgba(46, 181, 99, 0.13);
+}
+
+.ciIconNutrition svg {
+  stroke: #2eb563;
+}
+
+.ciNamePill {
+  border-radius: 50px;
+  padding: 0.32em 0.95em;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ciNamePillMed {
+  background: linear-gradient(130deg, #9b5de5, #7c3aed);
+  box-shadow: 0 3px 12px -3px rgba(124, 58, 237, 0.38);
+}
+
+.ciNamePillNutrition {
+  background: linear-gradient(130deg, #2eb563, #16a34a);
+  box-shadow: 0 3px 12px -3px rgba(22, 163, 74, 0.38);
+}
+
+/* Timing chips */
+.ciChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  flex-shrink: 0;
+}
+
+.ciChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  border-radius: 50px;
+  padding: 0.22em 0.65em;
+  font-size: 0.8em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ciChip svg {
+  width: 0.8em;
+  height: 0.8em;
+  fill: none;
+  stroke-width: 2;
+}
+
+.ciChipTiming {
+  background: #edf9fa;
+  border: 1.5px solid #59d6dc;
+  color: #0d6e74;
+}
+
+.ciChipTiming svg {
+  stroke: #0d6e74;
+}
+
+.ciChipSlot {
+  background: #f3e8ff;
+  border: 1.5px solid #b896ed;
+  color: #6b21a8;
+}
+
+/* Hint text */
+.ciHint {
+  margin: 0;
+  font-size: 0.78em;
+  color: #888;
+  line-height: 1.55;
+}
+
+/* ── Side-effects checklist ── */
+.ciCheckList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.ciCheckRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.5em 0.8em;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid #e8e3da;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ciCheckRow:hover {
+  border-color: #b896ed;
+  background: #faf7ff;
+}
+
+.ciCheckRow.isChecked {
+  background: #f3e8ff;
+  border-color: #9b5de5;
+}
+
+.ciCheckCircle {
+  width: 1.65em;
+  height: 1.65em;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ciCheckRow.isChecked .ciCheckCircle {
+  background: #9b5de5;
+  border-color: #9b5de5;
+}
+
+.ciCheckCircle svg {
+  width: 0.85em;
+  height: 0.85em;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ciCheckLabel {
+  flex: 1;
+  font-size: 0.88em;
+  font-weight: 500;
+  color: #2d2d2d;
+  transition: color 0.15s;
+}
+
+.ciCheckRow.isChecked .ciCheckLabel {
+  color: #6b21a8;
+}
+
+/* ── Meal log (nutrition) ── */
+.ciMealList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  flex: 1;
+  min-height: 0;
+}
+
+.ciMealCard {
+  background: #fff;
+  border: 1.5px solid #e8e3da;
+  border-radius: 12px;
+  padding: 0.6em 0.85em 0.75em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ciMealCard:focus-within {
+  border-color: #59d6dc;
+  box-shadow: 0 0 0 3px rgba(89, 214, 220, 0.15);
+}
+
+.ciMealLabel {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ciMealInput {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.9em;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  width: 100%;
+}
+
+.ciMealInput::placeholder {
+  color: #bbb;
+}
+
+/* ── Symptom identity accent ── */
+.ciIconSymptom {
+  background: rgba(231, 111, 81, 0.13);
+}
+
+.ciIconSymptom svg {
+  stroke: #e76f51;
+}
+
+.ciNamePillSymptom {
+  background: linear-gradient(130deg, #e76f51, #c04e32);
+  box-shadow: 0 3px 12px -3px rgba(231, 111, 81, 0.4);
+}
+
+/* ── Emotion / mood picker ── */
+.ciIconEmotion {
+  background: rgba(238, 138, 74, 0.13);
+}
+
+.ciIconEmotion svg {
+  stroke: #ee8a4a;
+}
+
+.ciNamePillEmotion {
+  background: linear-gradient(130deg, #ee8a4a, #d4632a);
+  box-shadow: 0 3px 12px -3px rgba(238, 138, 74, 0.4);
+}
+
+.ciMoodRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.45em;
+  flex-shrink: 0;
+}
+
+.ciMoodBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28em;
+  padding: 0.5em 0.2em 0.45em;
+  border-radius: 12px;
+  border: 1.5px solid #e8e3da;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.12s;
+  font-family: inherit;
+}
+
+.ciMoodBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.09);
+}
+
+.ciMoodBtn.isSelected {
+  border-color: #e76f51;
+  background: #fff5f2;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 14px -4px rgba(231, 111, 81, 0.32);
+}
+
+.ciMoodEmoji {
+  font-size: 1.55em;
+  line-height: 1;
+  user-select: none;
+}
+
+.ciMoodLabel {
+  font-size: 0.62em;
+  font-weight: 600;
+  color: #888;
+  white-space: nowrap;
+}
+
+.ciMoodBtn.isSelected .ciMoodLabel {
+  color: #e76f51;
+}
+
+.ciMoodSliderWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  padding: 0.3em 0;
+  flex-shrink: 0;
+}
+
+.ciMoodSliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7em;
+  color: #aaa;
+  font-weight: 600;
+}
+
+.ciMoodSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.42em;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d63a3a 0%, #e8a000 50%, #3aab3a 100%);
+  outline: none;
+  cursor: pointer;
+}
+
+.ciMoodSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.1s;
+}
+
+.ciMoodSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.ciMoodSlider::-moz-range-thumb {
+  width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.ciMoodValueLabel {
+  text-align: center;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #666;
+  min-height: 1.2em;
+}

@@ -2,7 +2,9 @@
 import { Suspense, useReducer, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import BookShellLayout from "@/components/BookShellLayout";
 import { useCreateActivityMutation } from "@/store/habitsApi";
+import styles from "../../HabitAdd.module.css";
 import type {
   HabitFrequency,
   HabitImportance,
@@ -130,17 +132,20 @@ function PhysicalFormInner() {
   }
 
   return (
-    <main className="screen" aria-label="Story Diary Create Physical Activity">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="สร้างกิจกรรมทางกาย">
-          <div className="create-card" role="dialog" aria-modal="true" aria-labelledby="physical-form-title">
-            <header className="create-header">
-              <button className="action-btn" aria-label="ยกเลิก" onClick={handleCancel}>
+    <BookShellLayout
+      tight
+      rail={<IconRail />}
+      mergedOnly
+      merged={
+        <div className={styles.authoringPage} aria-label="สร้างกิจกรรมทางกาย">
+          <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="physical-form-title">
+            <header className={styles.createHeader}>
+              <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <h2 className="create-title" id="physical-form-title">เพิ่มกิจกรรม</h2>
+              <h2 className={styles.createTitle} id="physical-form-title">เพิ่มกิจกรรม</h2>
               <button
-                className={`action-btn${saving ? " saving" : ""}`}
+                className={`${styles.actionBtn}${saving ? ` ${styles.saving}` : ""}`}
                 aria-label="บันทึก"
                 onClick={handleSave}
                 disabled={saving}
@@ -153,12 +158,12 @@ function PhysicalFormInner() {
               </button>
             </header>
 
-            <div className="form-panel">
+            <div className={styles.formPanel}>
               {/* Activity name */}
-              <div className="name-row">
+              <div className={styles.nameRow}>
                 {isOther ? (
                   <input
-                    className={`name-field${form.errors.name ? " error" : ""}`}
+                    className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
                     type="text"
                     aria-label="ชื่อกิจกรรม"
                     placeholder="ชื่อกิจกรรม :"
@@ -166,13 +171,13 @@ function PhysicalFormInner() {
                     onChange={(e) => dispatchForm({ type: "SET_NAME", value: e.target.value })}
                   />
                 ) : (
-                  <div className="activity-badge">
-                    <span className="activity-badge-dot" aria-hidden="true" style={{ background: form.iconColor }} />
-                    <span className="activity-badge-name">{form.name}</span>
+                  <div className={styles.activityBadge}>
+                    <span className={styles.activityBadgeDot} aria-hidden="true" style={{ background: form.iconColor }} />
+                    <span className={styles.activityBadgeName}>{form.name}</span>
                   </div>
                 )}
                 <button
-                  className="name-icon"
+                  className={styles.nameIcon}
                   type="button"
                   aria-label="เปลี่ยนสีไอคอน"
                   onClick={() => colorDialogRef.current?.showModal()}
@@ -181,16 +186,16 @@ function PhysicalFormInner() {
                   <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
                 </button>
               </div>
-              {form.errors.name && <p className="field-error" role="alert">{form.errors.name}</p>}
+              {form.errors.name && <p className={styles.fieldError} role="alert">{form.errors.name}</p>}
 
               {/* Goal chips */}
-              <div className="chip-line">
-                <div className="chip-label">เป้าหมาย</div>
-                <div className="chip-track" role="radiogroup" aria-label="หน่วยเป้าหมาย">
+              <div className={styles.chipLine}>
+                <div className={styles.chipLabel}>เป้าหมาย</div>
+                <div className={styles.chipTrack} role="radiogroup" aria-label="หน่วยเป้าหมาย">
                   {GOAL_PRESETS.map((unit) => (
                     <button
                       key={unit}
-                      className={`chip${form.goalUnit === unit ? " is-selected" : ""}`}
+                      className={`${styles.chip}${form.goalUnit === unit ? ` ${styles.isSelected}` : ""}`}
                       role="radio"
                       aria-checked={form.goalUnit === unit}
                       onClick={() => dispatchForm({ type: "SET_GOAL_UNIT", value: unit })}
@@ -200,26 +205,26 @@ function PhysicalFormInner() {
                   ))}
                 </div>
               </div>
-              <div className="count-row">
+              <div className={styles.countRow}>
                 <input
-                  className="count-num"
+                  className={styles.countNum}
                   type="number"
                   min="1"
                   value={form.goalCount}
                   aria-label="จำนวนเป้าหมาย"
                   onChange={(e) => dispatchForm({ type: "SET_GOAL_COUNT", value: Number(e.target.value) })}
                 />
-                <div className="count-unit">{form.goalUnit}</div>
+                <div className={styles.countUnit}>{form.goalUnit}</div>
               </div>
 
               {/* Frequency */}
-              <div className="chip-line">
-                <div className="chip-label">ความถี่</div>
-                <div className="chip-track" role="radiogroup" aria-label="ความถี่">
+              <div className={styles.chipLine}>
+                <div className={styles.chipLabel}>ความถี่</div>
+                <div className={styles.chipTrack} role="radiogroup" aria-label="ความถี่">
                   {(["daily", "weekly", "monthly", "todo"] as HabitFrequency[]).map((f) => (
                     <button
                       key={f}
-                      className={`chip${form.frequency === f ? " is-selected" : ""}`}
+                      className={`${styles.chip}${form.frequency === f ? ` ${styles.isSelected}` : ""}`}
                       role="radio"
                       aria-checked={form.frequency === f}
                       onClick={() => dispatchForm({ type: "SET_FREQUENCY", value: f })}
@@ -232,11 +237,11 @@ function PhysicalFormInner() {
 
               {form.frequency === "daily" && (
                 <div>
-                  <div className="weekday-row" role="group" aria-label="เลือกวัน">
+                  <div className={styles.weekdayRow} role="group" aria-label="เลือกวัน">
                     {WEEKDAY_LABELS.map((label, i) => (
                       <button
                         key={i}
-                        className={`weekday${form.weekdays.includes(i as WeekdayIndex) ? " is-selected" : ""}`}
+                        className={`${styles.weekday}${form.weekdays.includes(i as WeekdayIndex) ? ` ${styles.isSelected}` : ""}`}
                         aria-pressed={form.weekdays.includes(i as WeekdayIndex)}
                         onClick={() => dispatchForm({ type: "TOGGLE_WEEKDAY", day: i as WeekdayIndex })}
                       >
@@ -244,13 +249,13 @@ function PhysicalFormInner() {
                       </button>
                     ))}
                   </div>
-                  {form.errors.weekdays && <p className="field-error" role="alert">{form.errors.weekdays}</p>}
+                  {form.errors.weekdays && <p className={styles.fieldError} role="alert">{form.errors.weekdays}</p>}
                 </div>
               )}
               {form.frequency === "weekly" && (
-                <div className="count-row">
+                <div className={styles.countRow}>
                   <input
-                    className="count-num"
+                    className={styles.countNum}
                     type="number"
                     min="1"
                     max="7"
@@ -258,13 +263,13 @@ function PhysicalFormInner() {
                     aria-label="จำนวนวันต่อสัปดาห์"
                     onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
                   />
-                  <div className="count-unit">วัน/สัปดาห์</div>
+                  <div className={styles.countUnit}>วัน/สัปดาห์</div>
                 </div>
               )}
               {form.frequency === "monthly" && (
-                <div className="count-row">
+                <div className={styles.countRow}>
                   <input
-                    className="count-num"
+                    className={styles.countNum}
                     type="number"
                     min="1"
                     max="31"
@@ -272,17 +277,17 @@ function PhysicalFormInner() {
                     aria-label="จำนวนวันต่อเดือน"
                     onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
                   />
-                  <div className="count-unit">วัน/เดือน</div>
+                  <div className={styles.countUnit}>วัน/เดือน</div>
                 </div>
               )}
               {form.frequency === "todo" && (
-                <div className="chip-line">
-                  <div className="chip-label">ความสำคัญ</div>
-                  <div className="chip-track" role="radiogroup" aria-label="ความสำคัญ">
+                <div className={styles.chipLine}>
+                  <div className={styles.chipLabel}>ความสำคัญ</div>
+                  <div className={styles.chipTrack} role="radiogroup" aria-label="ความสำคัญ">
                     {(["general", "moderate", "high"] as HabitImportance[]).map((imp) => (
                       <button
                         key={imp}
-                        className={`chip${form.importance === imp ? " is-selected" : ""}`}
+                        className={`${styles.chip}${form.importance === imp ? ` ${styles.isSelected}` : ""}`}
                         role="radio"
                         aria-checked={form.importance === imp}
                         onClick={() => dispatchForm({ type: "SET_IMPORTANCE", value: imp })}
@@ -295,42 +300,41 @@ function PhysicalFormInner() {
               )}
             </div>
           </div>
-        </section>
-        <IconRail />
-      </section>
 
-      {/* Color dialog */}
-      <dialog ref={colorDialogRef} className="color-dialog" aria-label="เลือกสีไอคอน">
-        <p className="color-dialog-title">เลือกสีไอคอน</p>
-        <div className="swatch-row">
-          {["#ee8a4a", "#ffffff", "#111111", "#ff6b6b", "#2a9d8f", "#4d8dff"].map((color) => (
-            <button key={color} className="swatch" type="button" style={{ background: color }}
-              aria-label={`สี ${color}`}
-              onClick={() => dispatchForm({ type: "SET_ICON_COLOR", value: color })} />
-          ))}
-        </div>
-        <div className="color-custom-row">
-          <label htmlFor="custom-physical-color">สีอื่น:</label>
-          <input className="color-custom" id="custom-physical-color" type="color"
-            value={form.iconColor}
-            onChange={(e) => dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })} />
-        </div>
-        <div className="color-actions">
-          <button className="dialog-btn dialog-btn-secondary" type="button" onClick={() => colorDialogRef.current?.close()}>ปิด</button>
-          <button className="dialog-btn dialog-btn-primary" type="button" onClick={() => colorDialogRef.current?.close()}>ใช้สี</button>
-        </div>
-      </dialog>
+          {/* Color dialog */}
+          <dialog ref={colorDialogRef} className={styles.colorDialog} aria-label="เลือกสีไอคอน">
+            <p className={styles.colorDialogTitle}>เลือกสีไอคอน</p>
+            <div className={styles.swatchRow}>
+              {["#ee8a4a", "#ffffff", "#111111", "#ff6b6b", "#2a9d8f", "#4d8dff"].map((color) => (
+                <button key={color} className={styles.swatch} type="button" style={{ background: color }}
+                  aria-label={`สี ${color}`}
+                  onClick={() => dispatchForm({ type: "SET_ICON_COLOR", value: color })} />
+              ))}
+            </div>
+            <div className={styles.colorCustomRow}>
+              <label htmlFor="custom-physical-color">สีอื่น:</label>
+              <input className={styles.colorCustom} id="custom-physical-color" type="color"
+                value={form.iconColor}
+                onChange={(e) => dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })} />
+            </div>
+            <div className={styles.colorActions}>
+              <button className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`} type="button" onClick={() => colorDialogRef.current?.close()}>ปิด</button>
+              <button className={`${styles.dialogBtn} ${styles.dialogBtnPrimary}`} type="button" onClick={() => colorDialogRef.current?.close()}>ใช้สี</button>
+            </div>
+          </dialog>
 
-      {/* DS-4 Discard dialog */}
-      <dialog ref={discardRef} className="discard-dialog" aria-modal="true">
-        <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
-        <p>ข้อมูลที่กรอกไว้จะหายไป</p>
-        <div className="discard-dialog-btns">
-          <button className="discard-btn-cancel" onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className="discard-btn-leave" onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
+          {/* DS-4 Discard dialog */}
+          <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
+            <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
+            <p>ข้อมูลที่กรอกไว้จะหายไป</p>
+            <div className={styles.discardDialogBtns}>
+              <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
+              <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
+            </div>
+          </dialog>
         </div>
-      </dialog>
-    </main>
+      }
+    />
   );
 }
 

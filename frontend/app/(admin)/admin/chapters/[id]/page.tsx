@@ -14,6 +14,7 @@ import {
   type UpdateSceneRequest,
 } from "@/store/adminApi";
 import type { ChapterScene } from "@/types/chapters";
+import styles from "@/components/Admin.module.css";
 
 const EMPTY_SCENE: CreateSceneRequest = {
   idx: 0,
@@ -105,56 +106,56 @@ export default function AdminChapterDetailPage() {
 
   if (chapterLoading) {
     return (
-      <div className="admin-layout">
+      <div className={styles.adminLayout}>
         <AdminSidebar />
-        <div className="admin-main-wrapper">
-          <main className="admin-main"><div className="chapter-spinner" /></main>
+        <div className={styles.adminMainWrapper}>
+          <main className={styles.adminMain}><div className={styles.adminSpinner} /></main>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="admin-layout">
+    <div className={styles.adminLayout}>
       <AdminSidebar />
-      <div className="admin-main-wrapper">
-        <main className="admin-main">
+      <div className={styles.adminMainWrapper}>
+        <main className={styles.adminMain}>
 
-          <div className="admin-page-header">
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <button className="admin-btn admin-btn-secondary" onClick={() => router.push("/admin/chapters")}>
+          <div className={styles.adminPageHeader}>
+            <div className={styles.adminHeaderGroup}>
+              <button className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={() => router.push("/admin/chapters")}>
                 ← Chapters
               </button>
-              <h1 className="admin-page-title">{chapter?.title ?? "Chapter"}</h1>
+              <h1 className={styles.adminPageTitle}>{chapter?.title ?? "Chapter"}</h1>
             </div>
           </div>
 
           {/* Chapter info form */}
-          <div className="admin-form-card">
+          <div className={styles.adminFormCard}>
             <h2>Chapter Info</h2>
             <form onSubmit={handleSaveChapter}>
-              <div className="admin-form-grid">
-                <div className="admin-form-field">
-                  <label className="admin-label">Title</label>
+              <div className={styles.adminFormGrid}>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>Title</label>
                   <input
-                    className="admin-input"
+                    className={styles.adminInput}
                     value={chapterForm.title}
                     onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })}
                     required
                   />
                 </div>
-                <div className="admin-form-field">
-                  <label className="admin-label">Intro Title</label>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>Intro Title</label>
                   <input
-                    className="admin-input"
+                    className={styles.adminInput}
                     value={chapterForm.introTitle}
                     onChange={(e) => setChapterForm({ ...chapterForm, introTitle: e.target.value })}
                   />
                 </div>
-                <div className="admin-form-field">
-                  <label className="admin-label">Lock State</label>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>Lock State</label>
                   <select
-                    className="admin-select"
+                    className={styles.adminSelect}
                     value={chapterForm.lockState}
                     onChange={(e) => setChapterForm({ ...chapterForm, lockState: e.target.value as "unlocked" | "locked" })}
                   >
@@ -162,69 +163,68 @@ export default function AdminChapterDetailPage() {
                     <option value="locked">locked</option>
                   </select>
                 </div>
-                <div className="admin-form-field">
-                  <label className="admin-label">Background Image URL (optional)</label>
+                <div className={styles.adminFormField}>
+                  <label className={styles.adminLabel}>Background Image URL (optional)</label>
                   <input
-                    className="admin-input"
+                    className={styles.adminInput}
                     value={chapterForm.backgroundImageUrl}
                     onChange={(e) => setChapterForm({ ...chapterForm, backgroundImageUrl: e.target.value })}
                   />
                 </div>
               </div>
-              <div className="admin-form-actions">
-                <button type="submit" className="admin-btn admin-btn-primary">บันทึก</button>
+              <div className={styles.adminFormActions}>
+                <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>บันทึก</button>
               </div>
             </form>
           </div>
 
           {/* Scene add/edit form */}
           {showSceneForm && (
-            <div className="admin-form-card">
+            <div className={styles.adminFormCard}>
               <h2>{editSceneId !== null ? "แก้ไข Scene" : "เพิ่ม Scene ใหม่"}</h2>
               <form onSubmit={handleSubmitScene}>
-                <div className="admin-form-grid">
-                  <div className="admin-form-field">
-                    <label className="admin-label">Index (idx)</label>
+                <div className={styles.adminFormGrid}>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Index (idx)</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       type="number"
                       value={sceneForm.idx}
                       onChange={(e) => setSceneForm({ ...sceneForm, idx: Number(e.target.value) })}
                       required
                     />
                   </div>
-                  <div className="admin-form-field">
-                    <label className="admin-label">Speaker Name</label>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Speaker Name</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       value={sceneForm.speakerName}
                       onChange={(e) => setSceneForm({ ...sceneForm, speakerName: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="admin-form-field">
-                    <label className="admin-label">Speaker Image URL (optional)</label>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Speaker Image URL (optional)</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       value={sceneForm.speakerImageUrl ?? ""}
                       onChange={(e) => setSceneForm({ ...sceneForm, speakerImageUrl: e.target.value })}
                     />
                   </div>
-                  <div className="admin-form-field" style={{ gridColumn: "1 / -1" }}>
-                    <label className="admin-label">Text</label>
+                  <div className={`${styles.adminFormField} ${styles.full}`}>
+                    <label className={styles.adminLabel}>Text</label>
                     <textarea
-                      className="admin-input"
+                      className={styles.adminTextarea}
                       rows={4}
                       value={sceneForm.text}
                       onChange={(e) => setSceneForm({ ...sceneForm, text: e.target.value })}
                       required
-                      style={{ resize: "vertical" }}
                     />
                   </div>
                 </div>
-                <div className="admin-form-actions">
-                  <button type="button" className="admin-btn admin-btn-secondary" onClick={closeSceneForm}>ยกเลิก</button>
-                  <button type="submit" className="admin-btn admin-btn-primary">
+                <div className={styles.adminFormActions}>
+                  <button type="button" className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={closeSceneForm}>ยกเลิก</button>
+                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
                     {editSceneId !== null ? "บันทึก" : "เพิ่ม"}
                   </button>
                 </div>
@@ -233,16 +233,16 @@ export default function AdminChapterDetailPage() {
           )}
 
           {/* Scenes table */}
-          <div className="admin-page-header" style={{ marginTop: "2rem" }}>
-            <h2 className="admin-page-title" style={{ fontSize: "1.2rem" }}>Scenes</h2>
-            <button className="admin-btn admin-btn-primary" onClick={openCreateScene}>+ Add Scene</button>
+          <div className={`${styles.adminPageHeader} ${styles.adminSectionHeader}`}>
+            <h2 className={styles.adminPageTitle} style={{ fontSize: "1.2rem" }}>Scenes</h2>
+            <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreateScene}>+ Add Scene</button>
           </div>
 
           {scenesLoading ? (
-            <div className="chapter-spinner" />
+            <div className={styles.adminSpinner} />
           ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
+            <div className={styles.adminTableWrap}>
+              <table className={styles.adminTable}>
                 <thead>
                   <tr>
                     <th>idx</th>
@@ -257,16 +257,16 @@ export default function AdminChapterDetailPage() {
                     <tr key={scene.id}>
                       <td>{scene.index}</td>
                       <td>{scene.speakerName}</td>
-                      <td style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <td className={styles.adminTruncated}>
                         {scene.speakerImageUrl ?? "—"}
                       </td>
-                      <td style={{ maxWidth: "300px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <td className={styles.adminTruncated} style={{ maxWidth: "300px" }}>
                         {scene.text}
                       </td>
                       <td>
-                        <div className="admin-table-actions">
-                          <button className="admin-btn admin-btn-secondary" onClick={() => openEditScene(scene)}>Edit</button>
-                          <button className="admin-btn admin-btn-danger" onClick={() => handleDeleteScene(scene.id)}>Delete</button>
+                        <div className={styles.adminTableActions}>
+                          <button className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={() => openEditScene(scene)}>Edit</button>
+                          <button className={`${styles.adminBtn} ${styles.adminBtnDanger}`} onClick={() => handleDeleteScene(scene.id)}>Delete</button>
                         </div>
                       </td>
                     </tr>

@@ -1,0 +1,759 @@
+/* ── s005 Chapters Hub ── */
+.chapterDiamondLeftWrap {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.chapterDiamondWrap {
+  width: 72%;
+  height: 86%;
+  display: grid;
+  place-items: center;
+}
+
+.chapterDiamondWrapLink {
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.chapterDiamond {
+  width: 78%;
+  aspect-ratio: 1 / 1;
+  background: #55d0d7;
+  border-radius: 12%;
+  transform: rotate(45deg);
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.chapterDiamondInner {
+  transform: rotate(-45deg);
+  text-align: center;
+  width: 100%;
+  position: relative;
+  top: -7%;
+}
+
+.chapterDiamond h1 {
+  margin: 0;
+  font-size: 3em;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.diamondMotif {
+  margin: 2.2rem auto 0;
+  width: 72%;
+  color: rgba(67, 126, 172, 0.9);
+  font-size: 1.3em;
+  letter-spacing: 0.15rem;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.diamondTail {
+  width: 46%;
+  height: 5.6rem;
+  margin: 0.5rem auto 0;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 0,
+      rgba(67, 126, 172, 0.5) 0 22%,
+      transparent 23%),
+    radial-gradient(circle at 50% 100%,
+      rgba(67, 126, 172, 0.42) 0 20%,
+      transparent 21%);
+  opacity: 0.86;
+}
+
+.chaptersDashboard {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 3rem;
+  padding: 8% 7% 6%;
+}
+
+.chapterCard {
+  border-radius: 48px;
+  background: #59d6dc;
+  min-height: 250px;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.chapterCard h2 {
+  margin: 0;
+  font-size: 3em;
+  font-weight: 500;
+  line-height: 0.95;
+  position: relative;
+  z-index: 1;
+}
+
+.chapterCardTop {
+  justify-content: center;
+}
+
+.learningLogo {
+  width: 84%;
+  max-width: 25rem;
+  height: 100%;
+  border-radius: 32px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.learningLogo h2 {
+  font-size: 2.5em;
+}
+
+.learningLogo::before,
+.learningLogo::after {
+  content: "";
+  position: absolute;
+  right: 8%;
+  width: 9.2rem;
+  height: 3px;
+  background: rgba(67, 126, 172, 0.58);
+  transform: rotate(48deg);
+  transform-origin: right center;
+}
+
+.learningLogo::before {
+  top: 22%;
+}
+
+.learningLogo::after {
+  top: 34%;
+  right: 5%;
+  width: 8rem;
+}
+
+.ebookLinkOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.ebookLinkOverlay h2 {
+  margin: 0 1.4rem 0 0;
+  font-size: 74px;
+  font-weight: 500;
+  line-height: 0.95;
+  position: relative;
+  z-index: 1;
+}
+
+.ebookArch {
+  position: absolute;
+  left: 3rem;
+  bottom: 1.4rem;
+  width: 9.8rem;
+  height: 12.8rem;
+  border-radius: 4.8rem 4.8rem 0 0;
+  background: #508db9;
+}
+
+.ebookStep {
+  position: absolute;
+  left: 3.3rem;
+  bottom: 2rem;
+  width: 4.8rem;
+  height: 1.15rem;
+  background: #f0f3f5;
+  border: 2px solid rgba(34, 70, 98, 0.2);
+}
+
+.ebookStep.s2 {
+  left: 5rem;
+  bottom: 3.05rem;
+  width: 6.1rem;
+}
+
+.ebookStep.s3 {
+  left: 6.4rem;
+  bottom: 4.15rem;
+  width: 4.4rem;
+}
+
+.chapterCardBottom h2 {
+  font-size: 3.3em;
+  margin-right: 1.4rem;
+}
+
+/* ── s008 Chapter Menu ── */
+.chaptersMenuPage {
+  height: 100%;
+  padding: 8% 8% 7%;
+  display: grid;
+  align-content: start;
+}
+
+.chapterTitle {
+  margin: 0;
+  font-size: 2.1em;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.chapterTitleRule {
+  width: 100%;
+  height: 5px;
+  margin: 0.7rem 0 1.2rem;
+  border-radius: 999px;
+  background: #111;
+}
+
+.hiddenPlaceholder {
+  visibility: hidden;
+}
+
+.chapterList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.chapterListRight {
+  margin-top: 0.5rem;
+}
+
+.chapterRow {
+  display: block;
+}
+
+.chapterRowLink {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr;
+  align-items: center;
+  column-gap: 1.2rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.pin {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 5.2rem;
+}
+
+.pinCircle {
+  width: 4rem;
+  height: 4rem;
+  border: 0.35rem solid #ff3131;
+  border-radius: 50%;
+  background: #fbf3e6;
+  display: grid;
+  place-items: center;
+  font-size: 1.85em;
+  line-height: 1;
+  color: #ff3131;
+  font-weight: 500;
+}
+
+.pinTip {
+  width: 0;
+  height: 0;
+  border-left: 1.4rem solid transparent;
+  border-right: 1.4rem solid transparent;
+  border-top: 1.8rem solid #ff3131;
+  margin-top: -0.5rem;
+}
+
+.pinBase {
+  width: 4.6rem;
+  height: 1.35rem;
+  margin-top: -0.35rem;
+  border: 0.22rem solid #ff3131;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.pinLinkLine {
+  position: absolute;
+  left: 49%;
+  top: 100%;
+  width: 0.34rem;
+  height: 2.3rem;
+  transform: translateX(-50%) rotate(38deg);
+  background: repeating-linear-gradient(to bottom,
+      #ff4f4f 0 0.78rem,
+      transparent 0.78rem 1.2rem);
+  transform-origin: top center;
+}
+
+.chapterPill {
+  min-height: 5rem;
+  border-radius: 1.4rem;
+  background: #59d6dc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem 0 1.4rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chapterPillText {
+  font-size: 1.9em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.lockIcon {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: 0 0 auto;
+  margin-left: 0.6rem;
+}
+
+/* DS-2 lock-hint shake */
+@keyframes chapterShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(2px); }
+}
+
+.chapterRowShaking .chapterPill {
+  animation: chapterShake 0.24s ease;
+}
+
+.chapterLockHint {
+  font-size: 0.7em;
+  color: #d44;
+  padding: 0.3rem 0 0 6.4rem;
+}
+
+/* ── s009 Chapter Intro (full-bleed) ── */
+.chapterExplainScreen {
+  position: relative;
+  isolation: isolate;
+}
+
+.chapterExplainBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.fallbackBg {
+  background: var(--book-fill);
+}
+
+.chapterExplainPanel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16%;
+  bottom: 22%;
+  background: rgba(239, 246, 249, 0.78);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  backdrop-filter: blur(1px);
+  transition: opacity 0.3s ease;
+}
+
+.chapterExplainPanel.loading {
+  opacity: 0.65;
+}
+
+.chapterExplainPanel h1 {
+  margin: 0;
+  font-size: 4.35em;
+  font-weight: 500;
+  line-height: 1;
+  color: #101419;
+}
+
+.chapterExplainNext {
+  position: absolute;
+  left: 50%;
+  bottom: 3.4rem;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 46px solid transparent;
+  border-right: 46px solid transparent;
+  border-top: 72px solid #efb364;
+  filter: drop-shadow(0 8px 10px rgba(55, 40, 20, 0.16));
+}
+
+.chapterExplainLink {
+  position: absolute;
+  inset: 0;
+}
+
+/* DS-1 spinner */
+.chapterSpinner {
+  width: 58px;
+  height: 58px;
+  border: 5px solid rgba(14, 152, 175, 0.2);
+  border-top-color: var(--panel-blue-deep);
+  border-radius: 50%;
+  animation: chapterSpin 0.8s linear infinite;
+}
+
+@keyframes chapterSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── s010 Chapter Scene (full-bleed) ── */
+.chapterDetailsScreen {
+  position: relative;
+  isolation: isolate;
+}
+
+.chapterDetailsBg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.chapterSceneExit {
+  position: absolute;
+  top: 1.35rem;
+  left: 1.35rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.8rem 0.45rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 247, 236, 0.94);
+  border: 3px solid rgba(203, 123, 43, 0.95);
+  color: #8d5417;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 12px 22px -12px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.chapterSceneExit:hover {
+  background: #fff7ec;
+}
+
+.chapterSceneExitIcon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #cb7b2b;
+  box-shadow: inset 0 -2px 0 rgba(120, 65, 14, 0.25);
+  flex: 0 0 auto;
+}
+
+.chapterSceneExitIcon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke: #fff7ec;
+  stroke-width: 2.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chapterSceneExitLabel {
+  display: inline-block;
+  transform: translateY(-0.02rem);
+}
+
+.speakerFigure {
+  position: absolute;
+  right: 22%;
+  top: 7%;
+  width: 30%;
+  max-width: 540px;
+  z-index: 1;
+}
+
+.dialogPanel {
+  position: absolute;
+  left: 1.5%;
+  right: 1.5%;
+  bottom: 7.5%;
+  height: 31.5%;
+  background: #e8e0d4;
+  border: 5px solid #cb7b2b;
+  border-radius: 56px;
+  z-index: 2;
+  padding: 2.4rem 3.5rem 2rem;
+}
+
+.speakerName {
+  position: absolute;
+  top: -2.5rem;
+  left: 3rem;
+  margin: 0;
+  padding: 0.5rem 1.4rem 0.6rem;
+  border-radius: 20px;
+  background: #cb7b2b;
+  color: #fff7ec;
+  font-size: 2.2em;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.dialogText {
+  margin: 0;
+  font-size: 2em;
+  line-height: 1.55;
+  color: #080b10;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.dialogNext {
+  position: absolute;
+  right: 3.2rem;
+  bottom: 1.8rem;
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-top: 38px solid #efb364;
+  filter: drop-shadow(0 6px 7px rgba(55, 40, 20, 0.2));
+  pointer-events: none;
+}
+
+.dialogNextLink {
+  position: absolute;
+  right: 1.8rem;
+  bottom: 1rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 999px;
+  z-index: 3;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+/* ── s011 Video Clips ── */
+.videoClipsPage {
+  height: 100%;
+  padding: 7% 6% 7% 7%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1.2rem;
+}
+
+.clipsGridContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding-right: 0.5rem;
+}
+
+.clipsGridContainer::-webkit-scrollbar {
+  width: 0.6rem;
+}
+
+.clipsGridContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clipsGridContainer::-webkit-scrollbar-thumb {
+  background: rgba(46, 122, 170, 0.3);
+  border-radius: 0.3rem;
+}
+
+.clipsGridContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(46, 122, 170, 0.5);
+}
+
+.clipsGridItem {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+}
+
+.clipSectionLabelSpacer {
+  height: 3.3rem;
+}
+
+.clipSectionLabelBadge {
+  display: inline-block;
+  background: #59d6dc;
+  border-radius: 1.4rem;
+  padding: 0.5rem 1.4rem 0.6rem;
+  font-size: 1.55em;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.clipThumbnail {
+  background: #59d6dc;
+  border-radius: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.clipPlayButton {
+  width: 5rem;
+  height: 5rem;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.clipPlayButton svg {
+  width: 2rem;
+  height: 2rem;
+  fill: #2e7aaa;
+  margin-left: 0.3rem;
+}
+
+.clipCaption {
+  font-size: 1.85em;
+  font-weight: 600;
+  color: #2e7aaa;
+}
+
+.clipPlayerPage {
+  height: 100%;
+  padding: 2.2rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.75) 0 12%, transparent 13%),
+    linear-gradient(165deg, #e7f7ff 0%, #d3eef9 55%, #cbe8f5 100%);
+}
+
+.clipPlayerPageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.clipPlayerBack {
+  text-decoration: none;
+  color: #ffffff;
+  background: #2e7aaa;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-weight: 700;
+}
+
+.clipPlayerTitle {
+  margin: 0;
+  font-size: 1.55em;
+  font-weight: 700;
+  color: #1f5f85;
+}
+
+.clipPlayerFrameWrap {
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: #10212d;
+  min-height: 0;
+}
+
+.clipPlayerFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.clipPlayerFallback {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.clipPlayerCaption {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1f5f85;
+  text-align: center;
+}
+
+.sparkleGroup {
+  position: absolute;
+  bottom: 1.8rem;
+  right: 1.6rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.4rem;
+  align-items: end;
+  pointer-events: none;
+}
+
+.sparkle {
+  fill: #e8c84a;
+  opacity: 0.9;
+}
+
+.sparkleLg {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+.sparkleMd {
+  width: 3.8rem;
+  height: 3.8rem;
+}
+
+.sparkleSm {
+  width: 2.8rem;
+  height: 2.8rem;
+}

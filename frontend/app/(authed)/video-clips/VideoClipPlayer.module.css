@@ -1,0 +1,68 @@
+.clipPlayerPage {
+  height: 100%;
+  padding: 2.2rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.75) 0 12%, transparent 13%),
+    linear-gradient(165deg, #e7f7ff 0%, #d3eef9 55%, #cbe8f5 100%);
+}
+
+.clipPlayerPageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.clipPlayerBack {
+  text-decoration: none;
+  color: #ffffff;
+  background: #2e7aaa;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-weight: 700;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.clipPlayerBack:hover {
+  background: #246a96;
+  transform: translateY(-1px);
+}
+
+.clipPlayerTitle {
+  margin: 0;
+  font-size: 1.55em;
+  font-weight: 700;
+  color: #1f5f85;
+}
+
+.clipPlayerFrameWrap {
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: #10212d;
+  min-height: 0;
+}
+
+.clipPlayerFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.clipPlayerFallback {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.clipPlayerCaption {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1f5f85;
+  text-align: center;
+}

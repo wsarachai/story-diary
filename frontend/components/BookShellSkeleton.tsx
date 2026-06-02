@@ -9,6 +9,9 @@
  * (e.g. list rows vs. card blocks vs. grid cells).
  */
 
+import styles from "./BookShellSkeleton.module.css";
+import layoutStyles from "./BookShellLayout.module.css";
+
 interface SkelLineProps {
   width?: string;
   height?: string;
@@ -18,7 +21,7 @@ interface SkelLineProps {
 function SkelLine({ width = "60%", height = "0.85em", delay = "0s" }: SkelLineProps) {
   return (
     <div
-      className="skel-line"
+      className={styles.skelLine}
       style={{ width, height, animationDelay: delay }}
     />
   );
@@ -27,7 +30,7 @@ function SkelLine({ width = "60%", height = "0.85em", delay = "0s" }: SkelLinePr
 function SkelBlock({ width = "100%", height = "3.5em", delay = "0s" }: SkelLineProps) {
   return (
     <div
-      className="skel-block"
+      className={styles.skelBlock}
       style={{ width, height, animationDelay: delay }}
     />
   );
@@ -37,7 +40,7 @@ function SkelBlock({ width = "100%", height = "3.5em", delay = "0s" }: SkelLineP
 function SkelRule() {
   return (
     <div
-      className="skel-line"
+      className={styles.skelLine}
       style={{ width: "100%", height: "2px", opacity: 0.5, animationDelay: "0.1s" }}
     />
   );
@@ -58,7 +61,7 @@ function StaticRail() {
       {[0, 1, 2, 3].map((i) => (
         <div
           key={i}
-          className="skel-block"
+          className={styles.skelBlock}
           style={{
             width: "4.5rem",
             height: "4.5rem",
@@ -78,7 +81,7 @@ function HomeLeft() {
   return (
     <div style={{ display: "grid", placeItems: "center", height: "100%", padding: "8%" }}>
       <div
-        className="skel-block"
+        className={styles.skelBlock}
         style={{
           width: "72%",
           aspectRatio: "0.65",
@@ -111,7 +114,7 @@ function ChapterList() {
       <SkelRule />
       {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div className="skel-circle" style={{ width: "2.2em", height: "2.2em", flexShrink: 0, animationDelay: `${i * 0.08}s` }} />
+          <div className={styles.skelCircle} style={{ width: "2.2em", height: "2.2em", flexShrink: 0, animationDelay: `${i * 0.08}s` }} />
           <SkelLine width={`${55 + (i % 3) * 15}%`} height="1em" delay={`${0.05 + i * 0.08}s`} />
         </div>
       ))}
@@ -128,7 +131,7 @@ function HabitEntries() {
           <SkelLine width="9em" height="1.6em" />
           <SkelLine width="12em" height="0.8em" delay="0.08s" />
         </div>
-        <div className="skel-circle" style={{ width: "2em", height: "2em" }} />
+        <div className={styles.skelCircle} style={{ width: "2em", height: "2em" }} />
       </div>
       <div style={{ display: "flex", gap: "0.5rem" }}>
         {[0, 1, 2].map((i) => (
@@ -139,7 +142,7 @@ function HabitEntries() {
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="skel-block"
+            className={styles.skelBlock}
             style={{ width: "100%", height: "3.2em", borderRadius: "12px", animationDelay: `${0.1 + i * 0.08}s` }}
           />
         ))}
@@ -154,7 +157,7 @@ function MinigameCard() {
     <div style={{ padding: "7%", display: "flex", flexDirection: "column", gap: "1.4rem" }}>
       <div style={{ display: "flex", gap: "0.5rem" }}>
         {[0, 1, 2].map((i) => (
-          <div key={i} className="skel-circle" style={{ width: "2.4em", height: "2.4em", animationDelay: `${i * 0.1}s` }} />
+          <div key={i} className={styles.skelCircle} style={{ width: "2.4em", height: "2.4em", animationDelay: `${i * 0.1}s` }} />
         ))}
       </div>
       <SkelLine width="60%" height="2em" delay="0.1s" />
@@ -215,16 +218,16 @@ export default function BookShellSkeleton({ variant = "generic" }: Props) {
 
   return (
     <main
-      className="screen screen-landscape"
+      className={layoutStyles.screen}
       aria-label="กำลังโหลด…"
       aria-busy="true"
     >
       <section
-        className="book-shell book-shell-tight"
+        className={`${layoutStyles.bookShell} ${layoutStyles.bookShellTight}`}
         style={{ gridTemplateColumns: "1fr 1fr auto" }}
       >
-        <section className="page page-left page-seam-right">{left}</section>
-        <section className="page page-right">{right}</section>
+        <section className={`${layoutStyles.page} ${layoutStyles.pageLeft} ${layoutStyles.pageSeamRight}`}>{left}</section>
+        <section className={`${layoutStyles.page} ${layoutStyles.pageRight}`}>{right}</section>
         <StaticRail />
       </section>
     </main>

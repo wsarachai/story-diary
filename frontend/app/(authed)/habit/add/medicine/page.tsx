@@ -2,6 +2,7 @@
 import { Suspense, useReducer, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import BookShellLayout from "@/components/BookShellLayout";
 import { useCreateActivityMutation } from "@/store/habitsApi";
 import type {
   HabitFrequency,
@@ -12,6 +13,7 @@ import type {
   NutritionPresetKey,
 } from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
+import styles from "../HabitAdd.module.css";
 
 const NUTRITION_PRESET_KEYS: NutritionPresetKey[] = [
   "nutrition_5_groups",
@@ -176,198 +178,202 @@ function MedicineFormInner() {
   void source;
 
   return (
-    <main className="screen" aria-label="Story Diary Create Activity">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="สร้างกิจกรรม">
-          <div className="create-card" role="dialog" aria-modal="true" aria-labelledby="create-title">
-            <header className="create-header">
-              <button
-                className="action-btn"
-                aria-label="ยกเลิก"
-                onClick={handleCancel}
-              >
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-              <h2 className="create-title" id="create-title">เพิ่มกิจกรรม</h2>
-              <button
-                className={`action-btn${saving ? " saving" : ""}`}
-                aria-label="บันทึก"
-                onClick={handleSave}
-                disabled={saving}
-                style={{ borderColor: "#08c65a" }}
-              >
-                {saving
-                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" /></svg>
-                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12" /></svg>
-                }
-              </button>
-            </header>
-
-            {saveError && <p className="field-error" role="alert" style={{ margin: "0 0 0.5em", textAlign: "center" }}>{saveError}</p>}
-            <div className="form-panel">
-              {/* Name + icon-color */}
-              <div className="name-row">
-                <input
-                  className={`name-field${isNutrition ? " nutrition-flavor" : ""}${form.errors.name ? " error" : ""}`}
-                  type="text"
-                  aria-label={isNutrition ? "ชื่อโภชนาการ" : "ชื่อยา"}
-                  placeholder={isNutrition ? "ชื่อโภชนาการ :" : "ชื่อยา :"}
-                  value={form.name}
-                  onChange={(e) => dispatchForm({ type: "SET_NAME", value: e.target.value })}
-                />
+    <>
+      <BookShellLayout
+        mergedOnly
+        merged={
+          <div className={styles.authoringPage} aria-label="สร้างกิจกรรม">
+            <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="create-title">
+              <header className={styles.createHeader}>
                 <button
-                  className="name-icon"
-                  type="button"
-                  aria-label="เปลี่ยนสีไอคอน"
-                  onClick={() => dialogRef.current?.showModal()}
-                  style={{ ["--name-icon-stroke" as string]: form.iconColor }}
+                  className={styles.actionBtn}
+                  aria-label="ยกเลิก"
+                  onClick={handleCancel}
                 >
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>
+                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
-              </div>
-              {form.errors.name && <p className="field-error" role="alert">{form.errors.name}</p>}
+                <h2 className={styles.createTitle} id="create-title">เพิ่มกิจกรรม</h2>
+                <button
+                  className={`${styles.actionBtn}${saving ? ` ${styles.saving}` : ""}`}
+                  aria-label="บันทึก"
+                  onClick={handleSave}
+                  disabled={saving}
+                  style={{ borderColor: "#08c65a" }}
+                >
+                  {saving
+                    ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" /></svg>
+                    : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12" /></svg>
+                  }
+                </button>
+              </header>
 
-              {/* Meal relation (medicine only) */}
-              {!isNutrition && (
-                <div className="chip-line">
-                  <div className="chip-track" style={{ maxWidth: "18rem" }} role="radiogroup" aria-label="เวลาก่อน/หลังอาหาร">
-                    {(["before", "after"] as MealRelation[]).map((r) => (
+              {saveError && <p className={styles.fieldError} role="alert" style={{ margin: "0 0 0.5em", textAlign: "center" }}>{saveError}</p>}
+              <div className={styles.formPanel}>
+                {/* Name + icon-color */}
+                <div className={styles.nameRow}>
+                  <input
+                    className={`${styles.nameField}${isNutrition ? ` ${styles.nutritionFlavor}` : ""}${form.errors.name ? ` ${styles.error}` : ""}`}
+                    type="text"
+                    aria-label={isNutrition ? "ชื่อโภชนาการ" : "ชื่อยา"}
+                    placeholder={isNutrition ? "ชื่อโภชนาการ :" : "ชื่อยา :"}
+                    value={form.name}
+                    onChange={(e) => dispatchForm({ type: "SET_NAME", value: e.target.value })}
+                  />
+                  <button
+                    className={styles.nameIcon}
+                    type="button"
+                    aria-label="เปลี่ยนสีไอคอน"
+                    onClick={() => dialogRef.current?.showModal()}
+                    style={{ ["--name-icon-stroke" as string]: form.iconColor }}
+                  >
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>
+                  </button>
+                </div>
+                {form.errors.name && <p className={styles.fieldError} role="alert">{form.errors.name}</p>}
+
+                {/* Meal relation (medicine only) */}
+                {!isNutrition && (
+                  <div className={styles.chipLine}>
+                    <div className={styles.chipTrack} style={{ maxWidth: "18rem" }} role="radiogroup" aria-label="เวลาก่อน/หลังอาหาร">
+                      {(["before", "after"] as MealRelation[]).map((r) => (
+                        <button
+                          key={r}
+                          className={`${styles.chip}${form.mealRelation === r ? ` ${styles.isSelected}` : ""}`}
+                          role="radio"
+                          aria-checked={form.mealRelation === r}
+                          onClick={() => dispatchForm({ type: "SET_MEAL_RELATION", value: r })}
+                        >
+                          {r === "before" ? "ก่อน" : "หลัง"}
+                        </button>
+                      ))}
+                    </div>
+                    <span className={styles.chipPlain}>อาหาร</span>
+                  </div>
+                )}
+
+                {/* Meal slots (medicine only) */}
+                {!isNutrition && (
+                  <div className={styles.chipLine}>
+                    <div className={styles.chipLabel}>มื้อ</div>
+                    <div className={styles.chipTrack} role="group" aria-label="มื้ออาหาร">
+                      {MEAL_SLOTS.map(({ slot, label }) => (
+                        <button
+                          key={slot}
+                          className={`${styles.chip}${form.mealSlots.includes(slot) ? ` ${styles.isSelected}` : ""}`}
+                          aria-pressed={form.mealSlots.includes(slot)}
+                          onClick={() => dispatchForm({ type: "TOGGLE_MEAL_SLOT", slot })}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Frequency */}
+                <div className={styles.chipLine}>
+                  <div className={styles.chipLabel}>ความถี่</div>
+                  <div className={styles.chipTrack} role="radiogroup" aria-label="ความถี่">
+                    {(["daily", "weekly", "monthly", "todo"] as HabitFrequency[]).map((f) => (
                       <button
-                        key={r}
-                        className={`chip${form.mealRelation === r ? " is-selected" : ""}`}
+                        key={f}
+                        className={`${styles.chip}${form.frequency === f ? ` ${styles.isSelected}` : ""}`}
                         role="radio"
-                        aria-checked={form.mealRelation === r}
-                        onClick={() => dispatchForm({ type: "SET_MEAL_RELATION", value: r })}
+                        aria-checked={form.frequency === f}
+                        onClick={() => dispatchForm({ type: "SET_FREQUENCY", value: f })}
                       >
-                        {r === "before" ? "ก่อน" : "หลัง"}
-                      </button>
-                    ))}
-                  </div>
-                  <span className="chip-plain">อาหาร</span>
-                </div>
-              )}
-
-              {/* Meal slots (medicine only) */}
-              {!isNutrition && (
-                <div className="chip-line">
-                  <div className="chip-label">มื้อ</div>
-                  <div className="chip-track" role="group" aria-label="มื้ออาหาร">
-                    {MEAL_SLOTS.map(({ slot, label }) => (
-                      <button
-                        key={slot}
-                        className={`chip${form.mealSlots.includes(slot) ? " is-selected" : ""}`}
-                        aria-pressed={form.mealSlots.includes(slot)}
-                        onClick={() => dispatchForm({ type: "TOGGLE_MEAL_SLOT", slot })}
-                      >
-                        {label}
+                        {f === "daily" ? "ทุกวัน" : f === "weekly" ? "สัปดาห์" : f === "monthly" ? "เดือน" : "To-do"}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {/* Frequency */}
-              <div className="chip-line">
-                <div className="chip-label">ความถี่</div>
-                <div className="chip-track" role="radiogroup" aria-label="ความถี่">
-                  {(["daily", "weekly", "monthly", "todo"] as HabitFrequency[]).map((f) => (
-                    <button
-                      key={f}
-                      className={`chip${form.frequency === f ? " is-selected" : ""}`}
-                      role="radio"
-                      aria-checked={form.frequency === f}
-                      onClick={() => dispatchForm({ type: "SET_FREQUENCY", value: f })}
-                    >
-                      {f === "daily" ? "ทุกวัน" : f === "weekly" ? "สัปดาห์" : f === "monthly" ? "เดือน" : "To-do"}
-                    </button>
-                  ))}
-                </div>
+                {/* Frequency sub-panels */}
+                {form.frequency === "daily" && (
+                  <div>
+                    <div className={styles.weekdayRow} role="group" aria-label="เลือกวัน">
+                      {WEEKDAY_LABELS.map((label, i) => (
+                        <button
+                          key={i}
+                          className={`${styles.weekday}${form.weekdays.includes(i as WeekdayIndex) ? ` ${styles.isSelected}` : ""}`}
+                          aria-pressed={form.weekdays.includes(i as WeekdayIndex)}
+                          onClick={() => dispatchForm({ type: "TOGGLE_WEEKDAY", day: i as WeekdayIndex })}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    {form.errors.weekdays && <p className={styles.fieldError} role="alert">{form.errors.weekdays}</p>}
+                  </div>
+                )}
+                {form.frequency === "weekly" && (
+                  <div>
+                    <div className={styles.countRow} aria-label="จำนวนวันต่อสัปดาห์">
+                      <input
+                        className={styles.countNum}
+                        type="number"
+                        min="1"
+                        max="7"
+                        value={form.daysPerWeek}
+                        aria-label="จำนวนวันต่อสัปดาห์"
+                        onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
+                      />
+                      <div className={styles.countUnit}>วัน/สัปดาห์</div>
+                    </div>
+                    {form.errors.daysPerWeek && <p className={styles.fieldError} role="alert">{form.errors.daysPerWeek}</p>}
+                  </div>
+                )}
+                {form.frequency === "monthly" && (
+                  <div>
+                    <div className={styles.countRow} aria-label="จำนวนวันต่อเดือน">
+                      <input
+                        className={styles.countNum}
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={form.daysPerMonth}
+                        aria-label="จำนวนวันต่อเดือน"
+                        onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
+                      />
+                      <div className={styles.countUnit}>วัน/เดือน</div>
+                    </div>
+                    {form.errors.daysPerMonth && <p className={styles.fieldError} role="alert">{form.errors.daysPerMonth}</p>}
+                  </div>
+                )}
+                {form.frequency === "todo" && (
+                  <div className={styles.importanceLine}>
+                    <div className={styles.chipLabel}>ความสำคัญ</div>
+                    <div className={styles.chipTrack} role="radiogroup" aria-label="ความสำคัญ">
+                      {(["general", "moderate", "high"] as HabitImportance[]).map((imp) => (
+                        <button
+                          key={imp}
+                          className={`${styles.chip}${form.importance === imp ? ` ${styles.isSelected}` : ""}`}
+                          role="radio"
+                          aria-checked={form.importance === imp}
+                          onClick={() => dispatchForm({ type: "SET_IMPORTANCE", value: imp })}
+                        >
+                          {imp === "general" ? "ทั่วไป" : imp === "moderate" ? "ปานกลาง" : "มาก"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Frequency sub-panels */}
-              {form.frequency === "daily" && (
-                <div>
-                  <div className="weekday-row" role="group" aria-label="เลือกวัน">
-                    {WEEKDAY_LABELS.map((label, i) => (
-                      <button
-                        key={i}
-                        className={`weekday${form.weekdays.includes(i as WeekdayIndex) ? " is-selected" : ""}`}
-                        aria-pressed={form.weekdays.includes(i as WeekdayIndex)}
-                        onClick={() => dispatchForm({ type: "TOGGLE_WEEKDAY", day: i as WeekdayIndex })}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  {form.errors.weekdays && <p className="field-error" role="alert">{form.errors.weekdays}</p>}
-                </div>
-              )}
-              {form.frequency === "weekly" && (
-                <div>
-                  <div className="count-row" aria-label="จำนวนวันต่อสัปดาห์">
-                    <input
-                      className="count-num"
-                      type="number"
-                      min="1"
-                      max="7"
-                      value={form.daysPerWeek}
-                      aria-label="จำนวนวันต่อสัปดาห์"
-                      onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
-                    />
-                    <div className="count-unit">วัน/สัปดาห์</div>
-                  </div>
-                  {form.errors.daysPerWeek && <p className="field-error" role="alert">{form.errors.daysPerWeek}</p>}
-                </div>
-              )}
-              {form.frequency === "monthly" && (
-                <div>
-                  <div className="count-row" aria-label="จำนวนวันต่อเดือน">
-                    <input
-                      className="count-num"
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={form.daysPerMonth}
-                      aria-label="จำนวนวันต่อเดือน"
-                      onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
-                    />
-                    <div className="count-unit">วัน/เดือน</div>
-                  </div>
-                  {form.errors.daysPerMonth && <p className="field-error" role="alert">{form.errors.daysPerMonth}</p>}
-                </div>
-              )}
-              {form.frequency === "todo" && (
-                <div className="importance-line">
-                  <div className="chip-label">ความสำคัญ</div>
-                  <div className="chip-track" role="radiogroup" aria-label="ความสำคัญ">
-                    {(["general", "moderate", "high"] as HabitImportance[]).map((imp) => (
-                      <button
-                        key={imp}
-                        className={`chip${form.importance === imp ? " is-selected" : ""}`}
-                        role="radio"
-                        aria-checked={form.importance === imp}
-                        onClick={() => dispatchForm({ type: "SET_IMPORTANCE", value: imp })}
-                      >
-                        {imp === "general" ? "ทั่วไป" : imp === "moderate" ? "ปานกลาง" : "มาก"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </section>
-        <IconRail />
-      </section>
+        }
+        rail={<IconRail />}
+        tight
+      />
 
       {/* Icon-color dialog */}
-      <dialog ref={dialogRef} className="color-dialog" aria-label="เลือกสีไอคอน">
-        <p className="color-dialog-title">เลือกสีไอคอน</p>
-        <div className="swatch-row">
+      <dialog ref={dialogRef} className={styles.colorDialog} aria-label="เลือกสีไอคอน">
+        <p className={styles.colorDialogTitle}>เลือกสีไอคอน</p>
+        <div className={styles.swatchRow}>
           {["#ffffff", "#111111", "#ff6b6b", "#f4a261", "#2a9d8f", "#4d8dff"].map((color) => (
             <button
               key={color}
-              className="swatch"
+              className={styles.swatch}
               type="button"
               style={{ background: color }}
               aria-label={`สี ${color}`}
@@ -375,32 +381,32 @@ function MedicineFormInner() {
             />
           ))}
         </div>
-        <div className="color-custom-row">
+        <div className={styles.colorCustomRow}>
           <label htmlFor="custom-icon-color">สีอื่น:</label>
           <input
-            className="color-custom"
+            className={styles.colorCustom}
             id="custom-icon-color"
             type="color"
             value={form.iconColor}
             onChange={(e) => dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })}
           />
         </div>
-        <div className="color-actions">
-          <button className="dialog-btn dialog-btn-secondary" type="button" onClick={() => dialogRef.current?.close()}>ปิด</button>
-          <button className="dialog-btn dialog-btn-primary" type="button" onClick={() => dialogRef.current?.close()}>ใช้สี</button>
+        <div className={styles.colorActions}>
+          <button className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`} type="button" onClick={() => dialogRef.current?.close()}>ปิด</button>
+          <button className={`${styles.dialogBtn} ${styles.dialogBtnPrimary}`} type="button" onClick={() => dialogRef.current?.close()}>ใช้สี</button>
         </div>
       </dialog>
 
       {/* DS-4 discard dialog */}
-      <dialog ref={discardRef} className="discard-dialog" aria-modal="true">
+      <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
-        <div className="discard-dialog-btns">
-          <button className="discard-btn-cancel" onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className="discard-btn-leave" onClick={handleDiscard}>ละทิ้ง</button>
+        <div className={styles.discardDialogBtns}>
+          <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
+          <button className={styles.discardBtnLeave} onClick={handleDiscard}>ละทิ้ง</button>
         </div>
       </dialog>
-    </main>
+    </>
   );
 }
 

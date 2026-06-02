@@ -1,0 +1,14 @@
+.chapterSpinner {
+  width: 58px;
+  height: 58px;
+  border: 5px solid rgba(14, 152, 175, 0.2);
+  border-top-color: var(--panel-blue-deep);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

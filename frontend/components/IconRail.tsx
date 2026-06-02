@@ -6,6 +6,7 @@ import Image from "next/image";
 import { RAIL_ITEMS } from "@/types/navigation";
 import type { NavRailKey } from "@/types/navigation";
 import { useGetMeQuery } from "@/store/authApi";
+import styles from "./IconRail.module.css";
 
 function getActiveKey(pathname: string): NavRailKey | null {
   if (pathname.startsWith("/home")) return "home";
@@ -22,14 +23,14 @@ export default function IconRail() {
   const isAdmin = user?.role === "admin";
 
   return (
-    <nav className="icon-rail" aria-label="Main navigation">
+    <nav className={styles.iconRail} aria-label="Main navigation">
       {RAIL_ITEMS.map((item) => {
         const isActive = item.key === activeKey;
         return (
           <Link
             key={item.key}
             href={item.href}
-            className={`icon-rail-link${isActive ? " is-active" : ""}`}
+            className={[styles.iconRailLink, isActive && styles.isActive].filter(Boolean).join(" ")}
             aria-label={item.ariaLabel}
             aria-current={isActive ? "page" : undefined}
             style={isActive ? ({ "--rail-accent": item.activeAccent } as React.CSSProperties) : undefined}
@@ -45,10 +46,10 @@ export default function IconRail() {
       })}
 
       {isAdmin && (
-        <div className="icon-rail-admin-wrap">
+        <div className={styles.iconRailAdminWrap}>
           <Link
             href="/admin"
-            className="icon-rail-link icon-rail-admin"
+            className={[styles.iconRailLink, styles.iconRailAdmin].join(" ")}
             aria-label="ไปหน้าจัดการ Admin"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: "52%", height: "52%", position: "relative", zIndex: 1 }}>

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetMeQuery, useLoginMutation } from "@/store/authApi";
 import type { ApiErrorCode } from "@/types/error";
+import layoutStyles from "@/components/BookShellLayout.module.css";
+import sharedStyles from "@/components/Shared.module.css";
+import styles from "./login.module.css";
 
 function errorCopy(code: ApiErrorCode | null): string | null {
   if (!code) return null;
@@ -58,40 +61,18 @@ function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      style={{
-        width: "min(540px, 100%)",
-        display: "grid",
-        justifyItems: "center",
-        gap: "1.4rem",
-      }}
+      className={styles.loginForm}
     >
-      <h1
-        style={{
-          margin: "0 0 2.25rem",
-          fontSize: "3.5em",
-          lineHeight: 1.05,
-          fontWeight: 600,
-        }}
-      >
+      <h1 className={styles.loginTitle}>
         เข้าสู่ระบบ
       </h1>
 
       {/* Phone number field */}
       <label
         htmlFor="username"
-        style={{
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.12fr) minmax(0, 1.28fr)",
-          alignItems: "center",
-          background: "var(--panel-blue)",
-          borderRadius: "999px",
-          padding: "0.45rem 0.55rem 0.45rem 1.2rem",
-          minHeight: "5rem",
-          gap: "0.65rem",
-        }}
+        className={styles.loginField}
       >
-        <span className="login-field-label">
+        <span className={styles.loginFieldLabel}>
           เบอร์โทร
         </span>
         <input
@@ -108,37 +89,16 @@ function LoginForm() {
           onBlur={(e) => setUsername(e.target.value.trim())}
           required
           aria-describedby={submitError ? "login-error" : undefined}
-          style={{
-            width: "100%",
-            minWidth: 0,
-            border: 0,
-            borderRadius: "999px",
-            background: "var(--field-fill)",
-            color: "var(--ink)",
-            fontSize: "1.25em",
-            padding: "0.95rem 1.25rem",
-            outline: "none",
-            fontFamily: "inherit",
-          }}
+          className={styles.loginInput}
         />
       </label>
 
       {/* Password field */}
       <label
         htmlFor="password"
-        style={{
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.12fr) minmax(0, 1.28fr)",
-          alignItems: "center",
-          background: "var(--panel-blue)",
-          borderRadius: "999px",
-          padding: "0.45rem 0.55rem 0.45rem 1.2rem",
-          minHeight: "5rem",
-          gap: "0.65rem",
-        }}
+        className={styles.loginField}
       >
-        <span className="login-field-label">
+        <span className={styles.loginFieldLabel}>
           รหัสผ่าน
         </span>
         <input
@@ -153,18 +113,7 @@ function LoginForm() {
           }}
           required
           aria-describedby={submitError ? "login-error" : undefined}
-          style={{
-            width: "100%",
-            minWidth: 0,
-            border: 0,
-            borderRadius: "999px",
-            background: "var(--field-fill)",
-            color: "var(--ink)",
-            fontSize: "1.25em",
-            padding: "0.95rem 1.25rem",
-            outline: "none",
-            fontFamily: "inherit",
-          }}
+          className={styles.loginInput}
         />
       </label>
 
@@ -172,16 +121,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="rounded-pill-button"
-        style={{
-          marginTop: "1.5rem",
-          padding: "0.58em 1.2em",
-          fontSize: "2.5em",
-          fontWeight: 600,
-          boxShadow: "0 14px 28px -18px rgba(0,0,0,0.45)",
-          opacity: isSubmitting ? 0.6 : 1,
-          cursor: isSubmitting ? "not-allowed" : "pointer",
-        }}
+        className={`${sharedStyles.roundedPillButton} ${styles.loginSubmit}`}
       >
         {isSubmitting ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
       </button>
@@ -192,20 +132,15 @@ function LoginForm() {
           id="login-error"
           role="alert"
           aria-live="polite"
-          style={{
-            margin: 0,
-            fontSize: "1.375em",
-            textAlign: "center",
-            color: "#c0392b",
-          }}
+          className={styles.loginError}
         >
           {errorCopy(submitError)}
         </p>
       )}
 
-      <p style={{ margin: "0.3rem 0 0", fontSize: "1.375em", textAlign: "center" }}>
+      <p className={styles.loginFooter}>
         ยังไม่เคยลงทะเบียน?{" "}
-        <Link href="/register" className="story-link">
+        <Link href="/register" className={sharedStyles.storyLink}>
           สร้างบัญชี
         </Link>
       </p>
@@ -219,29 +154,12 @@ function LoginForm() {
  */
 export default function LoginPage() {
   return (
-    <main className="screen screen-landscape" aria-label="Story Diary Login Layout">
-      <section className="book-shell">
+    <main className={layoutStyles.screen} aria-label="Story Diary Login Layout">
+      <section className={layoutStyles.bookShell}>
         {/* Left page — compass art */}
-        <section className="page page-left page-seam-right" aria-hidden="true">
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "#59d2d9",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              pointerEvents: "none",
-              left: "4.5%",
-              bottom: "3.5%",
-              width: "35%",
-              aspectRatio: "1",
-              color: "rgba(7, 126, 177, 0.95)",
-              zIndex: 1,
-            }}
-          >
+        <section className={`${layoutStyles.page} ${layoutStyles.pageLeft} ${layoutStyles.pageSeamRight}`} aria-hidden="true">
+          <div className={styles.compassBg} />
+          <div className={styles.compassContainer}>
             <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: "100%", height: "100%", display: "block" }}>
               <circle cx="100" cy="100" r="63" stroke="currentColor" strokeWidth="5" opacity="0.95"/>
               <path d="M100 27L113 82L100 100L87 82L100 27Z" fill="currentColor"/>
@@ -261,15 +179,7 @@ export default function LoginPage() {
         </section>
 
         {/* Right page — login form */}
-        <section
-          className="page page-right"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "7% 7% 5%",
-          }}
-        >
+        <section className={`${layoutStyles.page} ${layoutStyles.pageRight} ${styles.loginFormPage}`}>
           <Suspense>
             <LoginForm />
           </Suspense>

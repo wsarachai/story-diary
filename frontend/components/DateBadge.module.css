@@ -1,0 +1,37 @@
+.dateFull {
+  display: inline-block;
+  font-size: 0.78em;
+  font-weight: 500;
+  color: var(--panel-blue-deep);
+  letter-spacing: 0.02em;
+}
+
+.dateShort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28em;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.45);
+  background: rgba(88, 216, 222, 0.13);
+  border: 1px solid rgba(88, 216, 222, 0.35);
+  border-radius: 999px;
+  padding: 0.18em 0.7em;
+  letter-spacing: 0.01em;
+}
+
+.dateShortIcon {
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.dateMonthYear,
+.dateWeekRange {
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--panel-blue-deep);
+  opacity: 0.75;
+  letter-spacing: 0.03em;
+}

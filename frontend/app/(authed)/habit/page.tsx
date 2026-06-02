@@ -3,6 +3,7 @@
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
+import styles from "./habit.module.css";
 
 const DAYS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
@@ -27,48 +28,48 @@ export default function HabitPage() {
       tight
       rail={<IconRail />}
       left={
-        <div style={{ padding: "6% 7%", display: "flex", flexDirection: "column", height: "100%" }}>
-          <h1 className="tracker-title">Habit tracker</h1>
-          <div className="section-label-row">
-            <div className="section-label">daily habits</div>
+        <div className={styles.habitContainerLeft}>
+          <h1 className={styles.trackerTitle}>Habit tracker</h1>
+          <div className={styles.sectionLabelRow}>
+            <div className={styles.sectionLabel}>daily habits</div>
           </div>
-          <Link href="/habit/today" className="daily-card" aria-label="Daily habit checklist" style={{ textDecoration: "none" }}>
+          <Link href="/habit/today" className={styles.dailyCard} aria-label="Daily habit checklist">
             {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="habit-item">
-                <div className="habit-checkbox" />
-                <div className="habit-line" />
+              <div key={i} className={styles.habitItem}>
+                <div className={styles.habitCheckbox} />
+                <div className={styles.habitLine} />
               </div>
             ))}
           </Link>
         </div>
       }
       right={
-        <div style={{ padding: "6% 7%", display: "grid", gridTemplateRows: "1fr 1fr", gap: "2rem", height: "100%" }}>
+        <div className={styles.habitContainerRight}>
           {/* Weekly habits */}
-          <Link href="/habit/weekly" className="weekly-section" aria-label="ไปหน้า weekly habits" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="weekly-card" aria-label="Weekly habit log">
+          <Link href="/habit/weekly" className={styles.weeklySection} aria-label="ไปหน้า weekly habits">
+            <div className={styles.weeklyCard} aria-label="Weekly habit log">
               {DAYS.map((d) => (
-                <div key={d} className="weekly-day">
-                  <span className="weekly-day-name">{d}</span>
-                  <div className="weekly-day-line" />
+                <div key={d} className={styles.weeklyDay}>
+                  <span className={styles.weeklyDayName}>{d}</span>
+                  <div className={styles.weeklyDayLine} />
                 </div>
               ))}
             </div>
-            <div className="weekly-label" aria-label="Weekly habits">weekly<br />habits</div>
+            <div className={styles.weeklyLabel} aria-label="Weekly habits">weekly<br />habits</div>
           </Link>
 
           {/* Monthly habits */}
-          <Link href="/habit/monthly" className="monthly-section" aria-label="ไปหน้า monthly habits" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="monthly-label" aria-label="Monthly habits">monthly<br />habits</div>
-            <div className="monthly-calendar" aria-label="Monthly calendar">
-              <div className="cal-header" aria-hidden="true">
+          <Link href="/habit/monthly" className={styles.monthlySection} aria-label="ไปหน้า monthly habits">
+            <div className={styles.monthlyLabel} aria-label="Monthly habits">monthly<br />habits</div>
+            <div className={styles.monthlyCalendar} aria-label="Monthly calendar">
+              <div className={styles.calHeader} aria-hidden="true">
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                   <span key={i}>{d}</span>
                 ))}
               </div>
-              <div className="cal-body" aria-hidden="true">
+              <div className={styles.calBody} aria-hidden="true">
                 {calCells.map((d, i) => (
-                  <div key={i} className={`cal-cell${d === null ? " empty" : ""}`}>{d ?? "-"}</div>
+                  <div key={i} className={`${styles.calCell}${d === null ? ` ${styles.calCellEmpty}` : ""}`}>{d ?? "-"}</div>
                 ))}
               </div>
             </div>

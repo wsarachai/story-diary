@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
+import styles from "./VideoClips.module.css";
 
 function PlayButton({ clip }: { clip: VideoClip }) {
   return (
     <Link
       href={`/video-clips/${clip.id}`}
-      className="clip-play-button"
+      className={styles.clipPlayButton}
       aria-label={`เล่นวิดีโอ ${clip.caption}`}
       title={`เล่นวิดีโอ ${clip.caption}`}
     >
@@ -35,10 +35,10 @@ export default function VideoClipsPage() {
       tight
       rail={<IconRail />}
       left={
-        <div className="video-clips-page">
+        <div className={styles.videoClipsPage}>
           <Link
             href="/chapters"
-            className="clip-section-label-badge"
+            className={styles.clipSectionLabelBadge}
             aria-label="ดาวแห่งการเรียนรู้ — กลับหน้าบท"
           >
             {collection?.badge ?? "ดาวแห่งการเรียนรู้"}
@@ -47,13 +47,13 @@ export default function VideoClipsPage() {
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลดวิดีโอ…" />
           ) : (
-          <div className="clips-grid-container">
+          <div className={styles.clipsGridContainer}>
             {leftClips.map((clip) => (
-              <div key={clip.id} className="clips-grid-item">
-                <div className="clip-thumbnail" aria-label={`วิดีโอคลิป ${clip.caption}`}>
+              <div key={clip.id} className={styles.clipsGridItem}>
+                <div className={styles.clipThumbnail} aria-label={`วิดีโอคลิป ${clip.caption}`}>
                   <PlayButton clip={clip} />
                 </div>
-                <div className="clip-caption" aria-label={clip.caption}>
+                <div className={styles.clipCaption} aria-label={clip.caption}>
                   {clip.caption}
                 </div>
               </div>
@@ -63,19 +63,19 @@ export default function VideoClipsPage() {
         </div>
       }
       right={
-        <div className="video-clips-page">
-          <div className="clip-section-label-spacer" aria-hidden="true" />
+        <div className={styles.videoClipsPage}>
+          <div className={styles.clipSectionLabelSpacer} aria-hidden="true" />
 
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลดวิดีโอ…" />
           ) : (
-          <div className="clips-grid-container">
+          <div className={styles.clipsGridContainer}>
             {rightClips.map((clip) => (
-              <div key={clip.id} className="clips-grid-item">
-                <div className="clip-thumbnail" aria-label={`วิดีโอคลิป ${clip.caption}`}>
+              <div key={clip.id} className={styles.clipsGridItem}>
+                <div className={styles.clipThumbnail} aria-label={`วิดีโอคลิป ${clip.caption}`}>
                   <PlayButton clip={clip} />
                 </div>
-                <div className="clip-caption" aria-label={clip.caption}>
+                <div className={styles.clipCaption} aria-label={clip.caption}>
                   {clip.caption}
                 </div>
               </div>

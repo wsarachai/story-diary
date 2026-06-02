@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import IconRail from "@/components/IconRail";
+import BookShellLayout from "@/components/BookShellLayout";
+import styles from "../../HabitAdd.module.css";
 
 const EMOTION_ITEMS = [
   { label: "สำรวจอารมณ์ตนเอง", href: "/habit/add/physical/emotion/explore", isMenu: true },
@@ -9,41 +11,45 @@ const EMOTION_ITEMS = [
 ] as const;
 
 export default function EmotionMenuPage() {
+  const leftPage = (
+    <div className={styles.authoringPage} aria-label="จัดการอารมณ์">
+      <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="emotion-title">
+        <header className={styles.createHeader}>
+          <Link className={styles.actionBtn} href="/habit/add/physical" aria-label="กลับ">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </Link>
+          <h2 className={styles.createTitle} id="emotion-title">จัดการอารมณ์</h2>
+          <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
+        </header>
+        <div className={styles.menuList} role="list" aria-label="ประเภทการจัดการอารมณ์">
+          {EMOTION_ITEMS.map(({ label, href, isMenu }) => (
+            <Link
+              key={label}
+              className={styles.menuItem}
+              role="listitem"
+              href={href}
+              aria-label={label}
+            >
+              <span className={styles.menuItemDot} aria-hidden="true" />
+              <span className={styles.menuItemLabel}>{label}</span>
+              {isMenu && (
+                <svg className={styles.menuItemChevron} viewBox="0 0 24 24" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              )}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <main className="screen" aria-label="Story Diary Create Emotion Activity">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="จัดการอารมณ์">
-          <div className="create-card" role="dialog" aria-modal="true" aria-labelledby="emotion-title">
-            <header className="create-header">
-              <Link className="action-btn" href="/habit/add/physical" aria-label="กลับ">
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-              </Link>
-              <h2 className="create-title" id="emotion-title">จัดการอารมณ์</h2>
-              <div className="action-btn" aria-hidden="true" style={{ visibility: "hidden" }} />
-            </header>
-            <div className="menu-list" role="list" aria-label="ประเภทการจัดการอารมณ์">
-              {EMOTION_ITEMS.map(({ label, href, isMenu }) => (
-                <Link
-                  key={label}
-                  className="menu-item"
-                  role="listitem"
-                  href={href}
-                  aria-label={label}
-                >
-                  <span className="menu-item-dot" aria-hidden="true" />
-                  <span className="menu-item-label">{label}</span>
-                  {isMenu && (
-                    <svg className="menu-item-chevron" viewBox="0 0 24 24" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-        <IconRail />
-      </section>
-    </main>
+    <BookShellLayout
+      left={leftPage}
+      right={<div />}
+      rail={<IconRail />}
+      ariaLabel="Story Diary Create Emotion Activity"
+    />
   );
 }

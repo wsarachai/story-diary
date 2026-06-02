@@ -4,6 +4,7 @@ import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useQuiz } from "./QuizProvider";
+import styles from "./minigame.module.css";
 
 export default function MinigamePage() {
   const router = useRouter();
@@ -19,8 +20,8 @@ export default function MinigamePage() {
       tight
       rail={<IconRail />}
       left={
-        <div style={{ display: "grid", placeItems: "center", height: "100%", background: "#f5efe6", position: "relative", overflow: "hidden" }}>
-          <div className="doodle-wrap" aria-hidden="true">
+        <div className={styles.minigameContainerLeft}>
+          <div className={styles.doodleWrap} aria-hidden="true">
             <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M60 60 L63 70 L73 73 L63 76 L60 86 L57 76 L47 73 L57 70 Z" fill="#b06ac0" opacity="0.85"/>
               <path d="M330 80 L332 88 L340 90 L332 92 L330 100 L328 92 L320 90 L328 88 Z" fill="#b06ac0" opacity="0.7"/>
@@ -40,9 +41,9 @@ export default function MinigamePage() {
         </div>
       }
       right={
-        <div style={{ padding: "6% 8% 7%", display: "flex", flexDirection: "column", justifyContent: "center", gap: "2rem" }}>
-          <p className="intro-text">พ่อมดแห่งหอคอย<br />ได้ส่งคุณเข้ามายัง<br />เมือง ๆ หนึ่ง</p>
-          <div className="ornament" aria-hidden="true">
+        <div className={styles.minigameContainerRight}>
+          <p className={styles.introText}>พ่อมดแห่งหอคอย<br />ได้ส่งคุณเข้ามายัง<br />เมือง ๆ หนึ่ง</p>
+          <div className={styles.ornament} aria-hidden="true">
             <svg viewBox="0 0 220 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M10 30 Q55 10 110 30 Q165 50 210 30" stroke="#b06ac0" strokeWidth="4" strokeLinecap="round" fill="none"/>
               <path d="M30 30 Q80 5 110 30 Q140 55 190 30" stroke="#55c8ce" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.7"/>
@@ -51,17 +52,17 @@ export default function MinigamePage() {
               <circle cx="210" cy="30" r="5" fill="#55c8ce" opacity="0.8"/>
             </svg>
           </div>
-          <p className="ready-text">พร้อมทำแบบทดสอบ<br />แล้วหรือยัง?</p>
-          <div className="ready-btns">
+          <p className={styles.readyText}>พร้อมทำแบบทดสอบ<br />แล้วหรือยัง?</p>
+          <div className={styles.readyBtns}>
             <button
-              className="ready-btn ready-btn-yes"
+              className={`${styles.readyBtn} ${styles.readyBtnYes}`}
               onClick={handleStart}
               aria-label="เริ่มทำแบบทดสอบ"
               disabled={isLoading}
             >
               พร้อมแล้ว!
             </button>
-            <Link className="ready-btn ready-btn-no" href="/home" aria-label="ยังไม่พร้อม กลับหน้าหลัก">
+            <Link className={`${styles.readyBtn} ${styles.readyBtnNo}`} href="/home" aria-label="ยังไม่พร้อม กลับหน้าหลัก">
               ยังไม่พร้อม
             </Link>
           </div>

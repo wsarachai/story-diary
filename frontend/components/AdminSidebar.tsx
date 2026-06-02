@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import styles from "./Admin.module.css";
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   Dashboard: (
@@ -114,7 +115,7 @@ export default function AdminSidebar() {
       {/* ── Mobile floating menu trigger (replaces full topbar) ── */}
       {!open && (
         <button
-          className="admin-mobile-trigger"
+          className={styles.adminMobileTrigger}
           aria-label="เปิดเมนู"
           onClick={() => setOpen(true)}
         >
@@ -135,19 +136,19 @@ export default function AdminSidebar() {
 
       {/* ── Overlay backdrop ────────────────────────── */}
       <div
-        className={`admin-sidebar-overlay${open ? " open" : ""}`}
+        className={`${styles.adminSidebarOverlay}${open ? ` ${styles.open}` : ""}`}
         onClick={() => setOpen(false)}
         aria-hidden="true"
       />
 
       {/* ── Sidebar ─────────────────────────────────── */}
       <aside
-        className={`admin-sidebar${open ? " open" : ""}`}
+        className={`${styles.adminSidebar}${open ? ` ${styles.open}` : ""}`}
         aria-label="Admin navigation"
       >
         {/* Close button — mobile only (via CSS visibility) */}
         <div
-          className="admin-sidebar-brand"
+          className={styles.adminSidebarBrand}
           style={{
             display: "flex",
             alignItems: "center",
@@ -159,7 +160,7 @@ export default function AdminSidebar() {
             <p>Admin Panel</p>
           </div>
           <button
-            className="admin-hamburger"
+            className={styles.adminHamburger}
             aria-label="ปิดเมนู"
             onClick={() => setOpen(false)}
             style={{ marginLeft: "auto" }}
@@ -178,7 +179,7 @@ export default function AdminSidebar() {
           </button>
         </div>
 
-        <nav className="admin-sidebar-nav">
+        <nav className={styles.adminSidebarNav}>
           {navItems.map((item) => {
             const isActive =
               item.href === "/admin"
@@ -188,7 +189,7 @@ export default function AdminSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`admin-nav-link${isActive ? " active" : ""}`}
+                className={`${styles.adminNavLink}${isActive ? ` ${styles.active}` : ""}`}
               >
                 {NAV_ICONS[item.label]}
                 {item.label}

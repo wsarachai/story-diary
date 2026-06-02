@@ -1,0 +1,32 @@
+.roundedPillButton {
+  border: 0;
+  border-radius: 42px;
+  background: var(--panel-blue);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.roundedPillButton:hover {
+  transform: translateY(-2px);
+  background: #63dde2;
+}
+
+.roundedPillButton:focus-visible,
+.storyLink:focus-visible {
+  outline: 4px solid rgba(23, 152, 190, 0.35);
+  outline-offset: 4px;
+}
+
+.storyLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.storyLink:hover {
+  text-decoration: underline;
+}

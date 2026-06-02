@@ -1,3 +1,5 @@
+import styles from "./PageSpinner.module.css";
+
 /**
  * PageSpinner — shared loading indicator for book-shell pages.
  *
@@ -71,7 +73,7 @@ export default function PageSpinner({
           gap: "0.9em",
         }}
       >
-        <div className="chapter-spinner" />
+        <div className={styles.chapterSpinner} />
         <span
           style={{
             fontSize: "0.72em",

@@ -9,6 +9,9 @@ import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
 import { localDateStr } from "@/lib/utils/date";
 import type { HabitActivity } from "@/types/habit";
+import styles from "../habit.module.css";
+import BookShellLayout from "@/components/BookShellLayout";
+import PageSpinner from "@/components/PageSpinner";
 
 function getAccent(activity: HabitActivity): string {
   if (activity.category === "medicine") return "#57a8db";
@@ -45,10 +48,10 @@ function getSubline(activity: HabitActivity): string {
 }
 
 function getCategoryClass(accent: string): string {
-  if (accent === "#57a8db") return "entry-med";
-  if (accent === "#2eb563") return "entry-food";
-  if (accent === "#e76f51") return "entry-mood";
-  return "entry-body";
+  if (accent === "#57a8db") return styles.entryMed;
+  if (accent === "#2eb563") return styles.entryFood;
+  if (accent === "#e76f51") return styles.entryMood;
+  return styles.entryBody;
 }
 
 function CategoryIcon({ accent }: { accent: string }) {
@@ -108,17 +111,17 @@ interface DeleteConfirmProps {
 
 function DeleteConfirmDialog({ activityName, isDeleting, onConfirm, onCancel }: DeleteConfirmProps) {
   return (
-    <div className="delete-confirm-overlay" onClick={onCancel}>
-      <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
-        <p className="delete-confirm-title">ลบกิจกรรม?</p>
-        <p className="delete-confirm-body">
-          <strong>"{activityName}"</strong> และประวัติ check-in ทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้
+    <div className={styles.deleteConfirmOverlay} onClick={onCancel}>
+      <div className={styles.deleteConfirmCard} onClick={(e) => e.stopPropagation()}>
+        <p className={styles.deleteConfirmTitle}>ลบกิจกรรม?</p>
+        <p className={styles.deleteConfirmBody}>
+          <strong>&quot;{activityName}&quot;</strong> และประวัติ check-in ทั้งหมดจะถูกลบถาวร ไม่สามารถกู้คืนได้
         </p>
-        <div className="delete-confirm-actions">
-          <button className="delete-confirm-cancel" onClick={onCancel} disabled={isDeleting}>
+        <div className={styles.deleteConfirmActions}>
+          <button className={styles.deleteConfirmCancel} onClick={onCancel} disabled={isDeleting}>
             ยกเลิก
           </button>
-          <button className="delete-confirm-ok" onClick={onConfirm} disabled={isDeleting}>
+          <button className={styles.deleteConfirmOk} onClick={onConfirm} disabled={isDeleting}>
             {isDeleting ? "กำลังลบ…" : "ลบกิจกรรม"}
           </button>
         </div>
@@ -166,100 +169,97 @@ export default function HabitTodayPage() {
     setConfirmId(null);
   }
 
-  return (
-    <main className="screen" aria-label="Story Diary Habit Daily Today">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section
-          className="page page-left page-seam-right"
-          style={{ gridColumn: "1 / 3", padding: "4% 5% 4%", display: "grid", gridTemplateRows: "auto auto 1fr", gap: "0.9rem", overflow: "hidden" }}
-          aria-label="รายการกิจกรรมวันนี้"
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div>
-              <h1 className="tracker-section-title" style={{ margin: 0 }}>Daily Tracker</h1>
-              <DateFull style={{ marginTop: "0.2em" }} />
-            </div>
-            <Link href="/habit/add" className="add-btn" aria-label="เพิ่มกิจกรรม">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </Link>
-          </div>
+  const left = (
+    <div className={styles.habitTrackerContainer} aria-label="รายการกิจกรรมวันนี้">
+      <div className={styles.habitTrackerHeader}>
+        <div>
+          <h1 className={styles.trackerSectionTitle}>Daily Tracker</h1>
+          <DateFull className={styles.dateLabel} />
+        </div>
+        <Link href="/habit/add" className={styles.addBtn} aria-label="เพิ่มกิจกรรม">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </Link>
+      </div>
 
-          <div className="tracker-tab-row">
-            <span className="tracker-tab is-active" aria-current="page">daily habits</span>
-            <Link href="/habit/weekly" className="tracker-tab">weekly habits</Link>
-            <Link href="/habit/monthly" className="tracker-tab">monthly habits</Link>
-          </div>
+      <div className={styles.trackerTabRow}>
+        <span className={`${styles.trackerTab} ${styles.isActive}`} aria-current="page">daily habits</span>
+        <Link href="/habit/weekly" className={styles.trackerTab}>weekly habits</Link>
+        <Link href="/habit/monthly" className={styles.trackerTab}>monthly habits</Link>
+      </div>
 
-          <div className="habit-entries">
-            {isLoading && (
-              <div style={{ display: "grid", placeItems: "center", height: "12rem" }}>
-                <div className="chapter-spinner" />
+      <div className={styles.habitEntries}>
+        {isLoading && (
+          <PageSpinner variant="inline" height="12rem" label="กำลังโหลดกิจกรรม…" />
+        )}
+        {!isLoading && entries.map((entry) => {
+          const tappable = hasDetailedCheckin(entry.activity);
+          return (
+            <div
+              key={entry.activity.id}
+              className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
+              role="article"
+              aria-label={entry.activity.name}
+              onClick={() => tappable && handleEntryTap(entry.activity, entry.occurrence.id)}
+            >
+              <div className={styles.habitEntryIcon}>
+                <CategoryIcon accent={entry.accent} />
               </div>
-            )}
-            {!isLoading && entries.map((entry) => {
-              const tappable = hasDetailedCheckin(entry.activity);
-              return (
-                <div
-                  key={entry.activity.id}
-                  className={`habit-entry ${getCategoryClass(entry.accent)}${tappable ? " has-log" : ""}`}
-                  role="article"
-                  aria-label={entry.activity.name}
-                  onClick={() => tappable && handleEntryTap(entry.activity, entry.occurrence.id)}
-                >
-                  <div className="habit-entry-icon">
-                    <CategoryIcon accent={entry.accent} />
-                  </div>
-                  <div className="habit-entry-body">
-                    <p className="habit-entry-name">{entry.activity.name}</p>
-                    <p className="habit-entry-sub">{entry.subline}</p>
-                  </div>
-                  {/* Chevron — shown only on tappable entries */}
-                  {tappable && (
-                    <span className="habit-entry-log-arrow" aria-hidden="true">
-                      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                    </span>
-                  )}
-                  <button
-                    className="habit-delete-btn"
-                    aria-label={`ลบ ${entry.activity.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmId(entry.activity.id);
-                    }}
-                  >
-                    <TrashIcon />
-                  </button>
-                  <button
-                    className={`habit-check${entry.occurrence.status === "done" ? " done" : ""}`}
-                    aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggle({
-                        occurrenceId: entry.occurrence.id,
-                        activityId: entry.activity.id,
-                        status: entry.occurrence.status === "done" ? "pending" : "done",
-                        date: todayStr,
-                      });
-                    }}
-                  >
-                    {entry.occurrence.status === "done" && (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+              <div className={styles.habitEntryBody}>
+                <p className={styles.habitEntryName}>{entry.activity.name}</p>
+                <p className={styles.habitEntrySub}>{entry.subline}</p>
+              </div>
+              {/* Chevron — shown only on tappable entries */}
+              {tappable && (
+                <span className={styles.habitEntryLogArrow} aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </span>
+              )}
+              <button
+                className={styles.habitDeleteBtn}
+                aria-label={`ลบ ${entry.activity.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmId(entry.activity.id);
+                }}
+              >
+                <TrashIcon />
+              </button>
+              <button
+                className={`${styles.habitCheck}${entry.occurrence.status === "done" ? ` ${styles.done}` : ""}`}
+                aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle({
+                    occurrenceId: entry.occurrence.id,
+                    activityId: entry.activity.id,
+                    status: entry.occurrence.status === "done" ? "pending" : "done",
+                    date: todayStr,
+                  });
+                }}
+              >
+                {entry.occurrence.status === "done" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
-        <IconRail />
-      </section>
-
+  return (
+    <BookShellLayout
+      tight
+      rail={<IconRail />}
+      mergedOnly
+      merged={left}
+    >
       {confirmActivity && (
         <DeleteConfirmDialog
           activityName={confirmActivity.name}
@@ -268,6 +268,6 @@ export default function HabitTodayPage() {
           onCancel={() => setConfirmId(null)}
         />
       )}
-    </main>
+    </BookShellLayout>
   );
 }

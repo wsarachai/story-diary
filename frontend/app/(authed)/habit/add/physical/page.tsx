@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
+import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
+import styles from "../HabitAdd.module.css";
 
 const PHYSICAL_ITEMS = [
   { label: "จัดการอารมณ์", href: "/habit/add/physical/emotion", isMenu: true },
@@ -15,30 +17,33 @@ const PHYSICAL_ITEMS = [
 
 export default function AddPhysicalPage() {
   return (
-    <main className="screen" aria-label="Story Diary Create Physical Activity">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="กิจกรรมทางกาย">
-          <div className="create-card" role="dialog" aria-modal="true" aria-labelledby="physical-title">
-            <header className="create-header">
-              <Link className="action-btn" href="/habit/add" aria-label="กลับ">
+    <BookShellLayout
+      tight
+      rail={<IconRail />}
+      mergedOnly
+      merged={
+        <div className={styles.authoringPage} aria-label="กิจกรรมทางกาย">
+          <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="physical-title">
+            <header className={styles.createHeader}>
+              <Link className={styles.actionBtn} href="/habit/add" aria-label="กลับ">
                 <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
               </Link>
-              <h2 className="create-title" id="physical-title">กิจกรรมทางกาย</h2>
-              <div className="action-btn" aria-hidden="true" style={{ visibility: "hidden" }} />
+              <h2 className={styles.createTitle} id="physical-title">กิจกรรมทางกาย</h2>
+              <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
             </header>
-            <div className="menu-list" role="list" aria-label="ประเภทกิจกรรมทางกาย">
+            <div className={styles.menuList} role="list" aria-label="ประเภทกิจกรรมทางกาย">
               {PHYSICAL_ITEMS.map(({ label, href, isMenu }) => (
                 <Link
                   key={label}
-                  className="menu-item"
+                  className={styles.menuItem}
                   role="listitem"
                   href={href}
                   aria-label={label}
                 >
-                  <span className="menu-item-dot" aria-hidden="true" />
-                  <span className="menu-item-label">{label}</span>
+                  <span className={styles.menuItemDot} aria-hidden="true" />
+                  <span className={styles.menuItemLabel}>{label}</span>
                   {isMenu && (
-                    <svg className="menu-item-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg className={styles.menuItemChevron} viewBox="0 0 24 24" aria-hidden="true">
                       <polyline points="9 18 15 12 9 6"/>
                     </svg>
                   )}
@@ -46,9 +51,8 @@ export default function AddPhysicalPage() {
               ))}
             </div>
           </div>
-        </section>
-        <IconRail />
-      </section>
-    </main>
+        </div>
+      }
+    />
   );
 }

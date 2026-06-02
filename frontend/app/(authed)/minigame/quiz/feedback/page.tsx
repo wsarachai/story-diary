@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import { useQuiz } from "../../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
+import styles from "../Quiz.module.css";
+import BookShellLayout from "@/components/BookShellLayout";
 
 function FeedbackInner() {
   const router = useRouter();
@@ -47,85 +49,91 @@ function FeedbackInner() {
   const isCorrect = feedback.selected === feedback.correct;
   const letters: AnswerLetter[] = ["A", "B", "C", "D"];
 
+  const left = (
+    <div className={styles.quizPageLeft} aria-label="คำถาม">
+      <div className={styles.quizProgressRow}>
+        <p className={styles.quizCounter}>
+          บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
+        </p>
+        <div className={styles.quizProgressBar} aria-hidden="true">
+          <div className={styles.quizProgressFill} style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+      <p className={styles.quizQuestionLabel}>โจทย์</p>
+      <div className={styles.quizQuestionCard}>
+        <p className={styles.quizQuestionText}>
+          {question.text.split("\n").map((line, i) => (
+            <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
+          ))}
+        </p>
+      </div>
+    </div>
+  );
+
+  const right = (
+    <div className={styles.quizPageRight} aria-label="ผลคำตอบ">
+      <div className={styles.quizOptions} role="group" aria-label="คำตอบ">
+        {letters.map((letter) => {
+          const opt = question.options.find((o) => o.letter === letter);
+          if (!opt) return null;
+          const isCorrectOption = letter === feedback.correct;
+          const isWrongOption = letter === feedback.selected && !isCorrect;
+          
+          let cls = styles.quizOption;
+          if (isCorrectOption) cls += ` ${styles.isCorrect}`;
+          else if (isWrongOption) cls += ` ${styles.isWrong}`;
+
+          const ariaLabel =
+            isCorrectOption
+              ? `ตัวเลือก ${letter} ถูกต้อง`
+              : isWrongOption
+                ? `ตัวเลือก ${letter} ตอบผิด`
+                : `ตัวเลือก ${letter}`;
+          return (
+            <div key={letter} className={cls} aria-label={ariaLabel}>
+              <span className={styles.optionLetter}>{letter}</span>
+              <span className={styles.optionText}>{opt.text}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Feedback banner */}
+      <div
+        className={`${styles.feedbackBanner} ${isCorrect ? styles.correct : styles.wrong}`}
+        role="alert"
+        aria-live="assertive"
+      >
+        <div className={styles.feedbackIcon} aria-hidden="true">
+          {isCorrect ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          )}
+        </div>
+        <span className={styles.feedbackText}>
+          {isCorrect ? "ถูกต้อง!" : `ตอบผิด — คำตอบที่ถูกคือ ${feedback.correct}`}
+        </span>
+        {/* DS-3: flip button copy on last question */}
+        <button className={styles.feedbackNextBtn} onClick={handleAdvance} aria-label={isLastQuestion ? "ดูคะแนน" : "ข้อต่อไป"}>
+          {isLastQuestion ? "ดูคะแนน →" : "ข้อต่อไป →"}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
-    <main className="screen" aria-label="Story Diary Minigame Quiz Feedback">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-
-        {/* Left: progress + question */}
-        <section className="page quiz-page-left page-seam-right" aria-label="คำถาม">
-          <div className="quiz-progress-row">
-            <p className="quiz-counter">
-              บททดสอบที่ <strong>{nIndex + 1}</strong>/{counterText.split("/")[1]}
-            </p>
-            <div className="quiz-progress-bar" aria-hidden="true">
-              <div className="quiz-progress-fill" style={{ width: `${progressPercent}%` }} />
-            </div>
-          </div>
-          <p className="quiz-question-label">โจทย์</p>
-          <div className="quiz-question-card">
-            <p className="quiz-question-text">
-              {question.text.split("\n").map((line, i) => (
-                <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
-              ))}
-            </p>
-          </div>
-        </section>
-
-        {/* Right: options with feedback highlight + banner */}
-        <section className="page quiz-page-right" aria-label="ผลคำตอบ">
-          <div className="quiz-options" role="group" aria-label="คำตอบ">
-            {letters.map((letter) => {
-              const opt = question.options.find((o) => o.letter === letter);
-              if (!opt) return null;
-              let cls = "quiz-option";
-              if (letter === feedback.correct) cls += " is-correct";
-              else if (letter === feedback.selected && !isCorrect) cls += " is-wrong";
-              const ariaLabel =
-                letter === feedback.correct
-                  ? `ตัวเลือก ${letter} ถูกต้อง`
-                  : letter === feedback.selected
-                    ? `ตัวเลือก ${letter} ตอบผิด`
-                    : `ตัวเลือก ${letter}`;
-              return (
-                <div key={letter} className={cls} aria-label={ariaLabel}>
-                  <span className="option-letter">{letter}</span>
-                  <span className="option-text">{opt.text}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Feedback banner */}
-          <div
-            className={`feedback-banner ${isCorrect ? "correct" : "wrong"}`}
-            role="alert"
-            aria-live="assertive"
-          >
-            <div className="feedback-icon" aria-hidden="true">
-              {isCorrect ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              )}
-            </div>
-            <span className="feedback-text">
-              {isCorrect ? "ถูกต้อง!" : `ตอบผิด — คำตอบที่ถูกคือ ${feedback.correct}`}
-            </span>
-            {/* DS-3: flip button copy on last question */}
-            <button className="feedback-next-btn" onClick={handleAdvance} aria-label={isLastQuestion ? "ดูคะแนน" : "ข้อต่อไป"}>
-              {isLastQuestion ? "ดูคะแนน →" : "ข้อต่อไป →"}
-            </button>
-          </div>
-        </section>
-
-        <IconRail />
-      </section>
-    </main>
+    <BookShellLayout
+      tight
+      left={left}
+      right={right}
+      rail={<IconRail />}
+    />
   );
 }
 

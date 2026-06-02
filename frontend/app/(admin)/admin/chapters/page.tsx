@@ -9,6 +9,7 @@ import {
   useDeleteChapterMutation,
   type CreateChapterRequest,
 } from "@/store/adminApi";
+import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateChapterRequest = {
   title: "",
@@ -48,44 +49,44 @@ export default function AdminChaptersPage() {
   }
 
   return (
-    <div className="admin-layout">
+    <div className={styles.adminLayout}>
       <AdminSidebar />
-      <div className="admin-main-wrapper">
-        <main className="admin-main">
-          <div className="admin-page-header">
-            <h1 className="admin-page-title">Chapters</h1>
-            <button className="admin-btn admin-btn-primary" onClick={openCreate}>
+      <div className={styles.adminMainWrapper}>
+        <main className={styles.adminMain}>
+          <div className={styles.adminPageHeader}>
+            <h1 className={styles.adminPageTitle}>Chapters</h1>
+            <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
               + เพิ่มบท
             </button>
           </div>
 
           {showForm && (
-            <div className="admin-form-card">
+            <div className={styles.adminFormCard}>
               <h2>เพิ่มบทใหม่</h2>
               <form onSubmit={handleSubmit}>
-                <div className="admin-form-grid">
-                  <div className="admin-form-field">
-                    <label className="admin-label">Title</label>
+                <div className={styles.adminFormGrid}>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Title</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       value={form.title}
                       onChange={(e) => setForm({ ...form, title: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="admin-form-field">
-                    <label className="admin-label">Intro Title</label>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Intro Title</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       value={form.introTitle}
                       onChange={(e) => setForm({ ...form, introTitle: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="admin-form-field">
-                    <label className="admin-label">Lock State</label>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Lock State</label>
                     <select
-                      className="admin-select"
+                      className={styles.adminSelect}
                       value={form.lockState}
                       onChange={(e) => setForm({ ...form, lockState: e.target.value as "unlocked" | "locked" })}
                     >
@@ -93,28 +94,28 @@ export default function AdminChaptersPage() {
                       <option value="locked">locked</option>
                     </select>
                   </div>
-                  <div className="admin-form-field">
-                    <label className="admin-label">Background Image URL (optional)</label>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Background Image URL (optional)</label>
                     <input
-                      className="admin-input"
+                      className={styles.adminInput}
                       value={form.backgroundImageUrl ?? ""}
                       onChange={(e) => setForm({ ...form, backgroundImageUrl: e.target.value })}
                     />
                   </div>
                 </div>
-                <div className="admin-form-actions">
-                  <button type="button" className="admin-btn admin-btn-secondary" onClick={closeForm}>ยกเลิก</button>
-                  <button type="submit" className="admin-btn admin-btn-primary">เพิ่ม</button>
+                <div className={styles.adminFormActions}>
+                  <button type="button" className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={closeForm}>ยกเลิก</button>
+                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>เพิ่ม</button>
                 </div>
               </form>
             </div>
           )}
 
           {isLoading ? (
-            <div className="chapter-spinner" />
+            <div className={styles.adminSpinner} />
           ) : (
-            <div className="admin-table-wrap">
-              <table className="admin-table">
+            <div className={styles.adminTableWrap}>
+              <table className={styles.adminTable}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -130,21 +131,21 @@ export default function AdminChaptersPage() {
                       <td>{ch.id}</td>
                       <td>{ch.title}</td>
                       <td>
-                        <span className={`admin-badge ${ch.lockState === "unlocked" ? "admin-badge-green" : "admin-badge-yellow"}`}>
+                        <span className={`${styles.adminBadge} ${ch.lockState === "unlocked" ? styles.adminBadgeGreen : styles.adminBadgeYellow}`}>
                           {ch.lockState}
                         </span>
                       </td>
                       <td>{ch.progress}</td>
                       <td>
-                        <div className="admin-table-actions">
+                        <div className={styles.adminTableActions}>
                           <button
-                            className="admin-btn admin-btn-secondary"
+                            className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
                             onClick={() => router.push(`/admin/chapters/${ch.id}`)}
                           >
                             Edit →
                           </button>
                           <button
-                            className="admin-btn admin-btn-danger"
+                            className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
                             onClick={() => handleDelete(ch.id)}
                           >
                             Delete

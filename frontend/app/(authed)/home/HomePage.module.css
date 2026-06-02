@@ -1,0 +1,125 @@
+.storyPanel {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.storyCardLink {
+  width: 72%;
+  height: 86%;
+}
+
+.storyArticle {
+  width: 100%;
+  height: 100%;
+  border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
+  background: #55d0d7;
+  position: relative;
+  overflow: hidden;
+}
+
+.storyTitle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10%;
+  margin: 0;
+  text-align: center;
+  font-size: 56px;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.dashboardPanel {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr 1fr;
+  gap: 1.5rem;
+  padding: 7% 7% 6%;
+}
+
+.profileLinkWrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+}
+
+.profileName {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatarWrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  transform: scale(2) translateY(2px);
+}
+
+.habitCard {
+  position: relative;
+  border-radius: 48px;
+  background: #59d6dc;
+  padding: 1.6rem 1.8rem;
+  min-height: 210px;
+  text-decoration: none;
+  color: var(--ink);
+  display: block;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.minigameCard {
+  position: relative;
+  border-radius: 48px;
+  background: #59d6dc;
+  padding: 2.3rem 1.8rem 1.6rem;
+  min-height: 200px;
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  align-self: end;
+}
+
+.heartContainer {
+  position: absolute;
+  left: 1.88rem;
+  top: 1.5rem;
+  display: flex;
+  gap: 0.45rem;
+}

@@ -2,8 +2,11 @@
 import { useReducer, useRef } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveSymptomsCheckinMutation } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
+import styles from "../../HabitAdd.module.css";
+import checkinStyles from "../../../checkin/HabitCheckin.module.css";
 
 const INITIAL_SYMPTOMS: SymptomCheck[] = [
   { id: "sym1", label: "อาการ 1 : ปวดศีรษะ", checked: false },
@@ -54,55 +57,64 @@ export default function SymptomsCheckinPage() {
     else { router.push("/habit/add/physical"); }
   }
 
+  const leftPage = (
+    <div className={styles.authoringPage} aria-label="อาการผิดปกติ">
+      <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="symptoms-title">
+        <header className={styles.createHeader}>
+          <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <h2 className={styles.createTitle} id="symptoms-title">อาการผิดปกติ</h2>
+          <button
+            className={`${styles.actionBtn} ${saving ? styles.saving : ""}`}
+            aria-label="บันทึก"
+            onClick={handleSave}
+            disabled={saving}
+            style={{ borderColor: "#08c65a" }}
+          >
+            {saving
+              ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
+              : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+            }
+          </button>
+        </header>
+        <div className={checkinStyles.ciCheckList} role="group" aria-label="รายการอาการ" style={{ padding: "0.5rem 1rem" }}>
+          {state.items.map((sym) => (
+            <label key={sym.id} className={`${checkinStyles.ciCheckRow} ${sym.checked ? checkinStyles.isChecked : ""}`}>
+              <input
+                type="checkbox"
+                style={{ display: "none" }}
+                checked={sym.checked}
+                aria-label={sym.label}
+                onChange={() => dispatchLocal({ type: "TOGGLE", id: sym.id })}
+              />
+              <div className={checkinStyles.ciCheckCircle}>
+                {sym.checked && <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+              </div>
+              <span className={checkinStyles.ciCheckLabel} style={{ fontSize: "2em" }}>{sym.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <main className="screen" aria-label="Story Diary Unusual Symptoms Checkin">
-      <section className="book-shell book-shell-tight" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
-        <section className="page authoring-page" aria-label="อาการผิดปกติ">
-          <div className="create-card checkin-card" role="dialog" aria-modal="true" aria-labelledby="symptoms-title">
-            <header className="create-header">
-              <button className="action-btn" aria-label="ยกเลิก" onClick={handleCancel}>
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-              <h2 className="create-title" id="symptoms-title">อาการผิดปกติ</h2>
-              <button
-                className={`action-btn${saving ? " saving" : ""}`}
-                aria-label="บันทึก"
-                onClick={handleSave}
-                disabled={saving}
-                style={{ borderColor: "#08c65a" }}
-              >
-                {saving
-                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
-                }
-              </button>
-            </header>
-            <div className="symptom-list" role="group" aria-label="รายการอาการ">
-              {state.items.map((sym) => (
-                <label key={sym.id} className={`symptom-row${sym.checked ? " is-checked" : ""}`}>
-                  <input
-                    type="checkbox"
-                    className="symptom-check"
-                    checked={sym.checked}
-                    aria-label={sym.label}
-                    onChange={() => dispatchLocal({ type: "TOGGLE", id: sym.id })}
-                  />
-                  <span className="symptom-label">{sym.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </section>
-        <IconRail />
-      </section>
-      <dialog ref={discardRef} className="discard-dialog" aria-modal="true">
+    <>
+      <BookShellLayout
+        left={leftPage}
+        right={<div />}
+        rail={<IconRail />}
+        ariaLabel="Story Diary Unusual Symptoms Checkin"
+      />
+      <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
-        <div className="discard-dialog-btns">
-          <button className="discard-btn-cancel" onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className="discard-btn-leave" onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
+        <div className={styles.discardDialogBtns}>
+          <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
+          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
         </div>
       </dialog>
-    </main>
+    </>
   );
 }

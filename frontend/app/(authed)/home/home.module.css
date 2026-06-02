@@ -1,0 +1,44 @@
+.adminHomeCard {
+  position: relative;
+  border-radius: 48px;
+  background: #1e3a5f;
+  padding: 1.4rem 1.8rem;
+  text-decoration: none;
+  color: #cce5ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 8px 24px -10px rgba(30, 58, 95, 0.55);
+  transition: background 0.15s, transform 0.12s;
+}
+
+.adminHomeCard:hover {
+  background: #264d7a;
+  transform: translateY(-1px);
+}
+
+.adminHomeCardText h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #cce5ff;
+  line-height: 1.1;
+}
+
+.adminHomeCardText p {
+  margin: 0.25rem 0 0;
+  font-size: 14px;
+  color: rgba(180, 215, 255, 0.65);
+}
+
+.adminHomeCardIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #a8d4ff;
+}

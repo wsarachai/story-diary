@@ -8,6 +8,7 @@ import IconRail from "@/components/IconRail";
 import { useGetEBooksQuery } from "@/store/ebookApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
+import styles from "../EBookViewer.module.css";
 
 export default function EBookViewerPage() {
     const { data: collection, isLoading } = useGetEBooksQuery();
@@ -26,30 +27,30 @@ export default function EBookViewerPage() {
             right={<div />}
             mergedOnly
             merged={
-                <div className="clip-player-page" style={{ background: "linear-gradient(165deg, #f0f7ff 0%, #e0eff5 55%, #d0e8f0 100%)" }}>
-                    <div className="clip-player-page-header">
-                        <Link href="/e-books" className="clip-player-back" style={{ background: "#508db9" }} aria-label="กลับหน้า E-book">
+                <div className={styles.clipPlayerPage}>
+                    <div className={styles.clipPlayerPageHeader}>
+                        <Link href="/e-books" className={styles.clipPlayerBack} aria-label="กลับหน้า E-book">
                             กลับ
                         </Link>
-                        <h1 className="clip-player-title" style={{ color: "#2c5d80" }}>{activeEBook?.title ?? "ไม่พบ E-book"}</h1>
+                        <h1 className={styles.clipPlayerTitle}>{activeEBook?.title ?? "ไม่พบ E-book"}</h1>
                     </div>
 
-                    <div className="clip-player-frame-wrap" style={{ background: "#fff" }}>
+                    <div className={styles.clipPlayerFrameWrap}>
                         {isLoading ? (
                             <PageSpinner label="กำลังโหลด E-book…" />
                         ) : activeEBook?.pdfUrl ? (
                             <iframe
-                                className="clip-player-frame"
+                                className={styles.clipPlayerFrame}
                                 src={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                                 title={activeEBook.title}
                                 allowFullScreen
                             />
                         ) : (
-                            <div className="clip-player-fallback" style={{ color: "#508db9" }}>ไม่พบไฟล์ PDF</div>
+                            <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>
                         ) }
                     </div>
 
-                    <div className="clip-player-caption" style={{ color: "#2c5d80" }}>
+                    <div className={styles.clipPlayerCaption}>
                         {activeEBook ? `กำลังอ่าน: ${activeEBook.title}` : "กรุณาตรวจสอบลิงก์"}
                     </div>
                 </div>

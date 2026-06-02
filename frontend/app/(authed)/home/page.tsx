@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useGetMeQuery } from "@/store/authApi";
 import { DateFull } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
+import styles from "./HomePage.module.css";
+import sharedStyles from "@/components/Shared.module.css";
 
 /**
  * s004 Home Screen — authenticated entry hub.
@@ -26,40 +28,14 @@ export default function HomePage() {
 
 function StoryCardPanel() {
   return (
-    <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+    <div className={styles.storyPanel}>
       <Link
         href="/chapters"
         aria-label="ไปหน้าเนื้อเรื่อง"
-        style={{
-          width: "72%",
-          height: "86%",
-          textDecoration: "none",
-          color: "inherit",
-        }}
+        className={`${sharedStyles.storyLink} ${styles.storyCardLink}`}
       >
-        <article
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "38% 38% 9% 9% / 20% 20% 9% 9%",
-            background: "#55d0d7",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <h1
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: "10%",
-              margin: 0,
-              textAlign: "center",
-              fontSize: "56px",
-              fontWeight: 500,
-              zIndex: 1,
-            }}
-          >
+        <article className={styles.storyArticle}>
+          <h1 className={styles.storyTitle}>
             เนื้อเรื่อง
           </h1>
         </article>
@@ -72,49 +48,30 @@ function DashboardPanel() {
   const { data: user, isLoading: userLoading } = useGetMeQuery();
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "grid",
-        gridTemplateRows: "auto auto 1fr 1fr",
-        gap: "1.5rem",
-        padding: "7% 7% 6%",
-      }}
-    >
+    <div className={styles.dashboardPanel}>
       {/* Date */}
       <DateFull />
 
       {/* Profile link */}
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div className={styles.profileLinkWrapper}>
         <Link
           href="/profile"
           aria-label="ไปหน้าโปรไฟล์"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            textDecoration: "none",
-            color: "var(--ink)",
-            fontSize: "24px",
-            fontWeight: 500,
-            background: "rgba(255,255,255,0.4)",
-            padding: "0.4rem 1rem",
-            borderRadius: "999px",
-          }}
+          className={styles.profileLink}
         >
-          <span style={{ maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span className={styles.profileName}>
             {userLoading
               ? <PageSpinner variant="small" label="กำลังโหลด…" />
               : (user?.characterName || "โปรไฟล์")
             }
           </span>
-          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className={styles.avatarWrapper}>
             {user?.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.avatarUrl}
                 alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                className={styles.avatarImg}
               />
             ) : (
               <Image
@@ -122,7 +79,7 @@ function DashboardPanel() {
                 alt=""
                 width={24}
                 height={24}
-                style={{ transform: "scale(2) translateY(2px)" }}
+                className={styles.avatarPlaceholder}
               />
             )}
           </div>
@@ -133,25 +90,9 @@ function DashboardPanel() {
       <Link
         href="/habit"
         aria-label="ไปหน้า Habit tracker"
-        style={{
-          position: "relative",
-          borderRadius: "48px",
-          background: "#59d6dc",
-          padding: "1.6rem 1.8rem",
-          minHeight: "210px",
-          textDecoration: "none",
-          color: "var(--ink)",
-          display: "block",
-        }}
+        className={styles.habitCard}
       >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "40px",
-            fontWeight: 500,
-            lineHeight: 1.05,
-          }}
-        >
+        <h2 className={styles.cardTitle}>
           Habit tracker
         </h2>
       </Link>
@@ -160,29 +101,11 @@ function DashboardPanel() {
       <Link
         href="/minigame"
         aria-label="ไปหน้ามินิเกม"
-        style={{
-          position: "relative",
-          borderRadius: "48px",
-          background: "#59d6dc",
-          padding: "2.3rem 1.8rem 1.6rem",
-          minHeight: "200px",
-          textDecoration: "none",
-          color: "var(--ink)",
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "flex-end",
-          alignSelf: "end",
-        }}
+        className={styles.minigameCard}
       >
         <div
           aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: "1.88rem",
-            top: "1.5rem",
-            display: "flex",
-            gap: "0.45rem",
-          }}
+          className={styles.heartContainer}
         >
           {[0, 1, 2].map((i) => (
             <Image
@@ -194,14 +117,7 @@ function DashboardPanel() {
             />
           ))}
         </div>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "40px",
-            fontWeight: 500,
-            lineHeight: 1.05,
-          }}
-        >
+        <h2 className={styles.cardTitle}>
           Minigame
         </h2>
       </Link>

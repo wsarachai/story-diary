@@ -1,20 +1,22 @@
 "use client";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useQuiz } from "../../QuizProvider";
+import styles from "../Quiz.module.css";
 
 export default function SummaryPage() {
   const router = useRouter();
   const { score, phase } = useQuiz();
 
   useEffect(() => {
-    if (phase !== "completed" && !score) {
+    if (phase !== "summary") {
       router.replace("/minigame");
     }
-  }, [phase, score, router]);
+  }, [phase, router]);
 
   if (!score) return null;
 
@@ -23,10 +25,10 @@ export default function SummaryPage() {
       tight
       rail={<IconRail />}
       left={
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "1.8rem", textAlign: "center" }}>
-          <h1 className="summary-title">การทดสอบ<br />เสร็จสิ้น</h1>
-          {/* Smoke wisp SVG from s031 wireframe */}
-          <svg className="summary-smoke" viewBox="0 0 220 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <div className={styles.summaryLayoutLeft} aria-label="สรุปผลมินิเกม">
+          <h1 className={styles.summaryTitle}>การทดสอบ<br />เสร็จสิ้น</h1>
+          {/* Smoke wisp SVG */}
+          <svg className={styles.summarySmoke} viewBox="0 0 220 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M110 410 C125 390 125 375 112 362 C95 345 99 328 120 315 C145 299 145 278 120 262 C92 244 92 220 122 202 C150 185 152 163 126 145 C94 124 95 101 132 83 C160 69 163 47 145 20"
                   stroke="#f3ba66" strokeWidth="8" strokeLinecap="round" fill="none"/>
             <path d="M98 382 C115 368 114 352 100 341 C82 327 84 309 106 296 C130 282 130 264 107 248 C82 231 81 210 108 194"
@@ -37,9 +39,9 @@ export default function SummaryPage() {
         </div>
       }
       right={
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: "3rem", padding: "5% 8% 6%", position: "relative" }}>
+        <div className={styles.summaryLayoutRight}>
           {/* Stars decoration */}
-          <svg className="summary-stars" viewBox="0 0 220 160" fill="none" aria-hidden="true">
+          <svg className={styles.summaryStars} viewBox="0 0 220 160" fill="none" aria-hidden="true">
             <g fill="#f5e441">
               <path d="M52 10 L56 42 L88 46 L56 50 L52 82 L48 50 L16 46 L48 42 Z"/>
               <path d="M152 24 L155 45 L176 48 L155 51 L152 72 L149 51 L128 48 L149 45 Z"/>
@@ -52,11 +54,11 @@ export default function SummaryPage() {
             </g>
           </svg>
 
-          <p className="summary-score-text">
+          <p className={styles.summaryScoreText}>
             คุณสะสมแต้มได้<br />ทั้งหมด {score.points} แต้ม
           </p>
 
-          <Link className="summary-continue-btn" href="/home" aria-label="เดินทางต่อ กลับหน้าหลัก">
+          <Link className={styles.summaryContinueBtn} href="/home" aria-label="เดินทางต่อ กลับหน้าหลัก">
             เดินทางต่อ
           </Link>
         </div>

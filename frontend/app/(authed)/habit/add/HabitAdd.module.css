@@ -1,0 +1,662 @@
+.authoringPage {
+  padding: 5% 6% 5%;
+  display: flex;
+}
+
+.formCard {
+  flex: 1;
+  border-radius: 36px;
+  background: #fff;
+  box-shadow: 0 16px 48px -12px rgba(13, 18, 35, 0.22);
+  border: 3px solid #59d6dc;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.formCardHeader {
+  background: transparent;
+  padding: 1.2rem 1.8rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.formCardTitle {
+  margin: 0;
+  font-size: 2.3em;
+  font-weight: 700;
+  flex: 1;
+  text-align: left;
+  border-bottom: 6px solid var(--ink);
+  padding-bottom: 0.2rem;
+  max-width: 560px;
+}
+
+.categoryTabs {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem;
+  padding: 1rem 1.8rem 1.8rem;
+}
+
+.catTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.2rem 1rem;
+  border-radius: 24px;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.catTab.isActive {
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.35);
+}
+
+.catTabIcon {
+  width: 14rem;
+  height: 14rem;
+  display: grid;
+  place-items: center;
+}
+
+.catTabIcon svg {
+  width: 100%;
+  height: 100%;
+  stroke: #fff;
+}
+
+.catTabLabel {
+  font-size: 3.2em;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.catMed {
+  background: #57a8db;
+}
+
+.catFood {
+  background: #2eb563;
+}
+
+.catBody {
+  background: #ee8a4a;
+}
+
+.createCard {
+  width: 100%;
+  border-radius: 36px;
+  border: 3px solid #59d6dc;
+  background: #f2ede5;
+  box-shadow: 0 16px 48px -12px rgba(13, 18, 35, 0.22);
+  padding: 1.4rem 1.8rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.createHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.actionBtn {
+  width: 4.7rem;
+  height: 4.7rem;
+  border-radius: 50%;
+  border: 5px solid #1f1f1f;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.actionBtn svg {
+  width: 2.6rem;
+  height: 2.6rem;
+  stroke: #161616;
+  stroke-width: 3;
+  fill: none;
+}
+
+.actionBtn.saving {
+  border-color: #08c65a;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.createTitle {
+  margin: 0;
+  text-align: center;
+  font-size: 2.65em;
+  font-weight: 700;
+  border-bottom: 4px solid #1a1a1a;
+  line-height: 1;
+  padding-bottom: 0.3rem;
+}
+
+.formPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0 1rem 0;
+}
+
+.nameRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nameField {
+  border-radius: 22px;
+  background: #aa85e5;
+  min-height: 4.4rem;
+  display: block;
+  font-size: 2.35em;
+  line-height: 1;
+  width: 100%;
+  border: none;
+  color: #fff;
+  padding: 0 1.3rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.nameField.nutritionFlavor {
+  background: #f26f5a;
+}
+
+.nameField::placeholder {
+  color: #f5f2ea;
+  opacity: 1;
+}
+
+.nameField:focus {
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.45);
+}
+
+.nameField.error {
+  outline: 3px solid #ff4d4d;
+}
+
+.nameIcon {
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  background: #aa85e5;
+  display: grid;
+  place-items: center;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nameIcon svg {
+  width: 2.35rem;
+  height: 2.35rem;
+  stroke: var(--name-icon-stroke, #fff);
+  stroke-width: 2.3;
+  fill: none;
+}
+
+.activityBadge {
+  font-size: 2.65em;
+  font-weight: 600;
+  background: #ee8a4a;
+  color: #fff;
+  border-radius: 22px;
+  padding: 0.4rem 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.activityBadgeDot {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.activityBadgeName {
+  flex: 1;
+}
+
+.chipLine {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 4.15rem;
+}
+
+.chipLabel {
+  font-size: 2.35em;
+  line-height: 1;
+  color: #111;
+  min-width: 6.9rem;
+}
+
+.chipTrack {
+  flex: 1;
+  border-radius: 24px;
+  background: #b4b7bc;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 4.15rem;
+}
+
+.chip {
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: #f5f2ea;
+  font-family: inherit;
+  font-size: 2.1em;
+  line-height: 1;
+  padding: 0.45rem 0.8rem 0.52rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.chip.isSelected {
+  background: #a785e6;
+  color: #fff;
+}
+
+.chipPlain {
+  border: none;
+  background: transparent;
+  color: #111;
+  font-family: inherit;
+  font-size: 2.3em;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding-top: 0.35rem;
+}
+
+.weekday {
+  border: none;
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 2.2em;
+  line-height: 1;
+  background: #b4b7bc;
+  color: #f5f2ea;
+  min-height: 4.2rem;
+  cursor: pointer;
+}
+
+.weekday.isSelected {
+  background: #a785e6;
+  color: #fff;
+  box-shadow: inset 0 0 0 4px #2f233f;
+}
+
+.countRow {
+  margin-top: 0.2rem;
+  margin-left: 8.8rem;
+  width: min(100%, 33rem);
+  min-height: 4.45rem;
+  border-radius: 22px;
+  background: #b4b7bc;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.countNum {
+  width: 5.2rem;
+  min-height: 3.9rem;
+  border-radius: 18px;
+  border: 4px solid #a785e6;
+  color: #a785e6;
+  background: #f2ede5;
+  display: block;
+  font-size: 2.25em;
+  line-height: 1;
+  text-align: center;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.countNum::-webkit-outer-spin-button,
+.countNum::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.countUnit {
+  color: #f5f2ea;
+  font-size: 2.2em;
+  line-height: 1;
+}
+
+.importanceLine {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.fieldError {
+  font-size: 1.6em;
+  color: #ff4d4d;
+  margin-top: 0.2rem;
+}
+
+.nutritionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 23rem;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+.nutritionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 16px;
+  background: #cfcac3;
+  padding: 0.68rem 1.2rem;
+  font-family: inherit;
+  font-size: 2.1em;
+  line-height: 1.2;
+  font-weight: 500;
+  cursor: pointer;
+  color: #111;
+  text-decoration: none;
+}
+
+.nutritionItem:hover {
+  background: #b8b3ab;
+}
+
+.nutritionItemDot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #666;
+  flex: 0 0 auto;
+}
+
+.nutritionItemLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.nutritionItemChevron {
+  width: 1rem !important;
+  height: 1rem !important;
+  flex: 0 0 auto;
+  display: block;
+  color: #111;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  fill: none;
+}
+
+.nutritionItemChevron polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.menuList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 23rem;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 16px;
+  background: #cfcac3;
+  padding: 0.68rem 1.2rem;
+  font-family: inherit;
+  font-size: 2.1em;
+  line-height: 1.2;
+  font-weight: 500;
+  cursor: pointer;
+  color: #111;
+  text-decoration: none;
+}
+
+.menuItem:hover {
+  background: #b8b3ab;
+}
+
+.menuItemDot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #666;
+  flex: 0 0 auto;
+}
+
+.menuItemLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.menuItemChevron {
+  width: 1rem !important;
+  height: 1rem !important;
+  flex: 0 0 auto;
+  display: block;
+  color: #111;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  fill: none;
+}
+
+.menuItemChevron polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Icon-color dialog */
+.colorDialog {
+  border: none;
+  border-radius: 20px;
+  padding: 1rem 1.1rem;
+  width: min(90vw, 340px);
+  box-shadow: 0 18px 38px -14px rgba(0, 0, 0, 0.45);
+}
+
+.colorDialog[open] {
+  inset: 0;
+  margin: auto;
+}
+
+.colorDialog::backdrop {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.colorDialogTitle {
+  margin: 0 0 0.8rem;
+  font-size: 1.35em;
+  line-height: 1.1;
+}
+
+.swatchRow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+}
+
+.swatch {
+  border: 2px solid #e2ddd6;
+  border-radius: 999px;
+  min-height: 2rem;
+  cursor: pointer;
+}
+
+.colorCustomRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.colorCustomRow label {
+  font-size: 1.05em;
+}
+
+.colorCustom {
+  width: 3.2rem;
+  height: 2.2rem;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.colorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialogBtn {
+  border: none;
+  border-radius: 12px;
+  padding: 0.45rem 0.9rem;
+  font-family: inherit;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.dialogBtnPrimary {
+  background: #aa85e5;
+  color: #fff;
+}
+
+.dialogBtnSecondary {
+  background: #ddd8d1;
+  color: #111;
+}
+
+.discardDialog {
+  border: none;
+  border-radius: 36px;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  width: min(86vw, 28rem);
+  max-width: 28rem;
+  text-align: center;
+}
+
+.discardDialog[open] {
+  inset: 0;
+  margin: auto;
+}
+
+.discardDialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.discardDialog h2 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95em;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111;
+}
+
+.discardDialog p {
+  margin: 0 0 0.95rem;
+  font-size: 0.72em;
+  line-height: 1.35;
+  color: #555;
+}
+
+.discardDialogBtns {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.discardBtnCancel {
+  border-radius: 999px;
+  background: #6a24f2;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.95rem;
+  font-size: 0.78em;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.discardBtnLeave {
+  border-radius: 999px;
+  background: transparent;
+  color: #d94040;
+  border: 2px solid #d94040;
+  padding: 0.35rem 0.95rem;
+  font-size: 0.78em;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
