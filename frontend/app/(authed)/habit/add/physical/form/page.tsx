@@ -1,8 +1,9 @@
 "use client";
-import { Suspense, useReducer, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useReducer, useRef } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useCreateActivityMutation } from "@/store/habitsApi";
 import styles from "../../HabitAdd.module.css";
 import type {
@@ -72,7 +73,7 @@ const GOAL_PRESETS = ["ก้าว", "นาที", "กม.", "ครั้�
 
 function PhysicalFormInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const colorDialogRef = useRef<HTMLDialogElement>(null);
@@ -141,7 +142,7 @@ function PhysicalFormInner() {
           <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="physical-form-title">
             <header className={styles.createHeader}>
               <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
               <h2 className={styles.createTitle} id="physical-form-title">เพิ่มกิจกรรม</h2>
               <button
@@ -152,8 +153,8 @@ function PhysicalFormInner() {
                 style={{ borderColor: "#08c65a" }}
               >
                 {saving
-                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+                  ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" /></svg>
+                  : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12" /></svg>
                 }
               </button>
             </header>
@@ -183,7 +184,7 @@ function PhysicalFormInner() {
                   onClick={() => colorDialogRef.current?.showModal()}
                   style={{ ["--name-icon-stroke" as string]: form.iconColor }}
                 >
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>
                 </button>
               </div>
               {form.errors.name && <p className={styles.fieldError} role="alert">{form.errors.name}</p>}
@@ -339,9 +340,5 @@ function PhysicalFormInner() {
 }
 
 export default function PhysicalFormPage() {
-  return (
-    <Suspense>
-      <PhysicalFormInner />
-    </Suspense>
-  );
+  return <PhysicalFormInner />;
 }

@@ -1,10 +1,11 @@
 "use client";
-import { Suspense, useReducer, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useReducer, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery, useGetNutritionCheckinQuery } from "@/store/habitsApi";
 import styles from "../HabitCheckin.module.css";
 
@@ -29,17 +30,17 @@ function reducer(state: State, action: Action): State {
 }
 
 const MEALS: { field: Field; label: string; placeholder: string }[] = [
-  { field: "breakfast", label: "อาหารเช้า",      placeholder: "ข้าวต้ม, ไข่ดาว, นม…" },
-  { field: "lunch",     label: "อาหารกลางวัน",   placeholder: "ข้าวราดแกง, ผัดผัก…"  },
-  { field: "dinner",    label: "อาหารเย็น",      placeholder: "ต้มยำ, ปลานึ่ง, สลัด…" },
+  { field: "breakfast", label: "อาหารเช้า", placeholder: "ข้าวต้ม, ไข่ดาว, นม…" },
+  { field: "lunch", label: "อาหารกลางวัน", placeholder: "ข้าวราดแกง, ผัดผัก…" },
+  { field: "dinner", label: "อาหารเย็น", placeholder: "ต้มยำ, ปลานึ่ง, สลัด…" },
 ];
 
 function NutritionCheckinInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [saveNutrition, { isLoading: saving }] = useSaveNutritionCheckinMutation();
 
-  const occId      = searchParams.get("occ") ?? "";
+  const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
 
   const today = new Date().toISOString().split("T")[0];
@@ -76,7 +77,7 @@ function NutritionCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลโภชนาการ">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/today")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <h2 className={styles.ciTitle}>บันทึกโภชนาการ</h2>
       </div>
@@ -84,8 +85,8 @@ function NutritionCheckinInner() {
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconNutrition}`} aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
-            <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
+            <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5" />
+            <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2" />
           </svg>
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillNutrition}`}>{activity?.name ?? "โภชนาการ"}</span>
@@ -94,7 +95,7 @@ function NutritionCheckinInner() {
       <DateShort />
       {checkinLoading
         ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
-        : <p className={styles.ciHint}>บันทึกรายการอาหารที่รับประทานในแต่ละมื้อของวันนี้<br/>เพื่อติดตามโภชนาการ</p>
+        : <p className={styles.ciHint}>บันทึกรายการอาหารที่รับประทานในแต่ละมื้อของวันนี้<br />เพื่อติดตามโภชนาการ</p>
       }
     </div>
   );
@@ -104,8 +105,8 @@ function NutritionCheckinInner() {
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
           <svg viewBox="0 0 24 24" style={{ stroke: "#2eb563" }}>
-            <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5"/>
-            <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2"/>
+            <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5" />
+            <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2" />
           </svg>
           มื้ออาหาร
         </h3>
@@ -116,8 +117,8 @@ function NutritionCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none"/></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
+            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
           }
         </button>
       </div>
@@ -152,9 +153,5 @@ function NutritionCheckinInner() {
 }
 
 export default function NutritionCheckinPage() {
-  return (
-    <Suspense>
-      <NutritionCheckinInner />
-    </Suspense>
-  );
+  return <NutritionCheckinInner />;
 }

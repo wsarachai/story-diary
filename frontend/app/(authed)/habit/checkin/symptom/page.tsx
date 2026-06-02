@@ -1,10 +1,11 @@
 "use client";
-import { Suspense, useReducer, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useReducer, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
@@ -38,10 +39,10 @@ function reducer(state: State, action: Action): State {
 
 function SymptomCheckinInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [saveSymptoms, { isLoading: saving }] = useSaveSymptomsCheckinMutation();
 
-  const occId      = searchParams.get("occ") ?? "";
+  const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
 
   const today = new Date().toISOString().split("T")[0];
@@ -75,7 +76,7 @@ function SymptomCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลอาการ">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/today")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <h2 className={styles.ciTitle}>บันทึกอาการ</h2>
       </div>
@@ -83,7 +84,7 @@ function SymptomCheckinInner() {
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconSymptom}`} aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillSymptom}`}>
@@ -94,7 +95,7 @@ function SymptomCheckinInner() {
       <DateShort />
       {checkinLoading
         ? <PageSpinner variant="small" label="กำลังโหลดข้อมูล…" />
-        : <p className={styles.ciHint}>ทำเครื่องหมายอาการที่พบในวันนี้<br/>เพื่อติดตามสุขภาพของคุณ</p>
+        : <p className={styles.ciHint}>ทำเครื่องหมายอาการที่พบในวันนี้<br />เพื่อติดตามสุขภาพของคุณ</p>
       }
     </div>
   );
@@ -104,7 +105,7 @@ function SymptomCheckinInner() {
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
           <svg viewBox="0 0 24 24" style={{ stroke: "#e76f51" }}>
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
           อาการวันนี้
         </h3>
@@ -115,8 +116,8 @@ function SymptomCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none"/></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
+            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
           }
         </button>
       </div>
@@ -136,7 +137,7 @@ function SymptomCheckinInner() {
             />
             <span className={styles.ciCheckCircle} aria-hidden="true">
               {item.checked && (
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
               )}
             </span>
             <span className={styles.ciCheckLabel}>{item.label}</span>
@@ -157,9 +158,5 @@ function SymptomCheckinInner() {
 }
 
 export default function SymptomCheckinPage() {
-  return (
-    <Suspense>
-      <SymptomCheckinInner />
-    </Suspense>
-  );
+  return <SymptomCheckinInner />;
 }

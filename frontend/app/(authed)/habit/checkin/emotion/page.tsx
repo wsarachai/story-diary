@@ -1,10 +1,11 @@
 "use client";
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
@@ -18,41 +19,37 @@ interface MoodOption {
 }
 
 const MOOD_OPTIONS: MoodOption[] = [
-  { level: "very-bad",  emoji: "😢", label: "แย่มาก",  sliderDefault: -80, color: "#d63a3a" },
-  { level: "bad",       emoji: "😟", label: "แย่",      sliderDefault: -40, color: "#e8a000" },
-  { level: "neutral",   emoji: "😐", label: "เฉยๆ",    sliderDefault:   0, color: "#888"    },
-  { level: "good",      emoji: "😊", label: "ดี",       sliderDefault:  40, color: "#2a9d8f" },
-  { level: "very-good", emoji: "😄", label: "ดีมาก",   sliderDefault:  80, color: "#3aab3a" },
+  { level: "very-bad", emoji: "😢", label: "แย่มาก", sliderDefault: -80, color: "#d63a3a" },
+  { level: "bad", emoji: "😟", label: "แย่", sliderDefault: -40, color: "#e8a000" },
+  { level: "neutral", emoji: "😐", label: "เฉยๆ", sliderDefault: 0, color: "#888" },
+  { level: "good", emoji: "😊", label: "ดี", sliderDefault: 40, color: "#2a9d8f" },
+  { level: "very-good", emoji: "😄", label: "ดีมาก", sliderDefault: 80, color: "#3aab3a" },
 ];
 
 function EmotionCheckinInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
 
-  const occId      = searchParams.get("occ") ?? "";
+  const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
 
   const today = new Date().toISOString().split("T")[0];
   const { data: todayData } = useGetTodayHabitsQuery(today);
   const activity = todayData?.activities[activityId];
 
-  const [mood, setMood]               = useState<MoodLevel>("neutral");
-  const [sliderValue, setSliderValue] = useState(0);
+  const [draftMood, setDraftMood] = useState<MoodLevel | null>(null);
+  const [draftSliderValue, setDraftSliderValue] = useState<number | null>(null);
   const { data: existingCheckin, isLoading: checkinLoading } = useGetMoodCheckinQuery(occId, { skip: !occId });
 
-  useEffect(() => {
-    if (existingCheckin) {
-      setMood(existingCheckin.mood);
-      setSliderValue(existingCheckin.sliderValue);
-    }
-  }, [existingCheckin]);
+  const mood = draftMood ?? existingCheckin?.mood ?? "neutral";
+  const sliderValue = draftSliderValue ?? existingCheckin?.sliderValue ?? 0;
 
   if (!occId) { router.replace("/habit/today"); return null; }
 
   function selectMood(option: MoodOption) {
-    setMood(option.level);
-    setSliderValue(option.sliderDefault);
+    setDraftMood(option.level);
+    setDraftSliderValue(option.sliderDefault);
   }
 
   async function handleSave() {
@@ -69,7 +66,7 @@ function EmotionCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลอารมณ์">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/today")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <h2 className={styles.ciTitle}>บันทึกอารมณ์</h2>
       </div>
@@ -77,10 +74,10 @@ function EmotionCheckinInner() {
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconEmotion}`} aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-            <line x1="9" y1="9" x2="9.01" y2="9"/>
-            <line x1="15" y1="9" x2="15.01" y2="9"/>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
           </svg>
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillEmotion}`}>
@@ -110,10 +107,10 @@ function EmotionCheckinInner() {
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
           <svg viewBox="0 0 24 24" style={{ stroke: "#ee8a4a" }}>
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-            <line x1="9" y1="9" x2="9.01" y2="9"/>
-            <line x1="15" y1="9" x2="15.01" y2="9"/>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
           </svg>
           อารมณ์วันนี้
         </h3>
@@ -124,8 +121,8 @@ function EmotionCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none"/></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
+            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
           }
         </button>
       </div>
@@ -160,12 +157,12 @@ function EmotionCheckinInner() {
           aria-label="ระดับอารมณ์"
           onChange={e => {
             const v = Number(e.target.value);
-            setSliderValue(v);
-            if (v <= -60) setMood("very-bad");
-            else if (v <= -20) setMood("bad");
-            else if (v <= 20) setMood("neutral");
-            else if (v <= 60) setMood("good");
-            else setMood("very-good");
+            setDraftSliderValue(v);
+            if (v <= -60) setDraftMood("very-bad");
+            else if (v <= -20) setDraftMood("bad");
+            else if (v <= 20) setDraftMood("neutral");
+            else if (v <= 60) setDraftMood("good");
+            else setDraftMood("very-good");
           }}
         />
         <div
@@ -189,9 +186,5 @@ function EmotionCheckinInner() {
 }
 
 export default function EmotionCheckinPage() {
-  return (
-    <Suspense>
-      <EmotionCheckinInner />
-    </Suspense>
-  );
+  return <EmotionCheckinInner />;
 }

@@ -1,8 +1,9 @@
 "use client";
-import { Suspense, useReducer, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useReducer, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useCreateActivityMutation } from "@/store/habitsApi";
 import type {
   HabitFrequency,
@@ -92,7 +93,7 @@ const MEAL_SLOTS: { slot: MealSlot; label: string }[] = [
 
 function MedicineFormInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const discardRef = useRef<HTMLDialogElement>(null);
@@ -411,9 +412,5 @@ function MedicineFormInner() {
 }
 
 export default function MedicinePage() {
-  return (
-    <Suspense>
-      <MedicineFormInner />
-    </Suspense>
-  );
+  return <MedicineFormInner />;
 }

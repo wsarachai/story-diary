@@ -1,13 +1,32 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useGetMeQuery, useLoginMutation } from "@/store/authApi";
 import type { ApiErrorCode } from "@/types/error";
+import { useClientSearchParams } from "@/lib/hooks";
 import layoutStyles from "@/components/BookShellLayout.module.css";
 import sharedStyles from "@/components/Shared.module.css";
 import styles from "./login.module.css";
+
+function readApiErrorCode(error: unknown): ApiErrorCode | null {
+  if (!error || typeof error !== "object" || !("data" in error)) {
+    return null;
+  }
+
+  const data = error.data;
+  if (!data || typeof data !== "object" || !("error" in data)) {
+    return null;
+  }
+
+  const apiError = data.error;
+  if (!apiError || typeof apiError !== "object" || !("code" in apiError)) {
+    return null;
+  }
+
+  return typeof apiError.code === "string" ? (apiError.code as ApiErrorCode) : null;
+}
 
 function errorCopy(code: ApiErrorCode | null): string | null {
   if (!code) return null;
@@ -23,7 +42,7 @@ function errorCopy(code: ApiErrorCode | null): string | null {
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
 
   const { data: user } = useGetMeQuery();
   const [login, { isLoading: isSubmitting, error }] = useLoginMutation();
@@ -41,7 +60,7 @@ function LoginForm() {
     }
   }, [user, router, from]);
 
-  const submitError = (error && "data" in error ? (error.data as any)?.error?.code : null) as ApiErrorCode || localError;
+  const submitError = readApiErrorCode(error) ?? localError;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +72,7 @@ function LoginForm() {
       // once the Redux user state updates, but we also navigate here as a
       // fast-path for cases where the effect fires after this.
       router.replace(from);
-    } catch (err) {
+    } catch {
       setPassword("");
     }
   }
@@ -161,15 +180,15 @@ export default function LoginPage() {
           <div className={styles.compassBg} />
           <div className={styles.compassContainer}>
             <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: "100%", height: "100%", display: "block" }}>
-              <circle cx="100" cy="100" r="63" stroke="currentColor" strokeWidth="5" opacity="0.95"/>
-              <path d="M100 27L113 82L100 100L87 82L100 27Z" fill="currentColor"/>
-              <path d="M100 173L87 118L100 100L113 118L100 173Z" fill="currentColor"/>
-              <path d="M27 100L82 87L100 100L82 113L27 100Z" fill="currentColor"/>
-              <path d="M173 100L118 113L100 100L118 87L173 100Z" fill="currentColor"/>
-              <path d="M100 62L109 91L100 100L91 91L100 62Z" fill="#58d8de"/>
-              <path d="M100 138L91 109L100 100L109 109L100 138Z" fill="#58d8de"/>
-              <path d="M62 100L91 91L100 100L91 109L62 100Z" fill="#58d8de"/>
-              <path d="M138 100L109 109L100 100L109 91L138 100Z" fill="#58d8de"/>
+              <circle cx="100" cy="100" r="63" stroke="currentColor" strokeWidth="5" opacity="0.95" />
+              <path d="M100 27L113 82L100 100L87 82L100 27Z" fill="currentColor" />
+              <path d="M100 173L87 118L100 100L113 118L100 173Z" fill="currentColor" />
+              <path d="M27 100L82 87L100 100L82 113L27 100Z" fill="currentColor" />
+              <path d="M173 100L118 113L100 100L118 87L173 100Z" fill="currentColor" />
+              <path d="M100 62L109 91L100 100L91 91L100 62Z" fill="#58d8de" />
+              <path d="M100 138L91 109L100 100L109 109L100 138Z" fill="#58d8de" />
+              <path d="M62 100L91 91L100 100L91 109L62 100Z" fill="#58d8de" />
+              <path d="M138 100L109 109L100 100L109 91L138 100Z" fill="#58d8de" />
               <text x="100" y="20" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">N</text>
               <text x="100" y="193" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">S</text>
               <text x="15" y="107" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">W</text>
@@ -180,9 +199,7 @@ export default function LoginPage() {
 
         {/* Right page — login form */}
         <section className={`${layoutStyles.page} ${layoutStyles.pageRight} ${styles.loginFormPage}`}>
-          <Suspense>
-            <LoginForm />
-          </Suspense>
+          <LoginForm />
         </section>
       </section>
     </main>

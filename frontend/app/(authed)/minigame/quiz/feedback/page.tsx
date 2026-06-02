@@ -1,7 +1,8 @@
 "use client";
-import { Suspense, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 import styles from "../Quiz.module.css";
@@ -9,7 +10,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 
 function FeedbackInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const {
     currentQuestion: question,
     counterText,
@@ -78,7 +79,7 @@ function FeedbackInner() {
           if (!opt) return null;
           const isCorrectOption = letter === feedback.correct;
           const isWrongOption = letter === feedback.selected && !isCorrect;
-          
+
           let cls = styles.quizOption;
           if (isCorrectOption) cls += ` ${styles.isCorrect}`;
           else if (isWrongOption) cls += ` ${styles.isWrong}`;
@@ -138,9 +139,5 @@ function FeedbackInner() {
 }
 
 export default function FeedbackPage() {
-  return (
-    <Suspense>
-      <FeedbackInner />
-    </Suspense>
-  );
+  return <FeedbackInner />;
 }

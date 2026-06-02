@@ -1,7 +1,8 @@
 "use client";
-import { Suspense, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 import styles from "./Quiz.module.css";
@@ -9,7 +10,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 
 function QuizInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const {
     currentQuestion: question,
     counterText,
@@ -172,9 +173,5 @@ function QuizInner() {
 }
 
 export default function QuizPage() {
-  return (
-    <Suspense>
-      <QuizInner />
-    </Suspense>
-  );
+  return <QuizInner />;
 }
