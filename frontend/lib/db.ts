@@ -11,7 +11,7 @@ const mode: DatabaseMode =
       : "mongo";
 
 const CHAR_IMG = "/images/chapter-speaker-girl-transparent.png";
-const NARRATOR_IMG = "/images/chapter-speaker-narrator-transparent.svg";
+const NARRATOR_IMG = "/images/chapter-speaker-narrator-transparent.png";
 
 export interface UserDoc {
   id: string;
