@@ -156,7 +156,7 @@ export default function RegisterPage() {
 
             <div style={{ display: "grid", gap: "1.4rem", marginTop: "3rem" }}>
               {/* Name */}
-              <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
+              <div className="register-line-field">
                 <label htmlFor="name" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   ชื่อ
                 </label>
@@ -174,7 +174,7 @@ export default function RegisterPage() {
               {form.errors.name && <span id="err-name" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.name}</span>}
 
               {/* Phone number (tel) */}
-              <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
+              <div className="register-line-field">
                 <label htmlFor="tel" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   เบอร์โทร
                 </label>
@@ -193,7 +193,7 @@ export default function RegisterPage() {
               {form.errors.tel && <span id="err-tel" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.tel}</span>}
 
               {/* Password */}
-              <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
+              <div className="register-line-field">
                 <label htmlFor="password" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   Password
                 </label>
@@ -211,7 +211,7 @@ export default function RegisterPage() {
               {form.errors.password && <span id="err-password" style={{ fontSize: "1em", color: "#c0392b", marginTop: "-0.8rem" }}>{form.errors.password}</span>}
 
               {/* Confirm Password */}
-              <div style={{ display: "grid", gridTemplateColumns: "auto minmax(0,1fr)", alignItems: "end", columnGap: "0.6rem" }}>
+              <div className="register-line-field">
                 <label htmlFor="confirm-password" style={{ fontSize: "1.875em", lineHeight: 1, whiteSpace: "nowrap" }}>
                   ยืนยันรหัสผ่าน
                 </label>
