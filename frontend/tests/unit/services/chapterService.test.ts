@@ -42,6 +42,12 @@ describe("listChapters", () => {
     const other = await listChapters("other-user");
     expect(other[0].progress).toBe("not-started");
   });
+
+  it("chapter 2 is unlocked in list after user completes chapter 1", async () => {
+    await setChapterProgress(USER, 1, "completed");
+    const chapters = await listChapters(USER);
+    expect(chapters[1].lockState).toBe("unlocked");
+  });
 });
 
 describe("getChapter", () => {
@@ -92,6 +98,50 @@ describe("setChapterProgress", () => {
     await expect(setChapterProgress(USER, 999, "completed")).rejects.toMatchObject({
       code: "CHAPTER_NOT_FOUND",
     });
+  });
+
+  // ── Next-chapter unlock behaviour ────────────────────────────────────────
+
+  it("completing chapter 1 unlocks chapter 2", async () => {
+    const before = await listChapters(USER);
+    expect(before[1].lockState).toBe("locked");
+
+    await setChapterProgress(USER, 1, "completed");
+
+    const after = await listChapters(USER);
+    expect(after[1].lockState).toBe("unlocked");
+  });
+
+  it("completing chapter 2 unlocks chapter 3", async () => {
+    await setChapterProgress(USER, 2, "completed");
+    const chapters = await listChapters(USER);
+    expect(chapters[2].lockState).toBe("unlocked");
+  });
+
+  it("setting in-progress does NOT unlock the next chapter", async () => {
+    await setChapterProgress(USER, 1, "in-progress");
+    const chapters = await listChapters(USER);
+    expect(chapters[1].lockState).toBe("locked");
+  });
+
+  it("completing the last chapter does not throw", async () => {
+    await expect(setChapterProgress(USER, 5, "completed")).resolves.toBeUndefined();
+  });
+
+  it("completing a chapter does not change the completed chapter's own lockState", async () => {
+    const before = await listChapters(USER);
+    const originalLock = before[0].lockState;
+    await setChapterProgress(USER, 1, "completed");
+    const after = await listChapters(USER);
+    expect(after[0].lockState).toBe(originalLock);
+  });
+
+  it("completing chapter 1 does not unlock chapters beyond 2", async () => {
+    await setChapterProgress(USER, 1, "completed");
+    const chapters = await listChapters(USER);
+    expect(chapters[2].lockState).toBe("locked");
+    expect(chapters[3].lockState).toBe("locked");
+    expect(chapters[4].lockState).toBe("locked");
   });
 });
 

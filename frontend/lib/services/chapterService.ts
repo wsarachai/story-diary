@@ -4,6 +4,7 @@ import {
     listChapterScenesByChapterId,
     listChaptersDocs,
     upsertChapterProgress,
+    unlockNextChapterBySortOrder,
     listEBooksDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
@@ -62,6 +63,9 @@ export async function setChapterProgress(
     }
 
     await upsertChapterProgress(userId, chapterId, progress);
+    if (progress === "completed") {
+        await unlockNextChapterBySortOrder(row.sort_order);
+    }
 }
 
 const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=Ktxam4bHrTo";

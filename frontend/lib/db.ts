@@ -559,6 +559,22 @@ export async function upsertChapterProgress(userId: string, chapterId: number, p
   );
 }
 
+export async function unlockNextChapterBySortOrder(currentSortOrder: number): Promise<void> {
+  await initializeDatabase();
+  const nextSortOrder = currentSortOrder + 1;
+  if (mode === "memory") {
+    const chapter = memoryStore.chapters.find((c) => c.sort_order === nextSortOrder);
+    if (chapter) {
+      chapter.lock_state = "unlocked";
+    }
+    return;
+  }
+  await chaptersCollection().updateOne(
+    { sort_order: nextSortOrder },
+    { $set: { lock_state: "unlocked" } }
+  );
+}
+
 export async function listHabitActivitiesByUser(userId: string, options?: { includeArchived?: boolean }): Promise<HabitActivityDoc[]> {
   await initializeDatabase();
   const includeArchived = options?.includeArchived ?? false;
