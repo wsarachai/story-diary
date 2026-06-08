@@ -94,6 +94,7 @@ export type AppRoute =
     | "/video-clips"
     // Habit — read views
     | "/habit/today"
+    | "/habit/checklist"
     | "/habit/weekly"
     | "/habit/monthly"
     | "/habit/summary"

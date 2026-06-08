@@ -38,7 +38,8 @@ export default function HabitWeeklyPage() {
       </div>
 
       <div className={styles.trackerTabRow}>
-        <Link href="/habit/today" className={styles.trackerTab}>daily habits</Link>
+        <Link href="/habit/checklist" className={styles.trackerTab}>รายการ</Link>
+        <Link href="/habit/today" className={styles.trackerTab}>สรุป</Link>
         <span className={`${styles.trackerTab} ${styles.isActive}`} aria-current="page">weekly habits</span>
         <Link href="/habit/monthly" className={styles.trackerTab}>monthly habits</Link>
       </div>

@@ -248,6 +248,109 @@
   height: 1.1rem;
 }
 
+/* ── Daily Summary ── */
+.dailySummaryContent {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1.25rem;
+  flex: 1;
+  min-height: 0;
+  padding: 0.5rem 0;
+}
+
+.dailySummaryCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.dailySummaryCard {
+  border-radius: 16px;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dailySummaryCard h3 {
+  margin: 0;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+}
+
+.dailySummaryBadge {
+  font-size: 2.4em;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.dailySummaryCardDone  { background: #08c65a; }
+.dailySummaryCardSkip  { background: #f4a261; }
+.dailySummaryCardPend  { background: #59d6dc; }
+
+.dailyProgressWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dailyProgressMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: rgba(13, 18, 23, 0.55);
+}
+
+.dailyProgressBar {
+  height: 0.75rem;
+  background: #e9f7f8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dailyProgressFill {
+  height: 100%;
+  background: #08c65a;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+.dailySummaryLegend {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dailyCTA {
+  display: block;
+  width: 100%;
+  padding: 0.9rem;
+  background: #59d6dc;
+  color: #fff;
+  font-size: 1em;
+  font-weight: 700;
+  border-radius: 16px;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-shadow: 0 4px 12px rgba(89, 214, 220, 0.35);
+}
+
+.dailyCTA:hover {
+  background: #3fc5cb;
+}
+
 /* ── Daily Today (s012) ── */
 .habitEntries {
   display: flex;

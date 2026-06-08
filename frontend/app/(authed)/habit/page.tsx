@@ -33,7 +33,7 @@ export default function HabitPage() {
           <div className={styles.sectionLabelRow}>
             <div className={styles.sectionLabel}>daily habits</div>
           </div>
-          <Link href="/habit/today" className={styles.dailyCard} aria-label="Daily habit checklist">
+          <Link href="/habit/checklist" className={styles.dailyCard} aria-label="Daily habit checklist">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className={styles.habitItem}>
                 <div className={styles.habitCheckbox} />
