@@ -16,7 +16,10 @@ import type { RegisterRequest } from "@/types/auth";
 
 const SALT_ROUNDS = 12;
 
-function resolveRole(row: UserDoc): "user" | "admin" {
+function resolveRole(row: UserDoc): "user" | "admin" | "rootAdmin" {
+    const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
+    if (rootAdminTel && row.tel === rootAdminTel) return "rootAdmin";
+    if (row.role === "rootAdmin") return "rootAdmin";
     if (row.role === "admin") return "admin";
     const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
     return adminIds.includes(row.id) ? "admin" : "user";

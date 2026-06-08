@@ -49,6 +49,16 @@ export interface CreateQuestionRequest {
 
 export type UpdateQuestionRequest = Partial<CreateQuestionRequest>;
 
+// ── User management payloads ────────────────────────────────────────────────
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  tel: string;
+  role: "user" | "admin" | "rootAdmin";
+  createdAt: string;
+}
+
 // ── Admin API ───────────────────────────────────────────────────────────────
 
 export const adminApi = apiSlice.injectEndpoints({
@@ -132,6 +142,17 @@ export const adminApi = apiSlice.injectEndpoints({
       query: (id) => ({ url: `/admin/minigame/questions/${id}`, method: "DELETE" }),
       invalidatesTags: ["Admin"],
     }),
+
+    // Users (rootAdmin only)
+    getAdminUsers: builder.query<UserSummary[], void>({
+      query: () => "/admin/users",
+      transformResponse: (res: { users: UserSummary[] }) => res.users,
+      providesTags: ["Admin"],
+    }),
+    changeUserRole: builder.mutation<UserSummary, { id: string; role: "user" | "admin" }>({
+      query: ({ id, role }) => ({ url: `/admin/users/${id}`, method: "PATCH", body: { role } }),
+      invalidatesTags: ["Admin"],
+    }),
   }),
 });
 
@@ -153,4 +174,6 @@ export const {
   useCreateQuestionMutation,
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
+  useGetAdminUsersQuery,
+  useChangeUserRoleMutation,
 } = adminApi;

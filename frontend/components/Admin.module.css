@@ -481,6 +481,59 @@
   .adminPageHeader { flex-direction: column; align-items: flex-start; }
 }
 
+/* ── User management ─────────────────────────────────── */
+.adminEmpty {
+  color: #8b949e;
+  font-size: 0.95rem;
+  padding: 2rem 0;
+}
+
+.adminRoleBadge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: #30363d;
+  color: #e6edf3;
+}
+
+.adminRoleAdmin {
+  background: #1f6feb33;
+  color: #58a6ff;
+}
+
+.adminRoleRootAdmin {
+  background: #6e40c933;
+  color: #c084fc;
+}
+
+.adminRoleUser {
+  background: #21262d;
+  color: #8b949e;
+}
+
+.adminRoleSelect {
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.adminRoleSelect:focus {
+  outline: none;
+  border-color: #58a6ff;
+}
+
+.adminRoleFixed {
+  color: #8b949e;
+  font-size: 0.85rem;
+}
+
 /* ── Responsive: small mobile (≤480px) ──────────────── */
 @media (max-width: 480px) {
   .adminMain { padding: 1rem 0.75rem; }

@@ -13,17 +13,19 @@ export default function AdminShell({ children }: AdminShellProps) {
   const router = useRouter();
   const { data: user, isLoading } = useGetMeQuery();
 
+  const isAdmin = user?.role === "admin" || user?.role === "rootAdmin";
+
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isLoading && !isAdmin) {
       router.replace("/login");
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, isAdmin, router]);
 
   if (isLoading) {
     return <div className={styles.adminLoading}>กำลังโหลด…</div>;
   }
 
-  if (!user || user.role !== "admin") {
+  if (!isAdmin) {
     return <div className={styles.adminLoading}>กำลังโหลด…</div>;
   }
 

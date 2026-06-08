@@ -36,8 +36,8 @@ export interface UserProfile {
     gender: Gender;
     /** Base64 JPEG data URL uploaded by the user, or null if not set. */
     avatarUrl?: string | null;
-    /** User role — "admin" grants access to the admin panel. */
-    role?: "user" | "admin";
+    /** User role — "admin" grants access to the admin panel; "rootAdmin" extends admin with user management. */
+    role?: "user" | "admin" | "rootAdmin";
     /** IANA timezone string, e.g. "Asia/Bangkok". Stored at registration. */
     timezone: string;
     /** ISO-8601 UTC. */

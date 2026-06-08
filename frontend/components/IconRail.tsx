@@ -20,7 +20,7 @@ export default function IconRail() {
   const pathname = usePathname();
   const activeKey = getActiveKey(pathname);
   const { data: user } = useGetMeQuery();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "rootAdmin";
 
   return (
     <nav className={styles.iconRail} aria-label="Main navigation">

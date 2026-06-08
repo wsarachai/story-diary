@@ -19,6 +19,8 @@ import {
   insertChapterSceneDoc,
   updateChapterSceneDoc,
   deleteChapterSceneDoc,
+  listAllUsers,
+  updateUserDoc,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
@@ -266,4 +268,43 @@ export async function adminUpdateQuestion(id: string, body: UpdateQuestionReques
 export async function adminDeleteQuestion(id: string): Promise<void> {
   const deleted = await deleteQuizQuestionDoc(id);
   if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+}
+
+// ── User management (rootAdmin only) ────────────────────────────────────────
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  tel: string;
+  role: "user" | "admin" | "rootAdmin";
+  createdAt: string;
+}
+
+export async function adminListUsers(): Promise<UserSummary[]> {
+  const rows = await listAllUsers();
+  const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    tel: row.tel,
+    role:
+      (rootAdminTel && row.tel === rootAdminTel) || row.role === "rootAdmin"
+        ? "rootAdmin"
+        : row.role === "admin"
+          ? "admin"
+          : "user",
+    createdAt: row.created_at,
+  }));
+}
+
+export async function adminChangeUserRole(userId: string, role: "user" | "admin"): Promise<UserSummary> {
+  const updated = await updateUserDoc(userId, { role, updated_at: new Date().toISOString() });
+  if (!updated) throw Errors.notFound("USER_NOT_FOUND", `User ${userId} not found`);
+  return {
+    id: updated.id,
+    name: updated.name,
+    tel: updated.tel,
+    role: updated.role === "admin" ? "admin" : "user",
+    createdAt: updated.created_at,
+  };
 }

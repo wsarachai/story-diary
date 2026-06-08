@@ -19,7 +19,19 @@ export function requireAuth(request: Request): string {
 export async function requireAdmin(request: Request): Promise<string> {
   const userId = requireAuth(request);
   const user = await findUserById(userId);
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "rootAdmin")) {
+    throw Errors.forbidden();
+  }
+  return userId;
+}
+
+export async function requireRootAdmin(request: Request): Promise<string> {
+  const userId = requireAuth(request);
+  const user = await findUserById(userId);
+  const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
+  const isRootAdmin =
+    (rootAdminTel && user?.tel === rootAdminTel) || user?.role === "rootAdmin";
+  if (!user || !isRootAdmin) {
     throw Errors.forbidden();
   }
   return userId;

@@ -21,7 +21,7 @@ export interface UserDoc {
   character_name: string;
   gender: "male" | "female";
   avatar_url?: string | null;
-  role?: "user" | "admin";
+  role?: "user" | "admin" | "rootAdmin";
   /** IANA timezone string, e.g. "Asia/Bangkok". Used to compute local calendar dates. */
   timezone: string;
   created_at: string;
@@ -504,6 +504,14 @@ export async function updateUserDoc(id: string, patch: Partial<UserDoc>): Promis
     { returnDocument: "after" }
   );
   return result ?? undefined;
+}
+
+export async function listAllUsers(): Promise<UserDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return [...memoryStore.users];
+  }
+  return usersCollection().find({}).toArray();
 }
 
 export async function listChaptersDocs(): Promise<ChapterDoc[]> {

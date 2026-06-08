@@ -3,9 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useGetMeQuery } from "@/store/authApi";
 import styles from "./Admin.module.css";
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
+  Users: (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ width: "1em", height: "1em", flexShrink: 0 }}
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
   Dashboard: (
     <svg
       viewBox="0 0 24 24"
@@ -83,16 +100,21 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-const navItems = [
+const BASE_NAV_ITEMS = [
   { label: "Dashboard", href: "/admin" },
   { label: "Chapters", href: "/admin/chapters" },
   { label: "E-Books", href: "/admin/e-books" },
   { label: "Minigame", href: "/admin/minigame" },
+  { label: "Users", href: "/admin/users", rootAdminOnly: true },
   { label: "Home", href: "/home" },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { data: me } = useGetMeQuery();
+  const navItems = BASE_NAV_ITEMS.filter(
+    (item) => !item.rootAdminOnly || me?.role === "rootAdmin"
+  );
   const [open, setOpen] = useState(false);
 
   // Close sidebar when route changes on mobile
