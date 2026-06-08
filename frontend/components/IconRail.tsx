@@ -57,7 +57,7 @@ export default function IconRail() {
             aria-current={adminActive ? "page" : undefined}
             style={adminActive ? ({ "--rail-accent": ADMIN_ACCENT } as React.CSSProperties) : undefined}
           >
-            <Image src="/icons/admin.svg" alt="" width={72} height={72} />
+            <div className={styles.adminIconImg} aria-hidden="true" />
           </Link>
         </div>
       )}
