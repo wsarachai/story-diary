@@ -33,6 +33,34 @@
   max-width: 560px;
 }
 
+.formCardBack {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(13, 18, 23, 0.45);
+  font-size: 0.9em;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0.3rem 0.5rem 0.3rem 0;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.formCardBack:hover {
+  color: rgba(13, 18, 23, 0.85);
+}
+
+.formCardBack svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
 .categoryTabs {
   flex: 1;
   display: grid;

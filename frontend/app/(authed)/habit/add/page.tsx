@@ -1,14 +1,26 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import styles from "./HabitAdd.module.css";
 
 export default function AddActivityPage() {
+  const router = useRouter();
   const content = (
     <div className={styles.authoringPage} aria-label="เพิ่มกิจกรรม">
       <div className={styles.formCard} role="dialog" aria-modal="true" aria-labelledby="form-title">
         <header className={styles.formCardHeader}>
+          <button
+            className={styles.formCardBack}
+            aria-label="ย้อนกลับ"
+            onClick={() => router.back()}
+          >
+            <svg viewBox="0 0 24 24">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            ย้อนกลับ
+          </button>
           <h2 className={styles.formCardTitle} id="form-title">เพิ่มกิจกรรม</h2>
         </header>
         <div className={styles.categoryTabs} role="tablist" aria-label="ประเภทกิจกรรม">
