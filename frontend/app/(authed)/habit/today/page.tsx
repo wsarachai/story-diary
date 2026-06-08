@@ -102,6 +102,15 @@ function TrashIcon() {
   );
 }
 
+function SkipIcon() {
+  return (
+    <svg viewBox="0 0 24 24">
+      <polyline points="5 6 12 12 5 18"/>
+      <polyline points="13 6 20 12 13 18"/>
+    </svg>
+  );
+}
+
 interface DeleteConfirmProps {
   activityName: string;
   isDeleting: boolean;
@@ -227,15 +236,35 @@ export default function HabitTodayPage() {
               >
                 <TrashIcon />
               </button>
+              {entry.occurrence.status === "pending" && (
+                <button
+                  className={styles.habitSkipBtn}
+                  aria-label={`ข้าม ${entry.activity.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle({
+                      occurrenceId: entry.occurrence.id,
+                      activityId: entry.activity.id,
+                      status: "skipped",
+                      date: todayStr,
+                    });
+                  }}
+                >
+                  <SkipIcon />
+                </button>
+              )}
               <button
                 className={`${styles.habitCheck}${entry.occurrence.status === "done" ? ` ${styles.done}` : ""}`}
-                aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : "ยังไม่ทำ"}
+                aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : entry.occurrence.status === "skipped" ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ" : "ยังไม่ทำ"}
                 onClick={(e) => {
                   e.stopPropagation();
+                  const next =
+                    entry.occurrence.status === "done" ? "pending" :
+                    entry.occurrence.status === "skipped" ? "done" : "done";
                   toggle({
                     occurrenceId: entry.occurrence.id,
                     activityId: entry.activity.id,
-                    status: entry.occurrence.status === "done" ? "pending" : "done",
+                    status: next,
                     date: todayStr,
                   });
                 }}

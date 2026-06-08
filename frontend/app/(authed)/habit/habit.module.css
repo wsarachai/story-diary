@@ -412,6 +412,29 @@
   fill: none;
 }
 
+.habitSkipBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem;
+  color: #ccc;
+  transition: color 0.15s;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.habitSkipBtn:hover {
+  color: #f4a261;
+}
+
+.habitSkipBtn svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
 /* ── Delete Confirm Dialog ── */
 .deleteConfirmOverlay {
   position: fixed;
@@ -641,14 +664,18 @@
   height: 0.75rem;
   border-radius: 50%;
   flex-shrink: 0;
+  border: 2px solid #59d6dc;
+  background: #fff;
 }
 
 .legendDot.done {
   background: #08c65a;
+  border-color: #08c65a;
 }
 
 .legendDot.skip {
   background: #f4a261;
+  border-color: #f4a261;
 }
 
 .legendLabel {
@@ -818,14 +845,18 @@
   height: 0.75rem;
   border-radius: 50%;
   flex-shrink: 0;
+  border: 1.5px solid #59d6dc;
+  background: #fff;
 }
 
 .monthlyLegendDot.done {
   background: #08c65a;
+  border-color: #08c65a;
 }
 
 .monthlyLegendDot.skip {
   background: #f4a261;
+  border-color: #f4a261;
 }
 
 .monthlyLegendLabel {

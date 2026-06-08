@@ -93,7 +93,7 @@ export default function HabitMonthlyPage() {
                   <span className={styles.monthlyLegendLabel}>ข้ามไป</span>
                 </div>
                 <div className={styles.monthlyLegendRow}>
-                  <div className={styles.monthlyLegendDot} style={{ background: "#fff", border: "3px solid #59d6dc" }} />
+                  <div className={styles.monthlyLegendDot} />
                   <span className={styles.monthlyLegendLabel}>ยังไม่ถึง</span>
                 </div>
               </div>

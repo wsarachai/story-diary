@@ -85,7 +85,7 @@ export default function HabitWeeklyPage() {
                   <span className={styles.legendLabel}>ข้ามไป</span>
                 </div>
                 <div className={styles.legendRow}>
-                  <div className={styles.legendDot} style={{ border: "3px solid #59d6dc", background: "#fff" }} />
+                  <div className={styles.legendDot} />
                   <span className={styles.legendLabel}>ยังไม่ถึง</span>
                 </div>
               </div>
