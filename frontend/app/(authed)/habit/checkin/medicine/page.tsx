@@ -1,11 +1,10 @@
 "use client";
-import { useReducer, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useReducer, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
-import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveMedicineCheckinMutation, useGetTodayHabitsQuery, useGetMedicineCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck, MealSlot } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
@@ -44,7 +43,7 @@ const SLOT_LABEL: Record<MealSlot, string> = {
 
 function MedicineCheckinInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  const searchParams = useSearchParams();
   const [saveMedicine, { isLoading: saving }] = useSaveMedicineCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
@@ -63,7 +62,11 @@ function MedicineCheckinInner() {
     }
   }, [existingCheckin]);
 
-  if (!occId) { router.replace("/habit/today"); return null; }
+  useEffect(() => {
+    if (!occId) router.replace("/habit/today");
+  }, [occId, router]);
+
+  if (!occId) return null;
 
   async function handleSave() {
     if (saving) return;
@@ -185,5 +188,9 @@ function MedicineCheckinInner() {
 }
 
 export default function MedicineCheckinPage() {
-  return <MedicineCheckinInner />;
+  return (
+    <Suspense>
+      <MedicineCheckinInner />
+    </Suspense>
+  );
 }

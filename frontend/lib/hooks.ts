@@ -9,7 +9,7 @@ const HISTORY_EVENT = "story-diary:history-update";
 let historyPatched = false;
 
 function notifyLocationChange() {
-  window.dispatchEvent(new Event(HISTORY_EVENT));
+  queueMicrotask(() => window.dispatchEvent(new Event(HISTORY_EVENT)));
 }
 
 function patchHistoryMethods() {

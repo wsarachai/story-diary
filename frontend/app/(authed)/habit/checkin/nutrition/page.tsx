@@ -1,11 +1,10 @@
 "use client";
-import { useReducer, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useReducer, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
-import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveNutritionCheckinMutation, useGetTodayHabitsQuery, useGetNutritionCheckinQuery } from "@/store/habitsApi";
 import styles from "../HabitCheckin.module.css";
 
@@ -37,7 +36,7 @@ const MEALS: { field: Field; label: string; placeholder: string }[] = [
 
 function NutritionCheckinInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  const searchParams = useSearchParams();
   const [saveNutrition, { isLoading: saving }] = useSaveNutritionCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
@@ -56,7 +55,11 @@ function NutritionCheckinInner() {
     }
   }, [existingCheckin]);
 
-  if (!occId) { router.replace("/habit/today"); return null; }
+  useEffect(() => {
+    if (!occId) router.replace("/habit/today");
+  }, [occId, router]);
+
+  if (!occId) return null;
 
   async function handleSave() {
     if (saving) return;
@@ -153,5 +156,9 @@ function NutritionCheckinInner() {
 }
 
 export default function NutritionCheckinPage() {
-  return <NutritionCheckinInner />;
+  return (
+    <Suspense>
+      <NutritionCheckinInner />
+    </Suspense>
+  );
 }

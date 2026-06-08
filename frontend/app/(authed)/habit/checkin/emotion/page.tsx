@@ -1,11 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
-import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import type { MoodLevel } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
@@ -28,7 +27,7 @@ const MOOD_OPTIONS: MoodOption[] = [
 
 function EmotionCheckinInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  const searchParams = useSearchParams();
   const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
@@ -45,7 +44,11 @@ function EmotionCheckinInner() {
   const mood = draftMood ?? existingCheckin?.mood ?? "neutral";
   const sliderValue = draftSliderValue ?? existingCheckin?.sliderValue ?? 0;
 
-  if (!occId) { router.replace("/habit/today"); return null; }
+  useEffect(() => {
+    if (!occId) router.replace("/habit/today");
+  }, [occId, router]);
+
+  if (!occId) return null;
 
   function selectMood(option: MoodOption) {
     setDraftMood(option.level);
@@ -186,5 +189,9 @@ function EmotionCheckinInner() {
 }
 
 export default function EmotionCheckinPage() {
-  return <EmotionCheckinInner />;
+  return (
+    <Suspense>
+      <EmotionCheckinInner />
+    </Suspense>
+  );
 }

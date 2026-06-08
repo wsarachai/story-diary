@@ -1,11 +1,10 @@
 "use client";
-import { useReducer, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useReducer, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
-import { useClientSearchParams } from "@/lib/hooks";
 import { useSaveSymptomsCheckinMutation, useGetTodayHabitsQuery, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
@@ -39,7 +38,7 @@ function reducer(state: State, action: Action): State {
 
 function SymptomCheckinInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  const searchParams = useSearchParams();
   const [saveSymptoms, { isLoading: saving }] = useSaveSymptomsCheckinMutation();
 
   const occId = searchParams.get("occ") ?? "";
@@ -58,7 +57,11 @@ function SymptomCheckinInner() {
     }
   }, [existingCheckin]);
 
-  if (!occId) { router.replace("/habit/today"); return null; }
+  useEffect(() => {
+    if (!occId) router.replace("/habit/today");
+  }, [occId, router]);
+
+  if (!occId) return null;
 
   async function handleSave() {
     if (saving) return;
@@ -158,5 +161,9 @@ function SymptomCheckinInner() {
 }
 
 export default function SymptomCheckinPage() {
-  return <SymptomCheckinInner />;
+  return (
+    <Suspense>
+      <SymptomCheckinInner />
+    </Suspense>
+  );
 }
