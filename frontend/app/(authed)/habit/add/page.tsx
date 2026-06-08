@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useClientSearchParams } from "@/lib/hooks";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import styles from "./HabitAdd.module.css";
 
 export default function AddActivityPage() {
   const router = useRouter();
+  const searchParams = useClientSearchParams();
+  const from = searchParams.get("from") ?? "/habit/checklist";
   const content = (
     <div className={styles.authoringPage} aria-label="เพิ่มกิจกรรม">
       <div className={styles.formCard} role="dialog" aria-modal="true" aria-labelledby="form-title">
@@ -14,7 +17,7 @@ export default function AddActivityPage() {
           <button
             className={styles.formCardBack}
             aria-label="ย้อนกลับ"
-            onClick={() => router.back()}
+            onClick={() => router.push(from)}
           >
             <svg viewBox="0 0 24 24">
               <polyline points="15 18 9 12 15 6"/>
@@ -28,7 +31,7 @@ export default function AddActivityPage() {
             className={`${styles.catTab} ${styles.catMed}`}
             role="tab"
             aria-label="ยา"
-            href="/habit/add/medicine?source=medicine"
+            href={`/habit/add/medicine?source=medicine&from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
               <svg viewBox="0 0 80 80" fill="none">
@@ -42,7 +45,7 @@ export default function AddActivityPage() {
             className={`${styles.catTab} ${styles.catFood}`}
             role="tab"
             aria-label="โภชนาการ"
-            href="/habit/add/nutrition"
+            href={`/habit/add/nutrition?from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
               <svg viewBox="0 0 80 80" fill="none">
@@ -57,7 +60,7 @@ export default function AddActivityPage() {
             className={`${styles.catTab} ${styles.catBody}`}
             role="tab"
             aria-label="กิจกรรมทางกาย"
-            href="/habit/add/physical"
+            href={`/habit/add/physical?from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
               <svg viewBox="0 0 80 80" fill="none">

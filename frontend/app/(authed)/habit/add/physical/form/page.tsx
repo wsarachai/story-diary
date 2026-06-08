@@ -79,6 +79,7 @@ function PhysicalFormInner() {
   const colorDialogRef = useRef<HTMLDialogElement>(null);
 
   const rawName = searchParams.get("name") ?? "";
+  const from = searchParams.get("from") ?? "/habit/checklist";
   const isOther = rawName === "other";
 
   const [form, dispatchForm] = useReducer(formReducer, {
@@ -121,7 +122,7 @@ function PhysicalFormInner() {
         iconColor: form.iconColor as `#${string}`,
         schedule,
       }).unwrap();
-      router.replace("/habit/today");
+      router.replace(from);
     } catch {
       // ignore
     }
@@ -129,7 +130,7 @@ function PhysicalFormInner() {
 
   function handleCancel() {
     if (form.dirty) { discardRef.current?.showModal(); }
-    else { router.push("/habit/add/physical"); }
+    else { router.back(); }
   }
 
   return (
@@ -330,7 +331,7 @@ function PhysicalFormInner() {
             <p>ข้อมูลที่กรอกไว้จะหายไป</p>
             <div className={styles.discardDialogBtns}>
               <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-              <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
+              <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.back(); }}>ละทิ้ง</button>
             </div>
           </dialog>
         </div>

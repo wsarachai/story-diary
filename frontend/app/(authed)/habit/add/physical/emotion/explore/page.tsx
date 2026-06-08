@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveMoodCheckinMutation } from "@/store/habitsApi";
+import { useClientSearchParams } from "@/lib/hooks";
 import type { MoodLevel } from "@/types/habit";
 import styles from "../../../HabitAdd.module.css";
 import checkinStyles from "../../../../checkin/HabitCheckin.module.css";
@@ -34,6 +35,8 @@ function reducer(state: State, action: Action): State {
 
 export default function ExploreEmotionPage() {
   const router = useRouter();
+  const searchParams = useClientSearchParams();
+  const from = searchParams.get("from") ?? "/habit/checklist";
   const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
@@ -49,7 +52,7 @@ export default function ExploreEmotionPage() {
         sliderValue: state.sliderValue,
         date: today
       }).unwrap();
-      router.replace("/habit/today");
+      router.replace(from);
     } catch {
       // ignore
     }
@@ -57,7 +60,7 @@ export default function ExploreEmotionPage() {
 
   function handleCancel() {
     if (state.dirty) { discardRef.current?.showModal(); }
-    else { router.push("/habit/add/physical/emotion"); }
+    else { router.back(); }
   }
 
   const sliderPct = (state.sliderValue + 100) / 2;
@@ -139,7 +142,7 @@ export default function ExploreEmotionPage() {
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
         <div className={styles.discardDialogBtns}>
           <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical/emotion"); }}>ละทิ้ง</button>
+          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.back(); }}>ละทิ้ง</button>
         </div>
       </dialog>
     </>

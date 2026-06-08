@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveSymptomsCheckinMutation } from "@/store/habitsApi";
+import { useClientSearchParams } from "@/lib/hooks";
 import type { SymptomCheck } from "@/types/habit";
 import styles from "../../HabitAdd.module.css";
 import checkinStyles from "../../../checkin/HabitCheckin.module.css";
@@ -31,6 +32,8 @@ function reducer(state: State, action: Action): State {
 
 export default function SymptomsCheckinPage() {
   const router = useRouter();
+  const searchParams = useClientSearchParams();
+  const from = searchParams.get("from") ?? "/habit/checklist";
   const [saveSymptoms, { isLoading: saving }] = useSaveSymptomsCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   const [state, dispatchLocal] = useReducer(reducer, { items: INITIAL_SYMPTOMS });
@@ -46,7 +49,7 @@ export default function SymptomsCheckinPage() {
         items: state.items,
         date: today
       }).unwrap();
-      router.replace("/habit/today");
+      router.replace(from);
     } catch {
       // ignore
     }
@@ -54,7 +57,7 @@ export default function SymptomsCheckinPage() {
 
   function handleCancel() {
     if (dirty) { discardRef.current?.showModal(); }
-    else { router.push("/habit/add/physical"); }
+    else { router.back(); }
   }
 
   const leftPage = (
@@ -112,7 +115,7 @@ export default function SymptomsCheckinPage() {
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
         <div className={styles.discardDialogBtns}>
           <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.push("/habit/add/physical"); }}>ละทิ้ง</button>
+          <button className={styles.discardBtnLeave} onClick={() => { discardRef.current?.close(); router.back(); }}>ละทิ้ง</button>
         </div>
       </dialog>
     </>

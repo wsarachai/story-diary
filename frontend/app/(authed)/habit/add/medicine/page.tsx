@@ -101,6 +101,7 @@ function MedicineFormInner() {
 
   const source = searchParams.get("source");
   const typeKey = searchParams.get("type") as NutritionPresetKey | null;
+  const from = searchParams.get("from") ?? "/habit/checklist";
 
   const isNutrition = typeKey !== null && NUTRITION_PRESET_KEYS.includes(typeKey);
   const prefillName = typeKey && isNutrition ? (NUTRITION_PRESETS[typeKey] ?? "") : "";
@@ -155,7 +156,7 @@ function MedicineFormInner() {
         schedule,
         ...(isNutrition ? {} : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
       }).unwrap();
-      router.replace("/habit/today");
+      router.replace(from);
     } catch (err: unknown) {
       const raw = (err as { data?: { error?: unknown } })?.data?.error;
       const msg = typeof raw === "string" ? raw : undefined;
@@ -167,13 +168,13 @@ function MedicineFormInner() {
     if (form.dirty) {
       discardRef.current?.showModal();
     } else {
-      router.push("/habit/add");
+      router.push(`/habit/add?from=${from}`);
     }
   }
 
   function handleDiscard() {
     discardRef.current?.close();
-    router.push("/habit/add");
+    router.push(`/habit/add?from=${from}`);
   }
 
   void source;

@@ -1,4 +1,3 @@
-"use client";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
@@ -12,7 +11,9 @@ const PRESET_KEYS: NutritionPresetKey[] = [
   "nutrition_order_low_seasoning",
 ];
 
-export default function AddNutritionPage() {
+export default async function AddNutritionPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  const { from = "/habit/checklist" } = await searchParams;
+
   return (
     <BookShellLayout
       tight
@@ -24,7 +25,7 @@ export default function AddNutritionPage() {
             <header className={styles.createHeader}>
               <Link
                 className={styles.actionBtn}
-                href="/habit/add"
+                href={`/habit/add?from=${from}`}
                 aria-label="กลับ"
               >
                 <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -38,7 +39,7 @@ export default function AddNutritionPage() {
                   key={key}
                   className={styles.nutritionItem}
                   role="listitem"
-                  href={`/habit/add/medicine?type=${key}`}
+                  href={`/habit/add/medicine?type=${key}&from=${from}`}
                   aria-label={NUTRITION_PRESETS[key]}
                 >
                   <span className={styles.nutritionItemDot} aria-hidden="true" />
