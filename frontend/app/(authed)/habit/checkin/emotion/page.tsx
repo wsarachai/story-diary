@@ -45,7 +45,7 @@ function EmotionCheckinInner() {
   const sliderValue = draftSliderValue ?? existingCheckin?.sliderValue ?? 0;
 
   useEffect(() => {
-    if (!occId) router.replace("/habit/today");
+    if (!occId) router.replace("/habit/checklist");
   }, [occId, router]);
 
   if (!occId) return null;
@@ -59,7 +59,7 @@ function EmotionCheckinInner() {
     if (saving) return;
     try {
       await saveMood({ occurrenceId: occId, mood, sliderValue, date: today }).unwrap();
-      router.replace("/habit/today");
+      router.replace("/habit/checklist");
     } catch { /* ignore */ }
   }
 
@@ -68,7 +68,7 @@ function EmotionCheckinInner() {
   const leftPage = (
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลอารมณ์">
       <div className={styles.ciPageHeader}>
-        <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/today")}>
+        <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/checklist")}>
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <h2 className={styles.ciTitle}>บันทึกอารมณ์</h2>

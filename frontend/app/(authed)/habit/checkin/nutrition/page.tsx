@@ -56,7 +56,7 @@ function NutritionCheckinInner() {
   }, [existingCheckin]);
 
   useEffect(() => {
-    if (!occId) router.replace("/habit/today");
+    if (!occId) router.replace("/habit/checklist");
   }, [occId, router]);
 
   if (!occId) return null;
@@ -72,14 +72,14 @@ function NutritionCheckinInner() {
         dinner: state.dinner,
         date: today,
       }).unwrap();
-      router.replace("/habit/today");
+      router.replace("/habit/checklist");
     } catch { /* ignore */ }
   }
 
   const leftPage = (
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลโภชนาการ">
       <div className={styles.ciPageHeader}>
-        <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/today")}>
+        <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/checklist")}>
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <h2 className={styles.ciTitle}>บันทึกโภชนาการ</h2>
