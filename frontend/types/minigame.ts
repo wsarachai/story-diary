@@ -37,8 +37,6 @@ export interface QuizOption {
  */
 export interface QuizQuestion {
     id: string;
-    /** 1-based question number used in the s017/s018 counter. */
-    number: number;
     /** Body copy. May contain `<br>` line breaks; UI should split on `\n`. */
     text: string;
     options: [QuizOption, QuizOption, QuizOption, QuizOption];

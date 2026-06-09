@@ -43,11 +43,12 @@ describe("getQuiz", () => {
     }
   });
 
-  it("questions are numbered sequentially starting at 1", async () => {
+  it("returns questions ordered by sort_order", async () => {
     const quiz = await getQuiz();
-    const numbers = quiz.questions.map((q) => q.number);
-    expect(numbers[0]).toBe(1);
-    expect(numbers[numbers.length - 1]).toBe(13);
+    const ids = quiz.questions.map((q) => q.id);
+    // Seed defines q1..q13 with sort_order 1..13, so getQuiz must echo that order.
+    const expected = Array.from({ length: 13 }, (_, i) => `q${i + 1}`);
+    expect(ids).toEqual(expected);
   });
 });
 

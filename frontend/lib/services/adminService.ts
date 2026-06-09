@@ -15,6 +15,7 @@ import {
   insertQuizQuestionDoc,
   updateQuizQuestionDoc,
   deleteQuizQuestionDoc,
+  reorderQuizQuestionDocs,
   listChapterScenesByChapterId,
   insertChapterSceneDoc,
   updateChapterSceneDoc,
@@ -219,7 +220,6 @@ export async function adminDeleteEBook(id: string): Promise<void> {
 function questionDocToModel(row: NonNullable<Awaited<ReturnType<typeof findQuizQuestionById>>>): QuizQuestion {
   return {
     id: row.id,
-    number: row.number,
     text: row.text,
     options: [
       { letter: "A" as const, text: row.option_a },
@@ -238,10 +238,12 @@ export async function adminListQuestions(): Promise<QuizQuestion[]> {
 }
 
 export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<QuizQuestion> {
+  const existing = await listQuizQuestionsDocs();
+  const maxSort = existing.reduce((m, q) => Math.max(m, q.sort_order), 0);
   const id = `q-${uuidv4().slice(0, 8)}`;
   await insertQuizQuestionDoc({
     id,
-    number: body.number,
+    sort_order: maxSort + 1,
     text: body.text,
     option_a: body.optionA,
     option_b: body.optionB,
@@ -257,7 +259,6 @@ export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<
 
 export async function adminUpdateQuestion(id: string, body: UpdateQuestionRequest): Promise<QuizQuestion> {
   const patch: Record<string, unknown> = {};
-  if (body.number !== undefined) patch.number = body.number;
   if (body.text !== undefined) patch.text = body.text;
   if (body.optionA !== undefined) patch.option_a = body.optionA;
   if (body.optionB !== undefined) patch.option_b = body.optionB;
@@ -274,6 +275,20 @@ export async function adminUpdateQuestion(id: string, body: UpdateQuestionReques
 export async function adminDeleteQuestion(id: string): Promise<void> {
   const deleted = await deleteQuizQuestionDoc(id);
   if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+}
+
+export async function adminReorderQuestions(orderedIds: string[]): Promise<void> {
+  const existing = await listQuizQuestionsDocs();
+  const existingIds = existing.map((q) => q.id);
+  const unique = new Set(orderedIds);
+  const isPermutation =
+    orderedIds.length === existingIds.length &&
+    unique.size === orderedIds.length &&
+    existingIds.every((id) => unique.has(id));
+  if (!isPermutation) {
+    throw Errors.validation("Reorder payload must be a permutation of all question ids");
+  }
+  await reorderQuizQuestionDocs(orderedIds);
 }
 
 // ── Video Clips ───────────────────────────────────────────────────────────────

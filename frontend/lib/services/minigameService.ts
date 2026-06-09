@@ -14,7 +14,6 @@ export async function getQuiz(): Promise<Quiz> {
     showFinalScore: true,
     questions: rows.map((row) => ({
       id: row.id,
-      number: row.number,
       text: row.text,
       options: [
         { letter: "A" as const, text: row.option_a },

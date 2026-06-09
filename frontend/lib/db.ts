@@ -78,7 +78,7 @@ export interface HabitOccurrenceDoc {
 
 export interface QuizQuestionDoc {
   id: string;
-  number: number;
+  sort_order: number;
   text: string;
   option_a: string;
   option_b: string;
@@ -217,19 +217,19 @@ const CHAPTER_SCENES: ChapterSceneDoc[] = [
 ];
 
 const QUIZ_QUESTIONS: QuizQuestionDoc[] = [
-  { id: "q1", number: 1, text: "ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใดเพื่อป้องกันผิวหนังจากแสงยูวี?", option_a: "06:00 – 09:00 น.", option_b: "10:00 – 16:00 น.", option_c: "16:00 – 18:00 น.", option_d: "18:00 – 20:00 น.", correct_answer: "B", explanation: "แสงยูวีจะรุนแรงที่สุดในช่วง 10:00 – 16:00 น." },
-  { id: "q2", number: 2, text: "อาหารประเภทใดมีประโยชน์ต่อสุขภาพหัวใจมากที่สุด?", option_a: "อาหารทอดและไขมันสูง", option_b: "ผักและผลไม้สด", option_c: "ขนมหวานและน้ำตาล", option_d: "เครื่องดื่มแอลกอฮอล์", correct_answer: "B", explanation: "ผักและผลไม้สดมีวิตามิน แร่ธาตุ และเส้นใยอาหารที่ดีต่อหัวใจ" },
-  { id: "q3", number: 3, text: "ควรออกกำลังกายอย่างน้อยกี่นาทีต่อวันสำหรับผู้ใหญ่ที่มีสุขภาพดี?", option_a: "10 นาที", option_b: "20 นาที", option_c: "30 นาที", option_d: "60 นาที", correct_answer: "C", explanation: "WHO แนะนำให้ออกกำลังกายระดับปานกลางอย่างน้อย 30 นาทีต่อวัน" },
-  { id: "q4", number: 4, text: "น้ำดื่มที่ร่างกายต้องการต่อวันโดยประมาณเท่าไร?", option_a: "500 มล.", option_b: "1 ลิตร", option_c: "1.5 – 2 ลิตร", option_d: "3 ลิตร", correct_answer: "C", explanation: "ร่างกายต้องการน้ำ 1.5–2 ลิตรต่อวัน หรือประมาณ 8 แก้ว" },
-  { id: "q5", number: 5, text: "ข้อใดเป็นอาการเตือนของโรคเบาหวาน?", option_a: "ปวดหัว และไข้", option_b: "ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลีย", option_c: "ปวดข้อและผิวหนังอักเสบ", option_d: "ไอและเจ็บคอ", correct_answer: "B", explanation: "อาการของโรคเบาหวาน ได้แก่ ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลียผิดปกติ" },
-  { id: "q6", number: 6, text: "การนอนหลับที่เพียงพอสำหรับผู้ใหญ่คือกี่ชั่วโมงต่อคืน?", option_a: "4 – 5 ชั่วโมง", option_b: "5 – 6 ชั่วโมง", option_c: "7 – 9 ชั่วโมง", option_d: "10 – 12 ชั่วโมง", correct_answer: "C", explanation: "ผู้ใหญ่ควรนอนหลับ 7–9 ชั่วโมงต่อคืนเพื่อสุขภาพที่ดี" },
-  { id: "q7", number: 7, text: "วิตามินดีได้รับจากแหล่งใดเป็นหลัก?", option_a: "อาหารทะเล", option_b: "แสงแดด", option_c: "ผักใบเขียว", option_d: "นม", correct_answer: "B", explanation: "ร่างกายสังเคราะห์วิตามินดีได้จากแสงแดด" },
-  { id: "q8", number: 8, text: "ค่าดัชนีมวลกาย (BMI) ปกติสำหรับผู้ใหญ่คือเท่าใด?", option_a: "น้อยกว่า 15", option_b: "15 – 17.9", option_c: "18.5 – 24.9", option_d: "25 – 30", correct_answer: "C", explanation: "BMI ปกติอยู่ที่ 18.5 – 24.9 กก./ม²" },
-  { id: "q9", number: 9, text: "การล้างมือที่ถูกวิธีควรใช้เวลานานเท่าใด?", option_a: "5 วินาที", option_b: "10 วินาที", option_c: "20 วินาที", option_d: "1 นาที", correct_answer: "C", explanation: "ควรล้างมือนาน 20 วินาที หรือร้องเพลงวันเกิดสองรอบ" },
-  { id: "q10", number: 10, text: "ข้อใดเป็นสัญญาณเตือนของโรคหลอดเลือดสมอง (Stroke)?", option_a: "ปวดท้องและคลื่นไส้", option_b: "ใบหน้าเบี้ยว แขนอ่อนแรง และพูดไม่ชัด", option_c: "ผื่นคันตามผิวหนัง", option_d: "ไอเรื้อรังและเจ็บหน้าอก", correct_answer: "B", explanation: "F.A.S.T.: ใบหน้า (Face) แขน (Arms) การพูด (Speech) และเวลา (Time)" },
-  { id: "q11", number: 11, text: "ธาตุเหล็กพบมากในอาหารประเภทใด?", option_a: "ข้าวและแป้ง", option_b: "เนื้อสัตว์สีแดงและผักใบเขียวเข้ม", option_c: "ผลไม้รสหวาน", option_d: "นมและผลิตภัณฑ์นม", correct_answer: "B", explanation: "ธาตุเหล็กพบมากในเนื้อสัตว์สีแดง ตับ และผักใบเขียวเข้ม เช่น ผักโขม" },
-  { id: "q12", number: 12, text: "ความดันโลหิตปกติสำหรับผู้ใหญ่ควรอยู่ที่เท่าใด?", option_a: "น้อยกว่า 80/50 มม.ปรอท", option_b: "120/80 มม.ปรอท หรือต่ำกว่า", option_c: "140/90 มม.ปรอท", option_d: "160/100 มม.ปรอท", correct_answer: "B", explanation: "ความดันโลหิตปกติอยู่ที่ 120/80 มม.ปรอทหรือต่ำกว่า" },
-  { id: "q13", number: 13, text: "การสูบบุหรี่เพิ่มความเสี่ยงต่อโรคใดมากที่สุด?", option_a: "โรคผิวหนัง", option_b: "โรคปอดและโรคหัวใจ", option_c: "โรคข้อเข่าเสื่อม", option_d: "โรคกระดูกพรุน", correct_answer: "B", explanation: "การสูบบุหรี่เป็นปัจจัยเสี่ยงหลักของมะเร็งปอด โรคปอดอุดกั้นเรื้อรัง และโรคหัวใจ" },
+  { id: "q1", sort_order: 1, text: "ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใดเพื่อป้องกันผิวหนังจากแสงยูวี?", option_a: "06:00 – 09:00 น.", option_b: "10:00 – 16:00 น.", option_c: "16:00 – 18:00 น.", option_d: "18:00 – 20:00 น.", correct_answer: "B", explanation: "แสงยูวีจะรุนแรงที่สุดในช่วง 10:00 – 16:00 น." },
+  { id: "q2", sort_order: 2, text: "อาหารประเภทใดมีประโยชน์ต่อสุขภาพหัวใจมากที่สุด?", option_a: "อาหารทอดและไขมันสูง", option_b: "ผักและผลไม้สด", option_c: "ขนมหวานและน้ำตาล", option_d: "เครื่องดื่มแอลกอฮอล์", correct_answer: "B", explanation: "ผักและผลไม้สดมีวิตามิน แร่ธาตุ และเส้นใยอาหารที่ดีต่อหัวใจ" },
+  { id: "q3", sort_order: 3, text: "ควรออกกำลังกายอย่างน้อยกี่นาทีต่อวันสำหรับผู้ใหญ่ที่มีสุขภาพดี?", option_a: "10 นาที", option_b: "20 นาที", option_c: "30 นาที", option_d: "60 นาที", correct_answer: "C", explanation: "WHO แนะนำให้ออกกำลังกายระดับปานกลางอย่างน้อย 30 นาทีต่อวัน" },
+  { id: "q4", sort_order: 4, text: "น้ำดื่มที่ร่างกายต้องการต่อวันโดยประมาณเท่าไร?", option_a: "500 มล.", option_b: "1 ลิตร", option_c: "1.5 – 2 ลิตร", option_d: "3 ลิตร", correct_answer: "C", explanation: "ร่างกายต้องการน้ำ 1.5–2 ลิตรต่อวัน หรือประมาณ 8 แก้ว" },
+  { id: "q5", sort_order: 5, text: "ข้อใดเป็นอาการเตือนของโรคเบาหวาน?", option_a: "ปวดหัว และไข้", option_b: "ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลีย", option_c: "ปวดข้อและผิวหนังอักเสบ", option_d: "ไอและเจ็บคอ", correct_answer: "B", explanation: "อาการของโรคเบาหวาน ได้แก่ ปัสสาวะบ่อย กระหายน้ำมาก และอ่อนเพลียผิดปกติ" },
+  { id: "q6", sort_order: 6, text: "การนอนหลับที่เพียงพอสำหรับผู้ใหญ่คือกี่ชั่วโมงต่อคืน?", option_a: "4 – 5 ชั่วโมง", option_b: "5 – 6 ชั่วโมง", option_c: "7 – 9 ชั่วโมง", option_d: "10 – 12 ชั่วโมง", correct_answer: "C", explanation: "ผู้ใหญ่ควรนอนหลับ 7–9 ชั่วโมงต่อคืนเพื่อสุขภาพที่ดี" },
+  { id: "q7", sort_order: 7, text: "วิตามินดีได้รับจากแหล่งใดเป็นหลัก?", option_a: "อาหารทะเล", option_b: "แสงแดด", option_c: "ผักใบเขียว", option_d: "นม", correct_answer: "B", explanation: "ร่างกายสังเคราะห์วิตามินดีได้จากแสงแดด" },
+  { id: "q8", sort_order: 8, text: "ค่าดัชนีมวลกาย (BMI) ปกติสำหรับผู้ใหญ่คือเท่าใด?", option_a: "น้อยกว่า 15", option_b: "15 – 17.9", option_c: "18.5 – 24.9", option_d: "25 – 30", correct_answer: "C", explanation: "BMI ปกติอยู่ที่ 18.5 – 24.9 กก./ม²" },
+  { id: "q9", sort_order: 9, text: "การล้างมือที่ถูกวิธีควรใช้เวลานานเท่าใด?", option_a: "5 วินาที", option_b: "10 วินาที", option_c: "20 วินาที", option_d: "1 นาที", correct_answer: "C", explanation: "ควรล้างมือนาน 20 วินาที หรือร้องเพลงวันเกิดสองรอบ" },
+  { id: "q10", sort_order: 10, text: "ข้อใดเป็นสัญญาณเตือนของโรคหลอดเลือดสมอง (Stroke)?", option_a: "ปวดท้องและคลื่นไส้", option_b: "ใบหน้าเบี้ยว แขนอ่อนแรง และพูดไม่ชัด", option_c: "ผื่นคันตามผิวหนัง", option_d: "ไอเรื้อรังและเจ็บหน้าอก", correct_answer: "B", explanation: "F.A.S.T.: ใบหน้า (Face) แขน (Arms) การพูด (Speech) และเวลา (Time)" },
+  { id: "q11", sort_order: 11, text: "ธาตุเหล็กพบมากในอาหารประเภทใด?", option_a: "ข้าวและแป้ง", option_b: "เนื้อสัตว์สีแดงและผักใบเขียวเข้ม", option_c: "ผลไม้รสหวาน", option_d: "นมและผลิตภัณฑ์นม", correct_answer: "B", explanation: "ธาตุเหล็กพบมากในเนื้อสัตว์สีแดง ตับ และผักใบเขียวเข้ม เช่น ผักโขม" },
+  { id: "q12", sort_order: 12, text: "ความดันโลหิตปกติสำหรับผู้ใหญ่ควรอยู่ที่เท่าใด?", option_a: "น้อยกว่า 80/50 มม.ปรอท", option_b: "120/80 มม.ปรอท หรือต่ำกว่า", option_c: "140/90 มม.ปรอท", option_d: "160/100 มม.ปรอท", correct_answer: "B", explanation: "ความดันโลหิตปกติอยู่ที่ 120/80 มม.ปรอทหรือต่ำกว่า" },
+  { id: "q13", sort_order: 13, text: "การสูบบุหรี่เพิ่มความเสี่ยงต่อโรคใดมากที่สุด?", option_a: "โรคผิวหนัง", option_b: "โรคปอดและโรคหัวใจ", option_c: "โรคข้อเข่าเสื่อม", option_d: "โรคกระดูกพรุน", correct_answer: "B", explanation: "การสูบบุหรี่เป็นปัจจัยเสี่ยงหลักของมะเร็งปอด โรคปอดอุดกั้นเรื้อรัง และโรคหัวใจ" },
 ];
 
 let initialized = false;
@@ -861,9 +861,25 @@ export async function replaceMoodCheckin(doc: MoodCheckinDoc): Promise<void> {
 export async function listQuizQuestionsDocs(): Promise<QuizQuestionDoc[]> {
   await initializeDatabase();
   if (mode === "memory") {
-    return [...memoryStore.quizQuestions].sort((a, b) => a.number - b.number);
+    return [...memoryStore.quizQuestions].sort((a, b) => a.sort_order - b.sort_order);
   }
-  return quizQuestionsCollection().find({}, { sort: { number: 1 } }).toArray();
+  return quizQuestionsCollection().find({}, { sort: { sort_order: 1 } }).toArray();
+}
+
+export async function reorderQuizQuestionDocs(orderedIds: string[]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    orderedIds.forEach((id, index) => {
+      const q = memoryStore.quizQuestions.find((r) => r.id === id);
+      if (q) q.sort_order = index + 1;
+    });
+    return;
+  }
+  await quizQuestionsCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id }, update: { $set: { sort_order: index + 1 } } },
+    }))
+  );
 }
 
 export async function insertQuizAttempt(doc: QuizAttemptDoc): Promise<void> {
@@ -1121,9 +1137,9 @@ export async function reorderVideoClipDocs(orderedIds: string[]): Promise<void> 
     });
     return;
   }
-  await Promise.all(
-    orderedIds.map((id, index) =>
-      videoClipsCollection().updateOne({ id }, { $set: { sort_order: index + 1 } })
-    )
+  await videoClipsCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id }, update: { $set: { sort_order: index + 1 } } },
+    }))
   );
 }

@@ -1,19 +1,35 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import AdminSidebar from "@/components/AdminSidebar";
+import AdminErrorBanner from "@/components/AdminErrorBanner";
 import {
   useGetAdminQuestionsQuery,
   useCreateQuestionMutation,
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
+  useReorderQuestionsMutation,
   type CreateQuestionRequest,
 } from "@/store/adminApi";
 import type { QuizQuestion, AnswerLetter } from "@/types/minigame";
 import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateQuestionRequest = {
-  number: 1,
   text: "",
   correctAnswer: "A",
   optionA: "",
@@ -23,22 +39,109 @@ const EMPTY_FORM: CreateQuestionRequest = {
   explanation: "",
 };
 
+function DragHandle() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.4 }}>
+      <circle cx="5" cy="4" r="1.5" />
+      <circle cx="11" cy="4" r="1.5" />
+      <circle cx="5" cy="8" r="1.5" />
+      <circle cx="11" cy="8" r="1.5" />
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="11" cy="12" r="1.5" />
+    </svg>
+  );
+}
+
+function SortableRow({
+  question,
+  position,
+  onEdit,
+  onDelete,
+}: {
+  question: QuizQuestion;
+  position: number;
+  onEdit: (q: QuizQuestion) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: question.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: "default",
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style}>
+      <td style={{ cursor: "grab", color: "var(--ink, #333)", width: 32 }} {...attributes} {...listeners}>
+        <DragHandle />
+      </td>
+      <td>{position}</td>
+      <td>{question.text.length > 60 ? question.text.slice(0, 60) + "…" : question.text}</td>
+      <td>
+        <span className={`${styles.adminBadge} ${styles.adminBadgeGreen}`}>{question.correctAnswer}</span>
+      </td>
+      <td>
+        <div className={styles.adminTableActions}>
+          <button
+            className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
+            onClick={() => onEdit(question)}
+          >
+            Edit
+          </button>
+          <button
+            className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
+            onClick={() => onDelete(question.id)}
+          >
+            Delete
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function AdminMinigamePage() {
-  const { data: questions, isLoading } = useGetAdminQuestionsQuery();
+  const { data: serverQuestions, isLoading } = useGetAdminQuestionsQuery();
   const [createQuestion] = useCreateQuestionMutation();
   const [updateQuestion] = useUpdateQuestionMutation();
   const [deleteQuestion] = useDeleteQuestionMutation();
+  const [reorderQuestions] = useReorderQuestionsMutation();
 
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateQuestionRequest>(EMPTY_FORM);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+
+  const questions: QuizQuestion[] = serverQuestions ?? [];
 
   useEffect(() => {
     if (showForm) {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [showForm]);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !serverQuestions) return;
+
+    const base = serverQuestions.map((q) => q.id);
+    const oldIndex = base.indexOf(active.id as string);
+    const newIndex = base.indexOf(over.id as string);
+    const newOrder = arrayMove(base, oldIndex, newIndex);
+
+    try {
+      await reorderQuestions(newOrder).unwrap();
+    } catch {
+      setReorderError("บันทึกลำดับคำถามไม่สำเร็จ ลองอีกครั้ง");
+    }
+  }
 
   function openCreate() {
     setEditId(null);
@@ -49,7 +152,6 @@ export default function AdminMinigamePage() {
   function openEdit(q: QuizQuestion) {
     setEditId(q.id);
     setForm({
-      number: q.number,
       text: q.text,
       correctAnswer: q.correctAnswer,
       optionA: q.options[0]?.text ?? "",
@@ -86,161 +188,144 @@ export default function AdminMinigamePage() {
     <div className={styles.adminLayout}>
       <AdminSidebar />
       <div className={styles.adminMainWrapper}>
-      <main className={styles.adminMain}>
-        <div className={styles.adminPageHeader}>
-          <h1 className={styles.adminPageTitle}>Minigame Questions</h1>
-          <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
-            + เพิ่มคำถาม
-          </button>
-        </div>
+        <main className={styles.adminMain}>
+          <div className={styles.adminPageHeader}>
+            <h1 className={styles.adminPageTitle}>Minigame Questions</h1>
+            <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
+              + เพิ่มคำถาม
+            </button>
+          </div>
 
-        {showForm && (
-          <div className={styles.adminFormCard} ref={formRef}>
-            <h2>{editId !== null ? "แก้ไขคำถาม" : "เพิ่มคำถามใหม่"}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.adminFormGrid}>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Number</label>
-                  <input
-                    className={styles.adminInput}
-                    type="number"
-                    min={1}
-                    value={form.number}
-                    onChange={(e) =>
-                      setForm({ ...form, number: parseInt(e.target.value, 10) || 1 })
-                    }
-                    required
-                  />
+          {reorderError && (
+            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+          )}
+
+          {showForm && (
+            <div className={styles.adminFormCard} ref={formRef}>
+              <h2>{editId !== null ? "แก้ไขคำถาม" : "เพิ่มคำถามใหม่"}</h2>
+              <form onSubmit={handleSubmit}>
+                <div className={styles.adminFormGrid}>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Correct Answer</label>
+                    <select
+                      className={styles.adminSelect}
+                      value={form.correctAnswer}
+                      onChange={(e) =>
+                        setForm({ ...form, correctAnswer: e.target.value as AnswerLetter })
+                      }
+                    >
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.adminFormField} ${styles.full}`}>
+                    <label className={styles.adminLabel}>Question Text</label>
+                    <textarea
+                      className={styles.adminTextarea}
+                      value={form.text}
+                      onChange={(e) => setForm({ ...form, text: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Option A</label>
+                    <input
+                      className={styles.adminInput}
+                      value={form.optionA}
+                      onChange={(e) => setForm({ ...form, optionA: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Option B</label>
+                    <input
+                      className={styles.adminInput}
+                      value={form.optionB}
+                      onChange={(e) => setForm({ ...form, optionB: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Option C</label>
+                    <input
+                      className={styles.adminInput}
+                      value={form.optionC}
+                      onChange={(e) => setForm({ ...form, optionC: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.adminFormField}>
+                    <label className={styles.adminLabel}>Option D</label>
+                    <input
+                      className={styles.adminInput}
+                      value={form.optionD}
+                      onChange={(e) => setForm({ ...form, optionD: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={`${styles.adminFormField} ${styles.full}`}>
+                    <label className={styles.adminLabel}>Explanation (optional)</label>
+                    <textarea
+                      className={styles.adminTextarea}
+                      value={form.explanation ?? ""}
+                      onChange={(e) => setForm({ ...form, explanation: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Correct Answer</label>
-                  <select
-                    className={styles.adminSelect}
-                    value={form.correctAnswer}
-                    onChange={(e) =>
-                      setForm({ ...form, correctAnswer: e.target.value as AnswerLetter })
-                    }
+                <div className={styles.adminFormActions}>
+                  <button
+                    type="button"
+                    className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
+                    onClick={closeForm}
                   >
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                  </select>
+                    ยกเลิก
+                  </button>
+                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
+                    {editId !== null ? "บันทึก" : "เพิ่ม"}
+                  </button>
                 </div>
-                <div className={`${styles.adminFormField} ${styles.full}`}>
-                  <label className={styles.adminLabel}>Question Text</label>
-                  <textarea
-                    className={styles.adminTextarea}
-                    value={form.text}
-                    onChange={(e) => setForm({ ...form, text: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Option A</label>
-                  <input
-                    className={styles.adminInput}
-                    value={form.optionA}
-                    onChange={(e) => setForm({ ...form, optionA: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Option B</label>
-                  <input
-                    className={styles.adminInput}
-                    value={form.optionB}
-                    onChange={(e) => setForm({ ...form, optionB: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Option C</label>
-                  <input
-                    className={styles.adminInput}
-                    value={form.optionC}
-                    onChange={(e) => setForm({ ...form, optionC: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Option D</label>
-                  <input
-                    className={styles.adminInput}
-                    value={form.optionD}
-                    onChange={(e) => setForm({ ...form, optionD: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={`${styles.adminFormField} ${styles.full}`}>
-                  <label className={styles.adminLabel}>Explanation (optional)</label>
-                  <textarea
-                    className={styles.adminTextarea}
-                    value={form.explanation ?? ""}
-                    onChange={(e) => setForm({ ...form, explanation: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className={styles.adminFormActions}>
-                <button
-                  type="button"
-                  className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
-                  onClick={closeForm}
-                >
-                  ยกเลิก
-                </button>
-                <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
-                  {editId !== null ? "บันทึก" : "เพิ่ม"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+              </form>
+            </div>
+          )}
 
-        {isLoading ? (
-          <div className={styles.adminSpinner} />
-        ) : (
-          <div className={styles.adminTableWrap}>
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Question</th>
-                <th>Correct</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(questions ?? []).map((q) => (
-                <tr key={q.id}>
-                  <td>{q.number}</td>
-                  <td>{q.text.length > 60 ? q.text.slice(0, 60) + "…" : q.text}</td>
-                  <td>
-                    <span className={`${styles.adminBadge} ${styles.adminBadgeGreen}`}>{q.correctAnswer}</span>
-                  </td>
-                  <td>
-                    <div className={styles.adminTableActions}>
-                      <button
-                        className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
-                        onClick={() => openEdit(q)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
-                        onClick={() => handleDelete(q.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-        )}
-      </main>
+          {isLoading ? (
+            <div className={styles.adminSpinner} />
+          ) : (
+            <div className={styles.adminTableWrap}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 32 }} />
+                      <th>#</th>
+                      <th>Question</th>
+                      <th>Correct</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <SortableContext
+                    items={questions.map((q) => q.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <tbody>
+                      {questions.map((q, i) => (
+                        <SortableRow
+                          key={q.id}
+                          question={q}
+                          position={i + 1}
+                          onEdit={openEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </tbody>
+                  </SortableContext>
+                </table>
+              </DndContext>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );

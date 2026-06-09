@@ -14,6 +14,7 @@ import {
   adminCreateQuestion,
   adminUpdateQuestion,
   adminDeleteQuestion,
+  adminReorderQuestions,
   adminGetChapter,
   adminListScenes,
   adminCreateScene,
@@ -187,7 +188,6 @@ describe("adminListQuestions", () => {
     const qs = await adminListQuestions();
     const q = qs[0];
     expect(q).toHaveProperty("id");
-    expect(q).toHaveProperty("number");
     expect(q).toHaveProperty("text");
     expect(q.options).toHaveLength(4);
     expect(q).toHaveProperty("correctAnswer");
@@ -197,7 +197,6 @@ describe("adminListQuestions", () => {
 describe("adminCreateQuestion", () => {
   it("creates a question and returns it", async () => {
     const q = await adminCreateQuestion({
-      number: 99,
       text: "Test question?",
       correctAnswer: "A",
       optionA: "Yes",
@@ -205,7 +204,6 @@ describe("adminCreateQuestion", () => {
       optionC: "Maybe",
       optionD: "Never",
     });
-    expect(q.number).toBe(99);
     expect(q.text).toBe("Test question?");
     expect(q.correctAnswer).toBe("A");
     expect(q.options[0].text).toBe("Yes");
@@ -213,13 +211,52 @@ describe("adminCreateQuestion", () => {
 
   it("new question appears in list", async () => {
     await adminCreateQuestion({
-      number: 14,
       text: "Extra?",
       correctAnswer: "B",
       optionA: "A", optionB: "B", optionC: "C", optionD: "D",
     });
     const qs = await adminListQuestions();
     expect(qs).toHaveLength(14);
+  });
+
+  it("appends new questions after the existing set", async () => {
+    const created = await adminCreateQuestion({
+      text: "Appended?",
+      correctAnswer: "C",
+      optionA: "A", optionB: "B", optionC: "C", optionD: "D",
+    });
+    const qs = await adminListQuestions();
+    expect(qs[qs.length - 1].id).toBe(created.id);
+  });
+});
+
+describe("adminReorderQuestions", () => {
+  it("persists the new order returned by a subsequent list", async () => {
+    const qs = await adminListQuestions();
+    const reversed = [...qs].reverse().map((q) => q.id);
+    await adminReorderQuestions(reversed);
+    const after = await adminListQuestions();
+    expect(after.map((q) => q.id)).toEqual(reversed);
+  });
+
+  it("rejects a payload that is not a full permutation", async () => {
+    const qs = await adminListQuestions();
+    const partial = qs.slice(0, 3).map((q) => q.id);
+    await expect(adminReorderQuestions(partial)).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it("rejects a payload containing duplicate ids", async () => {
+    const qs = await adminListQuestions();
+    const ids = qs.map((q) => q.id);
+    const dupes = [ids[0], ...ids.slice(0, ids.length - 1)];
+    await expect(adminReorderQuestions(dupes)).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it("rejects a payload containing unknown ids", async () => {
+    const qs = await adminListQuestions();
+    const ids = qs.map((q) => q.id);
+    const withGhost = [...ids.slice(0, ids.length - 1), "ghost-id"];
+    await expect(adminReorderQuestions(withGhost)).rejects.toMatchObject({ statusCode: 400 });
   });
 });
 

@@ -40,7 +40,6 @@ export type UpdateEBookRequest = Partial<CreateEBookRequest>;
 // ── Minigame admin payloads ─────────────────────────────────────────────────
 
 export interface CreateQuestionRequest {
-  number: number;
   text: string;
   correctAnswer: AnswerLetter;
   optionA: string;
@@ -177,7 +176,33 @@ export const adminApi = apiSlice.injectEndpoints({
     }),
     reorderVideoClips: builder.mutation<void, string[]>({
       query: (ids) => ({ url: "/admin/video-clips/reorder", method: "PUT", body: { ids } }),
-      invalidatesTags: ["Admin"],
+      async onQueryStarted(ids, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getAdminVideoClips", undefined, (draft) => {
+            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+    reorderQuestions: builder.mutation<void, string[]>({
+      query: (ids) => ({ url: "/admin/minigame/questions/reorder", method: "PUT", body: { ids } }),
+      async onQueryStarted(ids, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getAdminQuestions", undefined, (draft) => {
+            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
     }),
   }),
 });
@@ -207,4 +232,5 @@ export const {
   useUpdateVideoClipMutation,
   useDeleteVideoClipMutation,
   useReorderVideoClipsMutation,
+  useReorderQuestionsMutation,
 } = adminApi;

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
+import AdminErrorBanner from "@/components/AdminErrorBanner";
 import {
   useGetAdminVideoClipsQuery,
   useCreateVideoClipMutation,
@@ -130,15 +131,13 @@ export default function AdminVideoClipsPage() {
   const [deleteVideoClip] = useDeleteVideoClipMutation();
   const [reorderVideoClips] = useReorderVideoClipsMutation();
 
-  const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateVideoClipRequest>(EMPTY_FORM);
   const formRef = useRef<HTMLDivElement>(null);
 
-  const displayedClips: VideoClipModel[] = pendingOrder && serverClips
-    ? pendingOrder.map((id) => serverClips.find((c) => c.id === id)).filter(Boolean) as VideoClipModel[]
-    : serverClips ?? [];
+  const clips: VideoClipModel[] = serverClips ?? [];
 
   useEffect(() => {
     if (showForm) {
@@ -189,13 +188,15 @@ export default function AdminVideoClipsPage() {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = displayedClips.findIndex((c) => c.id === active.id);
-    const newIndex = displayedClips.findIndex((c) => c.id === over.id);
-    const reordered = arrayMove(displayedClips, oldIndex, newIndex);
+    const oldIndex = clips.findIndex((c) => c.id === active.id);
+    const newIndex = clips.findIndex((c) => c.id === over.id);
+    const reordered = arrayMove(clips, oldIndex, newIndex);
     const orderedIds = reordered.map((c) => c.id);
-    setPendingOrder(orderedIds);
-    await reorderVideoClips(orderedIds);
-    setPendingOrder(null);
+    try {
+      await reorderVideoClips(orderedIds).unwrap();
+    } catch {
+      setReorderError("บันทึกลำดับวิดีโอคลิปไม่สำเร็จ ลองอีกครั้ง");
+    }
   }
 
   return (
@@ -209,6 +210,10 @@ export default function AdminVideoClipsPage() {
               + เพิ่มวิดีโอคลิป
             </button>
           </div>
+
+          {reorderError && (
+            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+          )}
 
           {showForm && (
             <div className={styles.adminFormCard} ref={formRef}>
@@ -264,21 +269,21 @@ export default function AdminVideoClipsPage() {
             <div className={styles.adminSpinner} />
           ) : (
             <div className={styles.adminTableWrap}>
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th style={{ width: "2rem" }} />
-                    <th>ID</th>
-                    <th>Caption</th>
-                    <th>Source URL</th>
-                    <th>Thumbnail URL</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={displayedClips.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: "2rem" }} />
+                      <th>ID</th>
+                      <th>Caption</th>
+                      <th>Source URL</th>
+                      <th>Thumbnail URL</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <SortableContext items={clips.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                     <tbody>
-                      {displayedClips.map((clip) => (
+                      {clips.map((clip) => (
                         <SortableRow
                           key={clip.id}
                           clip={clip}
@@ -288,8 +293,8 @@ export default function AdminVideoClipsPage() {
                       ))}
                     </tbody>
                   </SortableContext>
-                </DndContext>
-              </table>
+                </table>
+              </DndContext>
             </div>
           )}
         </main>
