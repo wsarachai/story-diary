@@ -78,7 +78,7 @@ function SortableRow({
 
   return (
     <tr ref={setNodeRef} style={style}>
-      <td style={{ cursor: "grab", color: "var(--ink, #333)", width: 32 }} {...attributes} {...listeners}>
+      <td style={{ cursor: "grab", color: "#8b949e", width: 32 }} {...attributes} {...listeners}>
         <DragHandle />
       </td>
       <td>{position}</td>
