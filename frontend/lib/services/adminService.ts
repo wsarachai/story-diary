@@ -28,6 +28,9 @@ import {
   updateVideoClipDoc,
   deleteVideoClipDoc,
   reorderVideoClipDocs,
+  reorderChapterDocs,
+  reorderChapterSceneDocs,
+  reorderEBookDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import { resolveRole } from "@/lib/roles";
@@ -196,8 +199,10 @@ export async function adminListEBooks(): Promise<EBookChapter[]> {
 }
 
 export async function adminCreateEBook(body: CreateEBookRequest): Promise<EBookChapter> {
+  const existing = await listEBooksDocs();
+  const maxSort = existing.reduce((m, e) => Math.max(m, e.sort_order), 0);
   const id = `ebk-${uuidv4().slice(0, 8)}`;
-  await insertEBookDoc({ id, title: body.title, pdf_url: body.pdfUrl });
+  await insertEBookDoc({ id, title: body.title, pdf_url: body.pdfUrl, sort_order: maxSort + 1 });
   return { id, title: body.title, pdfUrl: body.pdfUrl };
 }
 
@@ -214,6 +219,18 @@ export async function adminUpdateEBook(id: string, body: UpdateEBookRequest): Pr
 export async function adminDeleteEBook(id: string): Promise<void> {
   const deleted = await deleteEBookDoc(id);
   if (!deleted) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
+}
+
+export async function adminReorderChapters(orderedIds: number[]): Promise<void> {
+  await reorderChapterDocs(orderedIds);
+}
+
+export async function adminReorderChapterScenes(chapterId: number, orderedIds: string[]): Promise<void> {
+  await reorderChapterSceneDocs(chapterId, orderedIds);
+}
+
+export async function adminReorderEBooks(orderedIds: string[]): Promise<void> {
+  await reorderEBookDocs(orderedIds);
 }
 
 // ── Quiz Questions ────────────────────────────────────────────────────────────
