@@ -65,44 +65,22 @@
   min-height: 0;
 }
 
-.clipPlayButton {
-  width: 5rem;
-  height: 5rem;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
-  border: none;
+
+.clipThumbnail {
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+  transition: filter 0.15s ease;
 }
 
-.clipPlayButton:hover {
-  transform: scale(1.05);
-}
-
-.clipPlayButton svg {
-  width: 2rem;
-  height: 2rem;
-  fill: #2c5d80;
-  margin-left: 0.1rem;
+.clipThumbnail:hover {
+  filter: brightness(1.1);
 }
 
 .clipThumbnailBookIcon {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.clipThumbnailBookIcon svg {
   width: 55%;
   height: 55%;
-  fill: rgba(255, 255, 255, 0.15);
+  fill: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
 }
 
 .clipThumbnailTitle {

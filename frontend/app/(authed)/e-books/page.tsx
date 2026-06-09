@@ -8,17 +8,15 @@ import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
 import styles from "./EBooks.module.css";
 
-function PlayButton({ ebook }: { ebook: EBookChapter }) {
+function EBookCard({ ebook }: { ebook: EBookChapter }) {
   return (
-    <Link
-      href={`/e-books/${ebook.id}`}
-      className={styles.clipPlayButton}
-      aria-label={`อ่าน ${ebook.title}`}
-      title={`อ่าน ${ebook.title}`}
-    >
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+    <Link href={`/e-books/${ebook.id}`} className={styles.clipThumbnail} aria-label={`อ่าน ${ebook.title}`}>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className={styles.clipThumbnailBookIcon}>
+        <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2ZM6 4h5v8l-2.5-1.5L6 12V4Z" />
       </svg>
+      <div className={styles.clipThumbnailTitle} title={ebook.title}>
+        {ebook.title}
+      </div>
     </Link>
   );
 }
@@ -47,23 +45,13 @@ export default function EBooksPage() {
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
           ) : (
-          <div className={styles.clipsGridContainer}>
-            {leftChapters.map((ebook) => (
-              <div key={ebook.id} className={styles.clipsGridItem}>
-                <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
-                  <div className={styles.clipThumbnailBookIcon} aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2ZM6 4h5v8l-2.5-1.5L6 12V4Z" />
-                    </svg>
-                  </div>
-                  <PlayButton ebook={ebook} />
-                  <div className={styles.clipThumbnailTitle} title={ebook.title}>
-                    {ebook.title}
-                  </div>
+            <div className={styles.clipsGridContainer}>
+              {leftChapters.map((ebook) => (
+                <div key={ebook.id} className={styles.clipsGridItem}>
+                  <EBookCard ebook={ebook} />
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           )}
         </div>
       }
@@ -74,23 +62,13 @@ export default function EBooksPage() {
           {isLoading ? (
             <PageSpinner variant="inline" height="14rem" label="กำลังโหลด E-book…" />
           ) : (
-          <div className={styles.clipsGridContainer}>
-            {rightChapters.map((ebook) => (
-              <div key={ebook.id} className={styles.clipsGridItem}>
-                <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
-                  <div className={styles.clipThumbnailBookIcon} aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2ZM6 4h5v8l-2.5-1.5L6 12V4Z" />
-                    </svg>
-                  </div>
-                  <PlayButton ebook={ebook} />
-                  <div className={styles.clipThumbnailTitle} title={ebook.title}>
-                    {ebook.title}
-                  </div>
+            <div className={styles.clipsGridContainer}>
+              {rightChapters.map((ebook) => (
+                <div key={ebook.id} className={styles.clipsGridItem}>
+                  <EBookCard ebook={ebook} />
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           )}
         </div>
       }
