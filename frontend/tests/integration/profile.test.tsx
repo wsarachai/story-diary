@@ -174,6 +174,24 @@ describe("ProfilePage – inline edit", () => {
     store1.dispatch({ type: "@@noop" });
     expect(store1.getState()).not.toBe(store2.getState());
   });
+
+  it("shows client-side error when selected avatar file is larger than 2MB", async () => {
+    renderProfile();
+    await waitFor(() => screen.getByDisplayValue("สมชาย ใจดี"));
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(fileInput).toBeTruthy();
+
+    const largeFile = new File([new Uint8Array(2 * 1024 * 1024 + 1)], "big-avatar.jpg", {
+      type: "image/jpeg",
+    });
+
+    fireEvent.change(fileInput, { target: { files: [largeFile] } });
+
+    await waitFor(() =>
+      expect(screen.getByText("ไฟล์รูปมีขนาดใหญ่เกินไป กรุณาเลือกไฟล์ไม่เกิน 2MB")).toBeInTheDocument()
+    );
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

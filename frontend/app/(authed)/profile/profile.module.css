@@ -273,6 +273,14 @@
   color: #a93226;
 }
 
+.profAvatarFeedback {
+  position: relative;
+  z-index: 1;
+  margin: 0.2em auto 0;
+  max-width: 28em;
+  text-align: center;
+}
+
 .profFooter {
   margin-top: auto;
   padding-top: 1.6em;

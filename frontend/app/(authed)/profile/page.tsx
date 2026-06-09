@@ -8,9 +8,58 @@ import IconRail from "@/components/IconRail";
 import { useGetMeQuery, useLogoutMutation } from "@/store/authApi";
 import { useUpdateProfileMutation } from "@/store/userApi";
 import type { User } from "@/types/auth";
+import { isApiError } from "@/types/error";
 import type { UpdateUserRequest } from "@/types/user";
 import styles from "./profile.module.css";
 import sharedStyles from "@/components/Shared.module.css";
+
+const AVATAR_MAX_SOURCE_FILE_BYTES = 2 * 1024 * 1024;
+const AVATAR_MAX_SOURCE_SIDE = 2048;
+const AVATAR_MAX_STORED_BYTES = 180 * 1024;
+
+function estimateDataUrlBytes(dataUrl: string): number {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+}
+
+function readImageSize(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const size = { width: img.width, height: img.height };
+      URL.revokeObjectURL(url);
+      resolve(size);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("IMAGE_LOAD_FAILED"));
+    };
+    img.src = url;
+  });
+}
+
+function extractAvatarErrorMessage(err: unknown): string {
+  if (typeof err !== "object" || err === null || !("data" in err)) {
+    return "เกิดข้อผิดพลาดในการอัปโหลดรูปโปรไฟล์";
+  }
+
+  const data = (err as { data?: unknown }).data;
+  if (!isApiError(data)) {
+    return "เกิดข้อผิดพลาดในการอัปโหลดรูปโปรไฟล์";
+  }
+
+  const detail = data.error.details?.find((d) => d.field === "avatarUrl");
+  if (detail?.code === "TOO_LONG") {
+    return "รูปโปรไฟล์ต้องมีขนาดไม่เกิน 180KB และความละเอียดไม่เกิน 256x256 พิกเซล";
+  }
+  if (detail?.code === "INVALID_FORMAT") {
+    return "รองรับเฉพาะไฟล์รูปภาพ JPEG หรือ PNG เท่านั้น";
+  }
+
+  return "เกิดข้อผิดพลาดในการอัปโหลดรูปโปรไฟล์";
+}
 
 // ── Client-side image resize: max 256×256 JPEG via canvas ───────────────────
 function resizeToBase64(file: File): Promise<string> {
@@ -60,6 +109,7 @@ export default function ProfilePage() {
 function AvatarPanel({ user }: { user: User }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [updateProfile, { isLoading: uploading }] = useUpdateProfileMutation();
+  const [avatarError, setAvatarError] = useState("");
 
   const charImg = "/images/chapter-speaker-girl-transparent.png";
   const hasAvatar = Boolean(user.avatarUrl);
@@ -67,9 +117,37 @@ function AvatarPanel({ user }: { user: User }) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setAvatarError("");
+
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("รองรับเฉพาะไฟล์รูปภาพเท่านั้น");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > AVATAR_MAX_SOURCE_FILE_BYTES) {
+      setAvatarError("ไฟล์รูปมีขนาดใหญ่เกินไป กรุณาเลือกไฟล์ไม่เกิน 2MB");
+      e.target.value = "";
+      return;
+    }
+
     try {
+      const sourceSize = await readImageSize(file);
+      if (sourceSize.width > AVATAR_MAX_SOURCE_SIDE || sourceSize.height > AVATAR_MAX_SOURCE_SIDE) {
+        setAvatarError("รูปต้นฉบับมีความละเอียดสูงเกินไป กรุณาใช้รูปไม่เกิน 2048x2048 พิกเซล");
+        return;
+      }
+
       const base64 = await resizeToBase64(file);
-      await updateProfile({ avatarUrl: base64 });
+      if (estimateDataUrlBytes(base64) > AVATAR_MAX_STORED_BYTES) {
+        setAvatarError("รูปโปรไฟล์ต้องมีขนาดไม่เกิน 180KB");
+        return;
+      }
+
+      await updateProfile({ avatarUrl: base64 }).unwrap();
+    } catch (err) {
+      setAvatarError(extractAvatarErrorMessage(err));
     } finally {
       e.target.value = "";
     }
@@ -130,6 +208,12 @@ function AvatarPanel({ user }: { user: User }) {
       />
 
       <h1 className={styles.profCharName}>{user.characterName}</h1>
+
+      {avatarError && (
+        <p className={`${styles.profFeedback} ${styles.profFeedbackErr} ${styles.profAvatarFeedback}`} role="alert">
+          {avatarError}
+        </p>
+      )}
 
       <span className={`${styles.profGenderBadge} ${user.gender === "female" ? styles.profGenderBadgeFemale : styles.profGenderBadgeMale}`}>
         {user.gender === "female" ? "หญิง" : "ชาย"}

@@ -32,6 +32,16 @@ const BASE = {
   gender: "male" as const,
 };
 
+function makePngDataUrl(width: number, height: number, payloadBytes = 0): string {
+  const bytes = Buffer.alloc(24 + payloadBytes, 0);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+  bytes.writeUInt32BE(width, 16);
+  bytes.writeUInt32BE(height, 20);
+  return `data:image/png;base64,${bytes.toString("base64")}`;
+}
+
+const SMALL_AVATAR = makePngDataUrl(128, 128);
+
 beforeEach(() => {
   clearTestData();
 });
@@ -139,15 +149,47 @@ describe("updateUser", () => {
   });
 
   it("updates avatarUrl and returns it in the profile", async () => {
-    const url = "data:image/jpeg;base64,/9j/abc123";
+    const url = SMALL_AVATAR;
     const updated = await updateUser(userId, { avatarUrl: url });
     expect(updated.avatarUrl).toBe(url);
   });
 
   it("clears avatarUrl when null is passed", async () => {
-    await updateUser(userId, { avatarUrl: "data:image/jpeg;base64,/9j/abc123" });
+    await updateUser(userId, { avatarUrl: SMALL_AVATAR });
     const cleared = await updateUser(userId, { avatarUrl: null });
     expect(cleared.avatarUrl).toBeNull();
+  });
+
+  it("rejects avatarUrl when image resolution is too large", async () => {
+    const tooLargeResolution = makePngDataUrl(1024, 1024);
+    await expect(updateUser(userId, { avatarUrl: tooLargeResolution })).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      statusCode: 400,
+      details: expect.arrayContaining([
+        expect.objectContaining({ field: "avatarUrl", code: "TOO_LONG" }),
+      ]),
+    });
+  });
+
+  it("rejects avatarUrl when image binary size is too large", async () => {
+    const tooLargeBytes = makePngDataUrl(128, 128, 200 * 1024);
+    await expect(updateUser(userId, { avatarUrl: tooLargeBytes })).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      statusCode: 400,
+      details: expect.arrayContaining([
+        expect.objectContaining({ field: "avatarUrl", code: "TOO_LONG" }),
+      ]),
+    });
+  });
+
+  it("rejects avatarUrl when payload is malformed", async () => {
+    await expect(updateUser(userId, { avatarUrl: "data:image/jpeg;base64,not_base64@@@" })).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      statusCode: 400,
+      details: expect.arrayContaining([
+        expect.objectContaining({ field: "avatarUrl", code: "INVALID_FORMAT" }),
+      ]),
+    });
   });
 
   it("updates gender and returns the new value", async () => {

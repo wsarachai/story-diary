@@ -15,6 +15,98 @@ import type { UserProfile } from "@/types/user";
 import type { RegisterRequest } from "@/types/auth";
 
 const SALT_ROUNDS = 12;
+const AVATAR_MAX_BYTES = 180 * 1024;
+const AVATAR_MAX_WIDTH = 256;
+const AVATAR_MAX_HEIGHT = 256;
+
+function readImageDimensions(bytes: Buffer): { width: number; height: number } | null {
+    // PNG: width/height are fixed offsets in the IHDR chunk.
+    const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    if (bytes.length >= 24 && pngSignature.every((v, i) => bytes[i] === v)) {
+        const width = bytes.readUInt32BE(16);
+        const height = bytes.readUInt32BE(20);
+        return { width, height };
+    }
+
+    // JPEG: scan markers until SOF frame that contains dimensions.
+    if (bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+        let offset = 2;
+        while (offset + 3 < bytes.length) {
+            if (bytes[offset] !== 0xff) {
+                offset += 1;
+                continue;
+            }
+
+            const marker = bytes[offset + 1];
+            offset += 2;
+
+            if (marker === 0xd8 || marker === 0xd9) continue;
+            if (offset + 2 > bytes.length) break;
+
+            const segmentLength = bytes.readUInt16BE(offset);
+            if (segmentLength < 2 || offset + segmentLength > bytes.length) break;
+
+            const isSofMarker = (
+                marker === 0xc0 || marker === 0xc1 || marker === 0xc2 || marker === 0xc3 ||
+                marker === 0xc5 || marker === 0xc6 || marker === 0xc7 || marker === 0xc9 ||
+                marker === 0xca || marker === 0xcb || marker === 0xcd || marker === 0xce || marker === 0xcf
+            );
+
+            if (isSofMarker && segmentLength >= 7) {
+                const height = bytes.readUInt16BE(offset + 3);
+                const width = bytes.readUInt16BE(offset + 5);
+                return { width, height };
+            }
+
+            offset += segmentLength;
+        }
+    }
+
+    return null;
+}
+
+function validateAvatarDataUrl(avatarUrl: string): void {
+    const match = avatarUrl.match(/^data:image\/(?:jpeg|jpg|png);base64,([A-Za-z0-9+/=]+)$/i);
+    if (!match) {
+        throw Errors.validation("Avatar image format is invalid", [
+            { field: "avatarUrl", code: "INVALID_FORMAT", message: "avatarUrl must be a base64 JPEG/PNG data URL" },
+        ]);
+    }
+
+    const bytes = Buffer.from(match[1], "base64");
+    if (!bytes.length) {
+        throw Errors.validation("Avatar image format is invalid", [
+            { field: "avatarUrl", code: "INVALID_FORMAT", message: "avatarUrl base64 payload is empty" },
+        ]);
+    }
+
+    if (bytes.length > AVATAR_MAX_BYTES) {
+        throw Errors.validation("Avatar image is too large", [
+            {
+                field: "avatarUrl",
+                code: "TOO_LONG",
+                message: `avatarUrl must be ${AVATAR_MAX_BYTES} bytes or smaller`,
+            },
+        ]);
+    }
+
+    const dimensions = readImageDimensions(bytes);
+    if (!dimensions) {
+        throw Errors.validation("Avatar image format is invalid", [
+            { field: "avatarUrl", code: "INVALID_FORMAT", message: "unsupported or malformed image data" },
+        ]);
+    }
+
+    if (dimensions.width > AVATAR_MAX_WIDTH || dimensions.height > AVATAR_MAX_HEIGHT) {
+        throw Errors.validation("Avatar image resolution is too large", [
+            {
+                field: "avatarUrl",
+                code: "TOO_LONG",
+                message: `avatarUrl must be ${AVATAR_MAX_WIDTH}x${AVATAR_MAX_HEIGHT} or smaller`,
+            },
+        ]);
+    }
+}
 
 function resolveRole(row: UserDoc): "user" | "admin" | "rootAdmin" {
     const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
@@ -123,7 +215,12 @@ export async function updateUser(
     if (patch.tel !== undefined) updates.tel = patch.tel.trim();
     if (patch.characterName !== undefined) updates.character_name = patch.characterName.trim();
     if (patch.gender !== undefined) updates.gender = patch.gender as UserDoc["gender"];
-    if ("avatarUrl" in patch) updates.avatar_url = patch.avatarUrl ?? null;
+    if ("avatarUrl" in patch) {
+        if (typeof patch.avatarUrl === "string") {
+            validateAvatarDataUrl(patch.avatarUrl);
+        }
+        updates.avatar_url = patch.avatarUrl ?? null;
+    }
 
     if (Object.keys(updates).length === 0) {
         throw Errors.validation("Request body must include at least one updatable field");
