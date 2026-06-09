@@ -34,6 +34,20 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+const SPEAKER_IMAGES = [
+  { value: "", label: "None" },
+  { value: "/images/chapter-speaker-narrator-transparent.png", label: "Narrator" },
+  { value: "/images/chapter-speaker-girl-transparent.png", label: "Girl (clear)" },
+  { value: "/images/chapter-speaker-girl-01.png", label: "Girl 1" },
+  { value: "/images/chapter-speaker-girl-02.png", label: "Girl 2" },
+  { value: "/images/chapter-speaker-girl-03.png", label: "Girl 3" },
+  { value: "/images/chapter-speaker-girl-04.png", label: "Girl 4" },
+  { value: "/images/chapter-speaker-girl-05.png", label: "Girl 5" },
+  { value: "/images/chapter-speaker-man-01.png", label: "Man 1" },
+  { value: "/images/chapter-speaker-man-02.png", label: "Man 2" },
+  { value: "/images/chapter-speaker-man-03.png", label: "Man 3" },
+];
+
 const EMPTY_SCENE: CreateSceneRequest = {
   idx: 0,
   speakerName: "",
@@ -290,13 +304,28 @@ export default function AdminChapterDetailPage() {
                       required
                     />
                   </div>
-                  <div className={styles.adminFormField}>
-                    <label className={styles.adminLabel}>Speaker Image URL (optional)</label>
-                    <input
-                      className={styles.adminInput}
-                      value={sceneForm.speakerImageUrl ?? ""}
-                      onChange={(e) => setSceneForm({ ...sceneForm, speakerImageUrl: e.target.value })}
-                    />
+                  <div className={`${styles.adminFormField} ${styles.full}`}>
+                    <label className={styles.adminLabel}>Speaker Image (optional)</label>
+                    <div className={styles.adminImagePicker}>
+                      {SPEAKER_IMAGES.map((img) => {
+                        const selected = (sceneForm.speakerImageUrl ?? "") === img.value;
+                        return (
+                          <button
+                            key={img.value || "__none__"}
+                            type="button"
+                            title={img.label}
+                            onClick={() => setSceneForm({ ...sceneForm, speakerImageUrl: img.value })}
+                            className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
+                          >
+                            {img.value ? (
+                              <img src={img.value} alt={img.label} className={styles.adminImageTileImg} />
+                            ) : (
+                              <span className={styles.adminImageTileNone}>—</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className={`${styles.adminFormField} ${styles.full}`}>
                     <label className={styles.adminLabel}>Text</label>
