@@ -192,6 +192,7 @@ export default function AdminChapterDetailPage() {
     const currentScenes = scenes ?? [];
     const oldIndex = currentScenes.findIndex((s) => s.id === active.id);
     const newIndex = currentScenes.findIndex((s) => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
     const newOrder = arrayMove(currentScenes.map((s) => s.id), oldIndex, newIndex);
 
     try {

@@ -149,6 +149,7 @@ export default function AdminChaptersPage() {
 
     const oldIndex = chapters.findIndex((ch) => String(ch.id) === String(active.id));
     const newIndex = chapters.findIndex((ch) => String(ch.id) === String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
     const newOrder = arrayMove(chapters.map((ch) => ch.id), oldIndex, newIndex);
 
     try {
