@@ -46,13 +46,10 @@ export default function EBookViewerPage() {
         return () => { cancelled = true; };
     }, [activeEBook?.pdfUrl]);
 
-    function PdfFallback({ url }: { url: string }) {
+    function PdfFallback() {
         return (
             <div className={styles.clipPlayerFallback}>
                 <p>ไม่สามารถแสดง PDF ได้</p>
-                <a href={url} target="_blank" rel="noopener noreferrer" className={styles.clipPlayerFallbackLink}>
-                    เปิด PDF ในแท็บใหม่
-                </a>
             </div>
         );
     }
@@ -61,14 +58,14 @@ export default function EBookViewerPage() {
         if (isLoading) return <PageSpinner label="กำลังโหลด E-book…" />;
         if (!activeEBook?.pdfUrl) return <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>;
         if (pdfState === "checking") return <PageSpinner label="กำลังตรวจสอบ PDF…" />;
-        if (pdfState === "error") return <PdfFallback url={activeEBook.pdfUrl} />;
+        if (pdfState === "error") return <PdfFallback />;
         return (
             <object
                 className={styles.clipPlayerFrame}
                 data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
                 type="application/pdf"
             >
-                <PdfFallback url={activeEBook.pdfUrl} />
+                <PdfFallback />
             </object>
         );
     }
