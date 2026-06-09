@@ -138,6 +138,7 @@ export interface EBookDoc {
   id: string;
   title: string;
   pdf_url: string;
+  sort_order: number;
 }
 
 export interface VideoClipDoc {
@@ -169,6 +170,7 @@ const E_BOOKS: EBookDoc[] = [1, 2, 3, 4, 5].map((n) => ({
   id: `ebk-${n}`,
   title: `บทที่ ${n}`,
   pdf_url: `/e-books/ch0${n}.pdf`,
+  sort_order: n,
 }));
 
 const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=Ktxam4bHrTo";
@@ -384,6 +386,7 @@ async function ensureMongoIndexes(): Promise<void> {
     symptomsCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     moodCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     eBooksCollection().createIndex({ id: 1 }, { unique: true }),
+    eBooksCollection().createIndex({ sort_order: 1 }),
     videoClipsCollection().createIndex({ id: 1 }, { unique: true }),
     videoClipsCollection().createIndex({ sort_order: 1 }),
   ]);
@@ -912,9 +915,9 @@ export async function insertQuizAttempt(doc: QuizAttemptDoc): Promise<void> {
 export async function listEBooksDocs(): Promise<EBookDoc[]> {
   await initializeDatabase();
   if (mode === "memory") {
-    return [...memoryStore.eBooks];
+    return [...memoryStore.eBooks].sort((a, b) => a.sort_order - b.sort_order);
   }
-  return eBooksCollection().find({}).toArray();
+  return eBooksCollection().find({}, { sort: { sort_order: 1 } }).toArray();
 }
 
 // ── Admin: Chapter CRUD ───────────────────────────────────────────────────────
@@ -966,6 +969,22 @@ export async function deleteChapterDoc(id: number): Promise<boolean> {
   return result.deletedCount > 0;
 }
 
+export async function reorderChapterDocs(orderedIds: number[]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    orderedIds.forEach((id, index) => {
+      const chapter = memoryStore.chapters.find((c) => c.id === id);
+      if (chapter) chapter.sort_order = index + 1;
+    });
+    return;
+  }
+  await chaptersCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id }, update: { $set: { sort_order: index + 1 } } },
+    }))
+  );
+}
+
 // ── Admin: EBook CRUD ─────────────────────────────────────────────────────────
 
 export async function insertEBookDoc(ebook: EBookDoc): Promise<void> {
@@ -1003,6 +1022,22 @@ export async function deleteEBookDoc(id: string): Promise<boolean> {
   }
   const result = await eBooksCollection().deleteOne({ id });
   return result.deletedCount > 0;
+}
+
+export async function reorderEBookDocs(orderedIds: string[]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    orderedIds.forEach((id, index) => {
+      const ebook = memoryStore.eBooks.find((e) => e.id === id);
+      if (ebook) ebook.sort_order = index + 1;
+    });
+    return;
+  }
+  await eBooksCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id }, update: { $set: { sort_order: index + 1 } } },
+    }))
+  );
 }
 
 // ── Admin: Quiz Question CRUD ─────────────────────────────────────────────────
@@ -1089,6 +1124,30 @@ export async function deleteChapterSceneDoc(id: string): Promise<boolean> {
   }
   const result = await chapterScenesCollection().deleteOne({ id });
   return result.deletedCount > 0;
+}
+
+export async function reorderChapterSceneDocs(chapterId: number, orderedIds: string[]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    orderedIds.forEach((id, index) => {
+      const scene = memoryStore.chapterScenes.find((s) => s.id === id);
+      if (scene) scene.idx = index;
+    });
+    return;
+  }
+  // Two-pass update to avoid unique-index conflicts on (chapter_id, idx):
+  // pass 1 sets large temporary idx values, pass 2 sets final 0-based values.
+  const OFFSET = 100_000;
+  await chapterScenesCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id, chapter_id: chapterId }, update: { $set: { idx: OFFSET + index } } },
+    }))
+  );
+  await chapterScenesCollection().bulkWrite(
+    orderedIds.map((id, index) => ({
+      updateOne: { filter: { id, chapter_id: chapterId }, update: { $set: { idx: index } } },
+    }))
+  );
 }
 
 // ── Video Clip CRUD ───────────────────────────────────────────────────────────
