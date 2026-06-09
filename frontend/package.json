@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:mongo": "vitest run -c vitest.mongo.config.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -41,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "jsdom": "^29.1.1",
+    "mongodb-memory-server": "^11.2.0",
     "msw": "^2.14.6",
     "tailwindcss": "^4",
     "typescript": "^5",
