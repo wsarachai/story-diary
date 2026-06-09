@@ -346,7 +346,25 @@ function videoClipsCollection() {
   return requireMongoDb().collection<VideoClipDoc>("video_clips");
 }
 
+/**
+ * Drop indexes left over from removed fields. The quiz_questions `number_1`
+ * unique index predates removing the `number` field; without dropping it,
+ * re-seeding fails with E11000 dup key { number: null } because every doc now
+ * indexes the absent field as null. Idempotent: ignores IndexNotFound (27) and
+ * NamespaceNotFound (26), so it's a no-op once each environment is migrated.
+ * Safe to delete this helper once all live databases are known-migrated.
+ */
+async function dropStaleIndexes(): Promise<void> {
+  try {
+    await quizQuestionsCollection().dropIndex("number_1");
+  } catch (err) {
+    const code = (err as { code?: number }).code;
+    if (code !== 26 && code !== 27) throw err;
+  }
+}
+
 async function ensureMongoIndexes(): Promise<void> {
+  await dropStaleIndexes();
   await Promise.all([
     usersCollection().createIndex({ id: 1 }, { unique: true }),
     usersCollection().createIndex({ tel: 1 }, { unique: true }),
@@ -359,7 +377,7 @@ async function ensureMongoIndexes(): Promise<void> {
     habitOccurrencesCollection().createIndex({ id: 1 }, { unique: true }),
     habitOccurrencesCollection().createIndex({ activity_id: 1, date: 1 }, { unique: true }),
     quizQuestionsCollection().createIndex({ id: 1 }, { unique: true }),
-    quizQuestionsCollection().createIndex({ number: 1 }, { unique: true }),
+    quizQuestionsCollection().createIndex({ sort_order: 1 }),
     quizAttemptsCollection().createIndex({ id: 1 }, { unique: true }),
     medicineCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     nutritionCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
