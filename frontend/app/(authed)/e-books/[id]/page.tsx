@@ -1,16 +1,13 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetEBooksQuery } from "@/store/ebookApi";
 import PageSpinner from "@/components/PageSpinner";
-import type { EBookChapter } from "@/types/ebook";
 import styles from "../EBookViewer.module.css";
-
-type PdfState = "checking" | "ready" | "error";
 
 export default function EBookViewerPage() {
     const { data: collection, isLoading } = useGetEBooksQuery();
@@ -20,31 +17,6 @@ export default function EBookViewerPage() {
     const activeEBook = useMemo(() => {
         return collection?.chapters.find(c => c.id === ebookId);
     }, [collection, ebookId]);
-
-    const [pdfState, setPdfState] = useState<PdfState>("checking");
-
-    useEffect(() => {
-        const url = activeEBook?.pdfUrl;
-        if (!url) { setPdfState("error"); return; }
-
-        setPdfState("checking");
-        let cancelled = false;
-
-        fetch(url, { method: "HEAD" })
-            .then((res) => {
-                if (cancelled) return;
-                const ct = res.headers.get("content-type") ?? "";
-                // Accept if response is ok AND content-type looks like a PDF
-                setPdfState(res.ok && ct.includes("pdf") ? "ready" : "error");
-            })
-            .catch(() => {
-                // CORS or network error — optimistically render; <object> will show
-                // its own fallback if the URL is truly unreachable
-                if (!cancelled) setPdfState("ready");
-            });
-
-        return () => { cancelled = true; };
-    }, [activeEBook?.pdfUrl]);
 
     function PdfFallback() {
         return (
@@ -57,8 +29,6 @@ export default function EBookViewerPage() {
     function renderContent() {
         if (isLoading) return <PageSpinner label="กำลังโหลด E-book…" />;
         if (!activeEBook?.pdfUrl) return <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>;
-        if (pdfState === "checking") return <PageSpinner label="กำลังตรวจสอบ PDF…" />;
-        if (pdfState === "error") return <PdfFallback />;
         return (
             <object
                 className={styles.clipPlayerFrame}
