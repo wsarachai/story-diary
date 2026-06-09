@@ -35,8 +35,7 @@
 
 .clipsGridItem {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.8rem;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .clipSectionLabelSpacer {
@@ -91,8 +90,18 @@
   margin-left: 0.1rem;
 }
 
-.clipCaption {
-  font-size: 1.85em;
-  font-weight: 600;
-  color: #508db9;
+.clipThumbnailTitle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.1rem 0.85rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent);
+  color: #fff;
+  font-size: 1.15em;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 0 0 2.4rem 2.4rem;
 }

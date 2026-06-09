@@ -52,9 +52,9 @@ export default function EBooksPage() {
               <div key={ebook.id} className={styles.clipsGridItem}>
                 <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
                   <PlayButton ebook={ebook} />
-                </div>
-                <div className={styles.clipCaption} aria-label={ebook.title}>
-                  {ebook.title}
+                  <div className={styles.clipThumbnailTitle} title={ebook.title}>
+                    {ebook.title}
+                  </div>
                 </div>
               </div>
             ))}
@@ -74,9 +74,9 @@ export default function EBooksPage() {
               <div key={ebook.id} className={styles.clipsGridItem}>
                 <div className={styles.clipThumbnail} aria-label={`E-book ${ebook.title}`}>
                   <PlayButton ebook={ebook} />
-                </div>
-                <div className={styles.clipCaption} aria-label={ebook.title}>
-                  {ebook.title}
+                  <div className={styles.clipThumbnailTitle} title={ebook.title}>
+                    {ebook.title}
+                  </div>
                 </div>
               </div>
             ))}
