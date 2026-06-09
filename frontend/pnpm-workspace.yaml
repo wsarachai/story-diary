@@ -1,6 +1,14 @@
+allowBuilds:
+  bcrypt: set this to true or false
+  msw: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
 
 onlyBuiltDependencies:
   - bcrypt
+
+storeDir: /home/keng/.local/share/pnpm/store/v10/v11

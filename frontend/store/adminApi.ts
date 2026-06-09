@@ -2,6 +2,9 @@ import { apiSlice } from "./apiSlice";
 import type { Chapter, ChapterSummary, ChapterLockState, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, AnswerLetter } from "@/types/minigame";
+import type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest } from "@/lib/services/adminService";
+
+export type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest };
 
 // ── Chapter admin payloads ──────────────────────────────────────────────────
 
@@ -153,6 +156,29 @@ export const adminApi = apiSlice.injectEndpoints({
       query: ({ id, role }) => ({ url: `/admin/users/${id}`, method: "PATCH", body: { role } }),
       invalidatesTags: ["Admin"],
     }),
+
+    // Video Clips
+    getAdminVideoClips: builder.query<VideoClipModel[], void>({
+      query: () => "/admin/video-clips",
+      transformResponse: (res: { clips: VideoClipModel[] }) => res.clips,
+      providesTags: ["Admin"],
+    }),
+    createVideoClip: builder.mutation<VideoClipModel, CreateVideoClipRequest>({
+      query: (body) => ({ url: "/admin/video-clips", method: "POST", body }),
+      invalidatesTags: ["Admin"],
+    }),
+    updateVideoClip: builder.mutation<VideoClipModel, { id: string; body: UpdateVideoClipRequest }>({
+      query: ({ id, body }) => ({ url: `/admin/video-clips/${id}`, method: "PATCH", body }),
+      invalidatesTags: ["Admin"],
+    }),
+    deleteVideoClip: builder.mutation<void, string>({
+      query: (id) => ({ url: `/admin/video-clips/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Admin"],
+    }),
+    reorderVideoClips: builder.mutation<void, string[]>({
+      query: (ids) => ({ url: "/admin/video-clips/reorder", method: "PUT", body: { ids } }),
+      invalidatesTags: ["Admin"],
+    }),
   }),
 });
 
@@ -176,4 +202,9 @@ export const {
   useDeleteQuestionMutation,
   useGetAdminUsersQuery,
   useChangeUserRoleMutation,
+  useGetAdminVideoClipsQuery,
+  useCreateVideoClipMutation,
+  useUpdateVideoClipMutation,
+  useDeleteVideoClipMutation,
+  useReorderVideoClipsMutation,
 } = adminApi;

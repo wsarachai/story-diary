@@ -21,6 +21,12 @@ import {
   deleteChapterSceneDoc,
   listAllUsers,
   updateUserDoc,
+  listVideoClipsDocs,
+  findVideoClipById,
+  insertVideoClipDoc,
+  updateVideoClipDoc,
+  deleteVideoClipDoc,
+  reorderVideoClipDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
@@ -268,6 +274,75 @@ export async function adminUpdateQuestion(id: string, body: UpdateQuestionReques
 export async function adminDeleteQuestion(id: string): Promise<void> {
   const deleted = await deleteQuizQuestionDoc(id);
   if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+}
+
+// ── Video Clips ───────────────────────────────────────────────────────────────
+
+export interface VideoClipModel {
+  id: string;
+  caption: string;
+  sourceUrl: string;
+  thumbnailUrl?: string;
+  sortOrder: number;
+}
+
+export interface CreateVideoClipRequest {
+  caption: string;
+  sourceUrl: string;
+  thumbnailUrl?: string;
+}
+
+export type UpdateVideoClipRequest = Partial<CreateVideoClipRequest>;
+
+function clipDocToModel(doc: { id: string; caption: string; source_url: string; thumbnail_url?: string | null; sort_order: number }): VideoClipModel {
+  return {
+    id: doc.id,
+    caption: doc.caption,
+    sourceUrl: doc.source_url,
+    ...(doc.thumbnail_url ? { thumbnailUrl: doc.thumbnail_url } : {}),
+    sortOrder: doc.sort_order,
+  };
+}
+
+export async function adminListVideoClips(): Promise<VideoClipModel[]> {
+  const rows = await listVideoClipsDocs();
+  return rows.map(clipDocToModel);
+}
+
+export async function adminCreateVideoClip(body: CreateVideoClipRequest): Promise<VideoClipModel> {
+  const rows = await listVideoClipsDocs();
+  const sortOrder = rows.length + 1;
+  const id = `clip-${uuidv4().slice(0, 8)}`;
+  await insertVideoClipDoc({
+    id,
+    caption: body.caption,
+    source_url: body.sourceUrl,
+    thumbnail_url: body.thumbnailUrl ?? null,
+    sort_order: sortOrder,
+  });
+  const saved = await findVideoClipById(id);
+  if (!saved) throw new Error("Failed to create video clip");
+  return clipDocToModel(saved);
+}
+
+export async function adminUpdateVideoClip(id: string, body: UpdateVideoClipRequest): Promise<VideoClipModel> {
+  const patch: Record<string, unknown> = {};
+  if (body.caption !== undefined) patch.caption = body.caption;
+  if (body.sourceUrl !== undefined) patch.source_url = body.sourceUrl;
+  if (body.thumbnailUrl !== undefined) patch.thumbnail_url = body.thumbnailUrl || null;
+
+  const updated = await updateVideoClipDoc(id, patch as Parameters<typeof updateVideoClipDoc>[1]);
+  if (!updated) throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
+  return clipDocToModel(updated);
+}
+
+export async function adminDeleteVideoClip(id: string): Promise<void> {
+  const deleted = await deleteVideoClipDoc(id);
+  if (!deleted) throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
+}
+
+export async function adminReorderVideoClips(orderedIds: string[]): Promise<void> {
+  await reorderVideoClipDocs(orderedIds);
 }
 
 // ── User management (rootAdmin only) ────────────────────────────────────────

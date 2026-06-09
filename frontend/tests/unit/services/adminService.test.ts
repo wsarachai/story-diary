@@ -19,6 +19,11 @@ import {
   adminCreateScene,
   adminUpdateScene,
   adminDeleteScene,
+  adminListVideoClips,
+  adminCreateVideoClip,
+  adminUpdateVideoClip,
+  adminDeleteVideoClip,
+  adminReorderVideoClips,
 } from "@/lib/services/adminService";
 import { AppError } from "@/lib/errors";
 
@@ -339,5 +344,136 @@ describe("adminDeleteScene", () => {
 
   it("throws 404 for missing scene", async () => {
     await expect(adminDeleteScene("ghost")).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+// ── Video Clips ───────────────────────────────────────────────────────────────
+
+describe("adminListVideoClips", () => {
+  it("returns all 5 seeded clips", async () => {
+    const clips = await adminListVideoClips();
+    expect(clips).toHaveLength(5);
+  });
+
+  it("returns clips with id, caption, sourceUrl, and sortOrder fields", async () => {
+    const clips = await adminListVideoClips();
+    const clip = clips[0];
+    expect(clip).toHaveProperty("id");
+    expect(clip).toHaveProperty("caption");
+    expect(clip).toHaveProperty("sourceUrl");
+    expect(clip).toHaveProperty("sortOrder");
+  });
+
+  it("returns clips sorted by sortOrder ascending", async () => {
+    const clips = await adminListVideoClips();
+    const orders = clips.map((c) => c.sortOrder);
+    expect(orders).toEqual([...orders].sort((a, b) => a - b));
+  });
+});
+
+describe("adminCreateVideoClip", () => {
+  it("creates a clip and returns it with the correct fields", async () => {
+    const clip = await adminCreateVideoClip({
+      caption: "คลิปทดสอบ",
+      sourceUrl: "https://example.com/video.mp4",
+    });
+    expect(clip.caption).toBe("คลิปทดสอบ");
+    expect(clip.sourceUrl).toBe("https://example.com/video.mp4");
+    expect(typeof clip.id).toBe("string");
+    expect(typeof clip.sortOrder).toBe("number");
+  });
+
+  it("created clip appears in subsequent list", async () => {
+    await adminCreateVideoClip({ caption: "Extra", sourceUrl: "https://x.com/v.mp4" });
+    const clips = await adminListVideoClips();
+    expect(clips).toHaveLength(6);
+    expect(clips.some((c) => c.caption === "Extra")).toBe(true);
+  });
+
+  it("stores optional thumbnailUrl when provided", async () => {
+    const clip = await adminCreateVideoClip({
+      caption: "With Thumb",
+      sourceUrl: "https://x.com/v.mp4",
+      thumbnailUrl: "https://x.com/thumb.jpg",
+    });
+    expect(clip.thumbnailUrl).toBe("https://x.com/thumb.jpg");
+  });
+
+  it("omits thumbnailUrl when not provided", async () => {
+    const clip = await adminCreateVideoClip({ caption: "No Thumb", sourceUrl: "https://x.com/v.mp4" });
+    expect(clip.thumbnailUrl).toBeUndefined();
+  });
+
+  it("assigns a sort_order after existing clips", async () => {
+    const clip = await adminCreateVideoClip({ caption: "Last", sourceUrl: "https://x.com/v.mp4" });
+    expect(clip.sortOrder).toBe(6);
+  });
+});
+
+describe("adminUpdateVideoClip", () => {
+  it("updates the caption of an existing clip", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    const updated = await adminUpdateVideoClip(id, { caption: "ชื่อใหม่" });
+    expect(updated.caption).toBe("ชื่อใหม่");
+    expect(updated.id).toBe(id);
+  });
+
+  it("updates sourceUrl", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    const updated = await adminUpdateVideoClip(id, { sourceUrl: "https://new.com/v.mp4" });
+    expect(updated.sourceUrl).toBe("https://new.com/v.mp4");
+  });
+
+  it("updates thumbnailUrl", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    const updated = await adminUpdateVideoClip(id, { thumbnailUrl: "https://new.com/t.jpg" });
+    expect(updated.thumbnailUrl).toBe("https://new.com/t.jpg");
+  });
+
+  it("throws 404 for non-existent clip id", async () => {
+    await expect(adminUpdateVideoClip("no-such-id", { caption: "X" })).rejects.toMatchObject({
+      statusCode: 404,
+      code: "CLIP_NOT_FOUND",
+    });
+  });
+});
+
+describe("adminDeleteVideoClip", () => {
+  it("removes a clip from the list", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    await adminDeleteVideoClip(id);
+    const after = await adminListVideoClips();
+    expect(after.some((c) => c.id === id)).toBe(false);
+    expect(after).toHaveLength(4);
+  });
+
+  it("throws 404 for non-existent clip", async () => {
+    await expect(adminDeleteVideoClip("ghost")).rejects.toMatchObject({ statusCode: 404 });
+  });
+});
+
+describe("adminReorderVideoClips", () => {
+  it("persists the new order returned by a subsequent list", async () => {
+    const clips = await adminListVideoClips();
+    const reversed = [...clips].reverse().map((c) => c.id);
+    await adminReorderVideoClips(reversed);
+    const after = await adminListVideoClips();
+    expect(after.map((c) => c.id)).toEqual(reversed);
+  });
+
+  it("assigns sort_order 1..N matching the supplied id array", async () => {
+    const clips = await adminListVideoClips();
+    const ids = clips.map((c) => c.id);
+    const newOrder = [ids[4], ids[0], ids[2], ids[1], ids[3]];
+    await adminReorderVideoClips(newOrder);
+    const after = await adminListVideoClips();
+    expect(after[0].id).toBe(newOrder[0]);
+    expect(after[0].sortOrder).toBe(1);
+    expect(after[4].id).toBe(newOrder[4]);
+    expect(after[4].sortOrder).toBe(5);
   });
 });

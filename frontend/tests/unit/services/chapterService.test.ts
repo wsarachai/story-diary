@@ -146,19 +146,25 @@ describe("setChapterProgress", () => {
 });
 
 describe("getVideoClips", () => {
-  it("returns a badge and exactly 5 clips", () => {
-    const result = getVideoClips();
+  it("returns a badge and exactly 5 clips", async () => {
+    const result = await getVideoClips();
     expect(typeof result.badge).toBe("string");
     expect(result.clips).toHaveLength(5);
   });
 
-  it("each clip has id, caption, and sourceUrl", () => {
-    const result = getVideoClips();
+  it("each clip has id, caption, and sourceUrl", async () => {
+    const result = await getVideoClips();
     for (const clip of result.clips) {
       expect(clip.id).toBeDefined();
       expect(clip.caption).toBeDefined();
       expect(clip.sourceUrl).toBeDefined();
     }
+  });
+
+  it("clips are returned in sort_order sequence", async () => {
+    const result = await getVideoClips();
+    const ids = result.clips.map((c) => c.id);
+    expect(ids).toEqual(["clip-1", "clip-2", "clip-3", "clip-4", "clip-5"]);
   });
 });
 

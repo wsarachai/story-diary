@@ -6,6 +6,7 @@ import {
     upsertChapterProgress,
     unlockNextChapterBySortOrder,
     listEBooksDocs,
+    listVideoClipsDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import type { Chapter, ChapterSummary, ChapterProgressState, VideoClipsCollection } from "@/types/chapters";
@@ -68,15 +69,15 @@ export async function setChapterProgress(
     }
 }
 
-const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=Ktxam4bHrTo";
-
-export function getVideoClips(): VideoClipsCollection {
+export async function getVideoClips(): Promise<VideoClipsCollection> {
+    const rows = await listVideoClipsDocs();
     return {
         badge: "ดาวแห่งการเรียนรู้",
-        clips: [1, 2, 3, 4, 5].map((n) => ({
-            id: `clip-${n}`,
-            caption: `คลิป ${n}`,
-            sourceUrl: TEST_VIDEO_URL,
+        clips: rows.map((row) => ({
+            id: row.id,
+            caption: row.caption,
+            sourceUrl: row.source_url,
+            ...(row.thumbnail_url ? { thumbnailUrl: row.thumbnail_url } : {}),
         })),
     };
 }

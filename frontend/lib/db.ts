@@ -140,6 +140,14 @@ export interface EBookDoc {
   pdf_url: string;
 }
 
+export interface VideoClipDoc {
+  id: string;
+  caption: string;
+  source_url: string;
+  thumbnail_url?: string | null;
+  sort_order: number;
+}
+
 interface MemoryStore {
   users: UserDoc[];
   chapters: ChapterDoc[];
@@ -154,12 +162,22 @@ interface MemoryStore {
   symptomsCheckins: SymptomsCheckinDoc[];
   moodCheckins: MoodCheckinDoc[];
   eBooks: EBookDoc[];
+  videoClips: VideoClipDoc[];
 }
 
 const E_BOOKS: EBookDoc[] = [1, 2, 3, 4, 5].map((n) => ({
   id: `ebk-${n}`,
   title: `บทที่ ${n}`,
   pdf_url: `/e-books/ch0${n}.pdf`,
+}));
+
+const TEST_VIDEO_URL = "https://www.youtube.com/watch?v=Ktxam4bHrTo";
+
+const VIDEO_CLIPS: VideoClipDoc[] = [1, 2, 3, 4, 5].map((n) => ({
+  id: `clip-${n}`,
+  caption: `คลิป ${n}`,
+  source_url: TEST_VIDEO_URL,
+  sort_order: n,
 }));
 
 const CHAPTERS: ChapterDoc[] = [
@@ -234,6 +252,7 @@ function createSeededMemoryStore(): MemoryStore {
     symptomsCheckins: [],
     moodCheckins: [],
     eBooks: E_BOOKS.map((ebook) => ({ ...ebook })),
+    videoClips: VIDEO_CLIPS.map((clip) => ({ ...clip })),
   };
 }
 
@@ -323,6 +342,10 @@ function eBooksCollection() {
   return requireMongoDb().collection<EBookDoc>("e_books");
 }
 
+function videoClipsCollection() {
+  return requireMongoDb().collection<VideoClipDoc>("video_clips");
+}
+
 async function ensureMongoIndexes(): Promise<void> {
   await Promise.all([
     usersCollection().createIndex({ id: 1 }, { unique: true }),
@@ -343,6 +366,8 @@ async function ensureMongoIndexes(): Promise<void> {
     symptomsCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     moodCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     eBooksCollection().createIndex({ id: 1 }, { unique: true }),
+    videoClipsCollection().createIndex({ id: 1 }, { unique: true }),
+    videoClipsCollection().createIndex({ sort_order: 1 }),
   ]);
 }
 
@@ -380,6 +405,15 @@ async function seedMongoReferenceData(): Promise<void> {
         replaceOne: {
           filter: { id: ebook.id },
           replacement: ebook,
+          upsert: true,
+        },
+      }))
+    ),
+    videoClipsCollection().bulkWrite(
+      VIDEO_CLIPS.map((clip) => ({
+        replaceOne: {
+          filter: { id: clip.id },
+          replacement: clip,
           upsert: true,
         },
       }))
@@ -1021,4 +1055,75 @@ export async function deleteChapterSceneDoc(id: string): Promise<boolean> {
   }
   const result = await chapterScenesCollection().deleteOne({ id });
   return result.deletedCount > 0;
+}
+
+// ── Video Clip CRUD ───────────────────────────────────────────────────────────
+
+export async function listVideoClipsDocs(): Promise<VideoClipDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return [...memoryStore.videoClips].sort((a, b) => a.sort_order - b.sort_order);
+  }
+  return videoClipsCollection().find({}, { sort: { sort_order: 1 } }).toArray();
+}
+
+export async function findVideoClipById(id: string): Promise<VideoClipDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.videoClips.find((c) => c.id === id);
+  }
+  return (await videoClipsCollection().findOne({ id })) ?? undefined;
+}
+
+export async function insertVideoClipDoc(clip: VideoClipDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    memoryStore.videoClips.push({ ...clip });
+    return;
+  }
+  await videoClipsCollection().insertOne(clip);
+}
+
+export async function updateVideoClipDoc(id: string, patch: Partial<VideoClipDoc>): Promise<VideoClipDoc | undefined> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.videoClips.findIndex((c) => c.id === id);
+    if (index === -1) return undefined;
+    memoryStore.videoClips[index] = { ...memoryStore.videoClips[index], ...patch };
+    return memoryStore.videoClips[index];
+  }
+  const result = await videoClipsCollection().findOneAndUpdate(
+    { id },
+    { $set: patch },
+    { returnDocument: "after" }
+  );
+  return result ?? undefined;
+}
+
+export async function deleteVideoClipDoc(id: string): Promise<boolean> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.videoClips.findIndex((c) => c.id === id);
+    if (index === -1) return false;
+    memoryStore.videoClips.splice(index, 1);
+    return true;
+  }
+  const result = await videoClipsCollection().deleteOne({ id });
+  return result.deletedCount > 0;
+}
+
+export async function reorderVideoClipDocs(orderedIds: string[]): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    orderedIds.forEach((id, index) => {
+      const clip = memoryStore.videoClips.find((c) => c.id === id);
+      if (clip) clip.sort_order = index + 1;
+    });
+    return;
+  }
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      videoClipsCollection().updateOne({ id }, { $set: { sort_order: index + 1 } })
+    )
+  );
 }
