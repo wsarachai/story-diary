@@ -18,25 +18,31 @@ export default function EBookViewerPage() {
         return collection?.chapters.find(c => c.id === ebookId);
     }, [collection, ebookId]);
 
-    function PdfFallback() {
+    if (isLoading) {
         return (
-            <div className={styles.clipPlayerFallback}>
-                <p>ไม่สามารถแสดง PDF ได้</p>
-            </div>
+            <BookShellLayout tight rail={<IconRail />} left={<div />} right={<div />} mergedOnly
+                merged={<PageSpinner label="กำลังโหลด E-book…" />}
+            />
         );
     }
 
-    function renderContent() {
-        if (isLoading) return <PageSpinner label="กำลังโหลด E-book…" />;
-        if (!activeEBook?.pdfUrl) return <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>;
+    if (!activeEBook?.pdfUrl) {
         return (
-            <object
-                className={styles.clipPlayerFrame}
-                data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                type="application/pdf"
-            >
-                <PdfFallback />
-            </object>
+            <BookShellLayout tight rail={<IconRail />} left={<div />} right={<div />} mergedOnly
+                merged={
+                    <div className={styles.clipPlayerPage}>
+                        <div className={styles.clipPlayerPageHeader}>
+                            <Link href="/e-books" className={styles.clipPlayerBack} aria-label="กลับหน้า E-book">
+                                กลับ
+                            </Link>
+                            <h1 className={styles.clipPlayerTitle}>{activeEBook?.title ?? "ไม่พบ E-book"}</h1>
+                        </div>
+                        <div className={styles.clipPlayerFallback}>
+                            <p>ไม่พบไฟล์ PDF</p>
+                        </div>
+                    </div>
+                }
+            />
         );
     }
 
@@ -53,15 +59,23 @@ export default function EBookViewerPage() {
                         <Link href="/e-books" className={styles.clipPlayerBack} aria-label="กลับหน้า E-book">
                             กลับ
                         </Link>
-                        <h1 className={styles.clipPlayerTitle}>{activeEBook?.title ?? "ไม่พบ E-book"}</h1>
+                        <h1 className={styles.clipPlayerTitle}>{activeEBook.title}</h1>
                     </div>
 
                     <div className={styles.clipPlayerFrameWrap}>
-                        {renderContent()}
+                        <object
+                            className={styles.clipPlayerFrame}
+                            data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                            type="application/pdf"
+                        >
+                            <div className={styles.clipPlayerFallback}>
+                                <p>ไม่สามารถแสดง PDF ได้</p>
+                            </div>
+                        </object>
                     </div>
 
                     <div className={styles.clipPlayerCaption}>
-                        {activeEBook ? `กำลังอ่าน: ${activeEBook.title}` : "กรุณาตรวจสอบลิงก์"}
+                        {`กำลังอ่าน: ${activeEBook.title}`}
                     </div>
                 </div>
             }
