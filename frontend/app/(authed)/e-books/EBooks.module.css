@@ -8,16 +8,17 @@
 
 .clipsGridContainer {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.2rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  align-content: start;
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  padding-right: 0.5rem;
+  padding-right: 0.3rem;
 }
 
 .clipsGridContainer::-webkit-scrollbar {
-  width: 0.6rem;
+  width: 0.5rem;
 }
 
 .clipsGridContainer::-webkit-scrollbar-track {
@@ -34,8 +35,7 @@
 }
 
 .clipsGridItem {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
 }
 
 .clipSectionLabelSpacer {
@@ -55,31 +55,31 @@
 }
 
 .clipThumbnail {
-  background: #508db9;
-  border-radius: 2.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  min-height: 0;
-}
-
-
-.clipThumbnail {
+  background: #508db9;
+  border-radius: 0.75rem;
+  aspect-ratio: 2 / 3;
+  width: 100%;
   cursor: pointer;
   text-decoration: none;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 .clipThumbnail:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .clipThumbnailBookIcon {
-  width: 55%;
-  height: 55%;
-  fill: rgba(255, 255, 255, 0.25);
+  width: 45%;
+  height: 45%;
+  fill: rgba(255, 255, 255, 0.22);
   flex-shrink: 0;
 }
 
@@ -88,13 +88,13 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2rem 1.1rem 0.85rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent);
+  padding: 1.8rem 0.65rem 0.6rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   color: #fff;
-  font-size: 1.15em;
+  font-size: 0.82em;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 0 0 2.4rem 2.4rem;
+  border-radius: 0 0 0.75rem 0.75rem;
 }
