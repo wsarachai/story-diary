@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -10,6 +10,8 @@ import PageSpinner from "@/components/PageSpinner";
 import type { EBookChapter } from "@/types/ebook";
 import styles from "../EBookViewer.module.css";
 
+type PdfState = "checking" | "ready" | "error";
+
 export default function EBookViewerPage() {
     const { data: collection, isLoading } = useGetEBooksQuery();
     const params = useParams<{ id: string }>();
@@ -18,6 +20,58 @@ export default function EBookViewerPage() {
     const activeEBook = useMemo(() => {
         return collection?.chapters.find(c => c.id === ebookId);
     }, [collection, ebookId]);
+
+    const [pdfState, setPdfState] = useState<PdfState>("checking");
+
+    useEffect(() => {
+        const url = activeEBook?.pdfUrl;
+        if (!url) { setPdfState("error"); return; }
+
+        setPdfState("checking");
+        let cancelled = false;
+
+        fetch(url, { method: "HEAD" })
+            .then((res) => {
+                if (cancelled) return;
+                const ct = res.headers.get("content-type") ?? "";
+                // Accept if response is ok AND content-type looks like a PDF
+                setPdfState(res.ok && ct.includes("pdf") ? "ready" : "error");
+            })
+            .catch(() => {
+                // CORS or network error — optimistically render; <object> will show
+                // its own fallback if the URL is truly unreachable
+                if (!cancelled) setPdfState("ready");
+            });
+
+        return () => { cancelled = true; };
+    }, [activeEBook?.pdfUrl]);
+
+    function PdfFallback({ url }: { url: string }) {
+        return (
+            <div className={styles.clipPlayerFallback}>
+                <p>ไม่สามารถแสดง PDF ได้</p>
+                <a href={url} target="_blank" rel="noopener noreferrer" className={styles.clipPlayerFallbackLink}>
+                    เปิด PDF ในแท็บใหม่
+                </a>
+            </div>
+        );
+    }
+
+    function renderContent() {
+        if (isLoading) return <PageSpinner label="กำลังโหลด E-book…" />;
+        if (!activeEBook?.pdfUrl) return <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>;
+        if (pdfState === "checking") return <PageSpinner label="กำลังตรวจสอบ PDF…" />;
+        if (pdfState === "error") return <PdfFallback url={activeEBook.pdfUrl} />;
+        return (
+            <object
+                className={styles.clipPlayerFrame}
+                data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                type="application/pdf"
+            >
+                <PdfFallback url={activeEBook.pdfUrl} />
+            </object>
+        );
+    }
 
     return (
         <BookShellLayout
@@ -36,29 +90,7 @@ export default function EBookViewerPage() {
                     </div>
 
                     <div className={styles.clipPlayerFrameWrap}>
-                        {isLoading ? (
-                            <PageSpinner label="กำลังโหลด E-book…" />
-                        ) : activeEBook?.pdfUrl ? (
-                            <object
-                                className={styles.clipPlayerFrame}
-                                data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                type="application/pdf"
-                            >
-                                <div className={styles.clipPlayerFallback}>
-                                    <p>ไม่สามารถแสดง PDF ได้</p>
-                                    <a
-                                        href={activeEBook.pdfUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={styles.clipPlayerFallbackLink}
-                                    >
-                                        เปิด PDF ในแท็บใหม่
-                                    </a>
-                                </div>
-                            </object>
-                        ) : (
-                            <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>
-                        ) }
+                        {renderContent()}
                     </div>
 
                     <div className={styles.clipPlayerCaption}>
