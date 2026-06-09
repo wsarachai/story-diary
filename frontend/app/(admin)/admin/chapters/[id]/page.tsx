@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
+import AdminErrorBanner from "@/components/AdminErrorBanner";
 import {
   useGetAdminChapterQuery,
   useUpdateChapterMutation,
@@ -10,11 +11,27 @@ import {
   useCreateSceneMutation,
   useUpdateSceneMutation,
   useDeleteSceneMutation,
+  useReorderChapterScenesMutation,
   type CreateSceneRequest,
   type UpdateSceneRequest,
 } from "@/store/adminApi";
 import type { ChapterScene } from "@/types/chapters";
 import styles from "@/components/Admin.module.css";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const EMPTY_SCENE: CreateSceneRequest = {
   idx: 0,
@@ -22,6 +39,67 @@ const EMPTY_SCENE: CreateSceneRequest = {
   speakerImageUrl: "",
   text: "",
 };
+
+function DragHandle() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      style={{ width: "1rem", height: "1rem", flexShrink: 0, cursor: "grab", color: "#999" }}
+      aria-hidden="true"
+    >
+      <line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="18" x2="16" y2="18" />
+    </svg>
+  );
+}
+
+function SortableSceneRow({
+  scene,
+  onEdit,
+  onDelete,
+}: {
+  scene: ChapterScene;
+  onEdit: (scene: ChapterScene) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: scene.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style}>
+      <td>
+        <span {...attributes} {...listeners} style={{ display: "inline-flex", alignItems: "center", padding: "0 4px" }}>
+          <DragHandle />
+        </span>
+      </td>
+      <td>{scene.index}</td>
+      <td>{scene.speakerName}</td>
+      <td className={styles.adminTruncated}>
+        {scene.speakerImageUrl ?? "—"}
+      </td>
+      <td className={styles.adminTruncated} style={{ maxWidth: "300px" }}>
+        {scene.text}
+      </td>
+      <td>
+        <div className={styles.adminTableActions}>
+          <button className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={() => onEdit(scene)}>Edit</button>
+          <button className={`${styles.adminBtn} ${styles.adminBtnDanger}`} onClick={() => onDelete(scene.id)}>Delete</button>
+        </div>
+      </td>
+    </tr>
+  );
+}
 
 export default function AdminChapterDetailPage() {
   const params = useParams();
@@ -34,6 +112,9 @@ export default function AdminChapterDetailPage() {
   const [createScene] = useCreateSceneMutation();
   const [updateScene] = useUpdateSceneMutation();
   const [deleteScene] = useDeleteSceneMutation();
+  const [reorderChapterScenes] = useReorderChapterScenesMutation();
+  const [reorderError, setReorderError] = useState<string | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor));
 
   const [chapterForm, setChapterForm] = useState({
     title: "",
@@ -104,6 +185,22 @@ export default function AdminChapterDetailPage() {
     await deleteScene(sceneId);
   }
 
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const currentScenes = scenes ?? [];
+    const oldIndex = currentScenes.findIndex((s) => s.id === String(active.id));
+    const newIndex = currentScenes.findIndex((s) => s.id === String(over.id));
+    const newOrder = arrayMove(currentScenes.map((s) => s.id), oldIndex, newIndex);
+
+    try {
+      await reorderChapterScenes({ chapterId, ids: newOrder }).unwrap();
+    } catch {
+      setReorderError("บันทึกลำดับฉากไม่สำเร็จ ลองอีกครั้ง");
+    }
+  }
+
   if (chapterLoading) {
     return (
       <div className={styles.adminLayout}>
@@ -129,6 +226,10 @@ export default function AdminChapterDetailPage() {
               <h1 className={styles.adminPageTitle}>{chapter?.title ?? "Chapter"}</h1>
             </div>
           </div>
+
+          {reorderError && (
+            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+          )}
 
           {/* Chapter info form */}
           <div className={styles.adminFormCard}>
@@ -242,37 +343,32 @@ export default function AdminChapterDetailPage() {
             <div className={styles.adminSpinner} />
           ) : (
             <div className={styles.adminTableWrap}>
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th>idx</th>
-                    <th>Speaker Name</th>
-                    <th>Speaker Image URL</th>
-                    <th>Text</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(scenes ?? []).map((scene) => (
-                    <tr key={scene.id}>
-                      <td>{scene.index}</td>
-                      <td>{scene.speakerName}</td>
-                      <td className={styles.adminTruncated}>
-                        {scene.speakerImageUrl ?? "—"}
-                      </td>
-                      <td className={styles.adminTruncated} style={{ maxWidth: "300px" }}>
-                        {scene.text}
-                      </td>
-                      <td>
-                        <div className={styles.adminTableActions}>
-                          <button className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={() => openEditScene(scene)}>Edit</button>
-                          <button className={`${styles.adminBtn} ${styles.adminBtnDanger}`} onClick={() => handleDeleteScene(scene.id)}>Delete</button>
-                        </div>
-                      </td>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: "2rem" }} />
+                      <th>idx</th>
+                      <th>Speaker Name</th>
+                      <th>Speaker Image URL</th>
+                      <th>Text</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <SortableContext items={(scenes ?? []).map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                    <tbody>
+                      {(scenes ?? []).map((scene) => (
+                        <SortableSceneRow
+                          key={scene.id}
+                          scene={scene}
+                          onEdit={openEditScene}
+                          onDelete={handleDeleteScene}
+                        />
+                      ))}
+                    </tbody>
+                  </SortableContext>
+                </table>
+              </DndContext>
             </div>
           )}
 
