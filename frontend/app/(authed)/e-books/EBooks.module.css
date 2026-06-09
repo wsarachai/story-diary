@@ -77,10 +77,11 @@
 }
 
 .clipThumbnailBookIcon {
-  width: 45%;
-  height: 45%;
+  width: 40%;
+  height: 40%;
   fill: rgba(255, 255, 255, 0.22);
   flex-shrink: 0;
+  margin-bottom: 22%;
 }
 
 .clipThumbnailTitle {
