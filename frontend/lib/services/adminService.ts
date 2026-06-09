@@ -30,6 +30,7 @@ import {
   reorderVideoClipDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { resolveRole } from "@/lib/roles";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion } from "@/types/minigame";
@@ -372,17 +373,11 @@ export interface UserSummary {
 
 export async function adminListUsers(): Promise<UserSummary[]> {
   const rows = await listAllUsers();
-  const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
   return rows.map((row) => ({
     id: row.id,
     name: row.name,
     tel: row.tel,
-    role:
-      (rootAdminTel && row.tel === rootAdminTel) || row.role === "rootAdmin"
-        ? "rootAdmin"
-        : row.role === "admin"
-          ? "admin"
-          : "user",
+    role: resolveRole(row),
     createdAt: row.created_at,
   }));
 }

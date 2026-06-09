@@ -10,6 +10,7 @@ import {
     type UserDoc,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { resolveRole, rootAdminTel } from "@/lib/roles";
 import { DEFAULT_TIMEZONE } from "@/lib/utils/date";
 import type { UserProfile } from "@/types/user";
 import type { RegisterRequest } from "@/types/auth";
@@ -108,15 +109,6 @@ function validateAvatarDataUrl(avatarUrl: string): void {
     }
 }
 
-function resolveRole(row: UserDoc): "user" | "admin" | "rootAdmin" {
-    const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
-    if (rootAdminTel && row.tel === rootAdminTel) return "rootAdmin";
-    if (row.role === "rootAdmin") return "rootAdmin";
-    if (row.role === "admin") return "admin";
-    const adminIds = (process.env.ADMIN_USER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-    return adminIds.includes(row.id) ? "admin" : "user";
-}
-
 function rowToProfile(row: UserDoc): UserProfile {
     return {
         id: row.id,
@@ -203,7 +195,15 @@ export async function updateUser(
     }
 
     if (patch.tel) {
-        const conflict = await findUserByTelExcludingId(patch.tel.trim(), id);
+        const nextTel = patch.tel.trim();
+        // The root-admin phone number can only be claimed at registration (the
+        // bootstrap), never acquired later via profile edit — otherwise any user
+        // could self-promote to rootAdmin whenever the number is briefly unheld.
+        const rootTel = rootAdminTel();
+        if (rootTel && nextTel === rootTel && row.tel !== rootTel) {
+            throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
+        }
+        const conflict = await findUserByTelExcludingId(nextTel, id);
         if (conflict) {
             throw Errors.conflict("PHONE_TAKEN", "Phone number is already registered");
         }

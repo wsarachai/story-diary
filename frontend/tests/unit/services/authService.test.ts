@@ -148,6 +148,19 @@ describe("updateUser", () => {
     });
   });
 
+  it("rejects changing tel to the configured ROOT_ADMIN_TEL", async () => {
+    const saved = process.env.ROOT_ADMIN_TEL;
+    process.env.ROOT_ADMIN_TEL = "0890000000";
+    try {
+      await expect(updateUser(userId, { tel: "0890000000" })).rejects.toMatchObject({
+        code: "PHONE_TAKEN",
+      });
+    } finally {
+      if (saved === undefined) delete process.env.ROOT_ADMIN_TEL;
+      else process.env.ROOT_ADMIN_TEL = saved;
+    }
+  });
+
   it("updates avatarUrl and returns it in the profile", async () => {
     const url = SMALL_AVATAR;
     const updated = await updateUser(userId, { avatarUrl: url });

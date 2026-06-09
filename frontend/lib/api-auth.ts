@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { findUserById } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { isAdmin, isRootAdmin } from "@/lib/roles";
 
 export function requireAuth(request: Request): string {
   const authHeader = request.headers.get("authorization");
@@ -19,7 +20,7 @@ export function requireAuth(request: Request): string {
 export async function requireAdmin(request: Request): Promise<string> {
   const userId = requireAuth(request);
   const user = await findUserById(userId);
-  if (!user || (user.role !== "admin" && user.role !== "rootAdmin")) {
+  if (!user || !isAdmin(user)) {
     throw Errors.forbidden();
   }
   return userId;
@@ -28,10 +29,7 @@ export async function requireAdmin(request: Request): Promise<string> {
 export async function requireRootAdmin(request: Request): Promise<string> {
   const userId = requireAuth(request);
   const user = await findUserById(userId);
-  const rootAdminTel = (process.env.ROOT_ADMIN_TEL ?? "").trim();
-  const isRootAdmin =
-    (rootAdminTel && user?.tel === rootAdminTel) || user?.role === "rootAdmin";
-  if (!user || !isRootAdmin) {
+  if (!user || !isRootAdmin(user)) {
     throw Errors.forbidden();
   }
   return userId;

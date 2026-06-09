@@ -1,11 +1,12 @@
 // @vitest-environment node
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import { requireAdmin } from "@/lib/api-auth";
 import { clearTestData, insertUser } from "@/lib/db";
 import { AppError } from "@/lib/errors";
 
 const SECRET = "story-diary-dev-secret";
+const ROOT_TEL = "0899999999";
 
 function makeReq(authHeader?: string): Request {
   const headers = new Headers();
@@ -83,6 +84,54 @@ describe("requireAdmin", () => {
     const token = makeToken("u-admin");
     const result = await requireAdmin(makeReq(`Bearer ${token}`));
     expect(result).toBe("u-admin");
+  });
+
+  it("returns userId when user has role=rootAdmin", async () => {
+    await insertUser({
+      id: "u-root",
+      name: "Root",
+      tel: "0800000005",
+      password_hash: "x",
+      character_name: "Char",
+      gender: "male",
+      role: "rootAdmin",
+      timezone: "Asia/Bangkok",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    const token = makeToken("u-root");
+    const result = await requireAdmin(makeReq(`Bearer ${token}`));
+    expect(result).toBe("u-root");
+  });
+
+  describe("with ROOT_ADMIN_TEL configured", () => {
+    let saved: string | undefined;
+    beforeEach(() => {
+      saved = process.env.ROOT_ADMIN_TEL;
+      process.env.ROOT_ADMIN_TEL = ROOT_TEL;
+    });
+    afterEach(() => {
+      if (saved === undefined) delete process.env.ROOT_ADMIN_TEL;
+      else process.env.ROOT_ADMIN_TEL = saved;
+    });
+
+    it("returns userId for the ROOT_ADMIN_TEL holder even with role=user", async () => {
+      await insertUser({
+        id: "u-tel-root",
+        name: "TelRoot",
+        tel: ROOT_TEL,
+        password_hash: "x",
+        character_name: "Char",
+        gender: "female",
+        role: "user",
+        timezone: "Asia/Bangkok",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      const token = makeToken("u-tel-root");
+      const result = await requireAdmin(makeReq(`Bearer ${token}`));
+      expect(result).toBe("u-tel-root");
+    });
   });
 
   it("throws 401 for expired token even if user is admin", async () => {
