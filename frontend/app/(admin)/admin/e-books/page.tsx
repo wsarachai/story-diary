@@ -102,6 +102,7 @@ export default function AdminEBooksPage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateEBookRequest>(EMPTY_FORM);
+  const [pdfUrlError, setPdfUrlError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
   const ebooks = serverEBooks ?? [];
@@ -130,10 +131,21 @@ export default function AdminEBooksPage() {
     setShowForm(false);
     setEditId(null);
     setForm(EMPTY_FORM);
+    setPdfUrlError(null);
+  }
+
+  function validatePdfUrl(url: string): boolean {
+    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("/")) {
+      setPdfUrlError("URL ต้องขึ้นต้นด้วย http://, https:// หรือ /");
+      return false;
+    }
+    setPdfUrlError(null);
+    return true;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!validatePdfUrl(form.pdfUrl)) return;
     if (editId !== null) {
       await updateEBook({ id: editId, body: form });
     } else {
@@ -196,11 +208,15 @@ export default function AdminEBooksPage() {
                 <div className={styles.adminFormField}>
                   <label className={styles.adminLabel}>PDF URL</label>
                   <input
-                    className={styles.adminInput}
+                    className={`${styles.adminInput} ${pdfUrlError ? styles.adminInputError : ""}`}
                     value={form.pdfUrl}
-                    onChange={(e) => setForm({ ...form, pdfUrl: e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, pdfUrl: e.target.value });
+                      if (pdfUrlError) validatePdfUrl(e.target.value);
+                    }}
                     required
                   />
+                  {pdfUrlError && <span className={styles.adminFieldError}>{pdfUrlError}</span>}
                 </div>
               </div>
               <div className={styles.adminFormActions}>

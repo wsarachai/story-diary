@@ -54,9 +54,31 @@
   height: 100%;
   display: grid;
   place-items: center;
+  text-align: center;
+  gap: 0.75rem;
   color: #508db9;
   font-size: 1.2em;
   font-weight: 600;
+}
+
+.clipPlayerFallback p {
+  margin: 0;
+}
+
+.clipPlayerFallbackLink {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  background: #508db9;
+  color: #fff;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.9em;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.clipPlayerFallbackLink:hover {
+  background: #2c5d80;
 }
 
 .clipPlayerCaption {

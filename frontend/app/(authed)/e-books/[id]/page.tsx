@@ -39,12 +39,23 @@ export default function EBookViewerPage() {
                         {isLoading ? (
                             <PageSpinner label="กำลังโหลด E-book…" />
                         ) : activeEBook?.pdfUrl ? (
-                            <iframe
+                            <object
                                 className={styles.clipPlayerFrame}
-                                src={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                title={activeEBook.title}
-                                allowFullScreen
-                            />
+                                data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                type="application/pdf"
+                            >
+                                <div className={styles.clipPlayerFallback}>
+                                    <p>ไม่สามารถแสดง PDF ได้</p>
+                                    <a
+                                        href={activeEBook.pdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.clipPlayerFallbackLink}
+                                    >
+                                        เปิด PDF ในแท็บใหม่
+                                    </a>
+                                </div>
+                            </object>
                         ) : (
                             <div className={styles.clipPlayerFallback}>ไม่พบไฟล์ PDF</div>
                         ) }

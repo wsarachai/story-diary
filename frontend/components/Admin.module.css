@@ -343,6 +343,16 @@
   box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
 }
 
+.adminInputError {
+  border-color: #f85149 !important;
+}
+
+.adminFieldError {
+  font-size: 0.75rem;
+  color: #f85149;
+  margin-top: 0.1rem;
+}
+
 .adminTextarea {
   resize: vertical;
   min-height: 80px;
