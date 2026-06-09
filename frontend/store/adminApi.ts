@@ -204,6 +204,55 @@ export const adminApi = apiSlice.injectEndpoints({
         }
       },
     }),
+    reorderChapters: builder.mutation<void, number[]>({
+      query: (ids) => ({ url: "/admin/chapters/reorder", method: "PUT", body: { ids } }),
+      async onQueryStarted(ids, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getAdminChapters", undefined, (draft) => {
+            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+    reorderChapterScenes: builder.mutation<void, { chapterId: number; ids: string[] }>({
+      query: ({ chapterId, ids }) => ({
+        url: `/admin/chapters/${chapterId}/scenes/reorder`,
+        method: "PUT",
+        body: { ids },
+      }),
+      async onQueryStarted({ chapterId, ids }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getAdminScenes", chapterId, (draft) => {
+            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+    reorderEBooks: builder.mutation<void, string[]>({
+      query: (ids) => ({ url: "/admin/e-books/reorder", method: "PUT", body: { ids } }),
+      async onQueryStarted(ids, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getAdminEBooks", undefined, (draft) => {
+            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
   }),
 });
 
@@ -233,4 +282,7 @@ export const {
   useDeleteVideoClipMutation,
   useReorderVideoClipsMutation,
   useReorderQuestionsMutation,
+  useReorderChaptersMutation,
+  useReorderChapterScenesMutation,
+  useReorderEBooksMutation,
 } = adminApi;
