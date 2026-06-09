@@ -65,7 +65,7 @@ export default function EBookViewerPage() {
                     <div className={styles.clipPlayerFrameWrap}>
                         <object
                             className={styles.clipPlayerFrame}
-                            data={`${activeEBook.pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                            data={`/api/pdf-proxy?url=${encodeURIComponent(activeEBook.pdfUrl)}#toolbar=0&navpanes=0&scrollbar=0`}
                             type="application/pdf"
                         >
                             <div className={styles.clipPlayerFallback}>
