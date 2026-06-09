@@ -89,6 +89,7 @@
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 1;
   padding: 1.8rem 0.65rem 0.6rem;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
   color: #fff;
