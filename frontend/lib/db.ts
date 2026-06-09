@@ -396,45 +396,45 @@ async function seedMongoReferenceData(): Promise<void> {
   await Promise.all([
     chaptersCollection().bulkWrite(
       CHAPTERS.map((chapter) => ({
-        replaceOne: {
+        updateOne: {
           filter: { id: chapter.id },
-          replacement: chapter,
+          update: { $setOnInsert: chapter },
           upsert: true,
         },
       }))
     ),
     chapterScenesCollection().bulkWrite(
       CHAPTER_SCENES.map((scene) => ({
-        replaceOne: {
+        updateOne: {
           filter: { id: scene.id },
-          replacement: scene,
+          update: { $setOnInsert: scene },
           upsert: true,
         },
       }))
     ),
     quizQuestionsCollection().bulkWrite(
       QUIZ_QUESTIONS.map((question) => ({
-        replaceOne: {
+        updateOne: {
           filter: { id: question.id },
-          replacement: question,
+          update: { $setOnInsert: question },
           upsert: true,
         },
       }))
     ),
     eBooksCollection().bulkWrite(
       E_BOOKS.map((ebook) => ({
-        replaceOne: {
+        updateOne: {
           filter: { id: ebook.id },
-          replacement: ebook,
+          update: { $setOnInsert: ebook },
           upsert: true,
         },
       }))
     ),
     videoClipsCollection().bulkWrite(
       VIDEO_CLIPS.map((clip) => ({
-        replaceOne: {
+        updateOne: {
           filter: { id: clip.id },
-          replacement: clip,
+          update: { $setOnInsert: clip },
           upsert: true,
         },
       }))
