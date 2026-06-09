@@ -3,4 +3,3 @@ allowBuilds:
   msw: true
   sharp: true
   unrs-resolver: true
-storeDir: /home/keng/.local/share/pnpm/store/v10/v11
