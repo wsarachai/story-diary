@@ -70,7 +70,9 @@ function SortableRow({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.95 : 1,
+    background: isDragging ? "#21262d" : undefined,
+    boxShadow: isDragging ? "0 2px 10px rgba(0,0,0,0.6)" : undefined,
     cursor: "default",
   };
 
