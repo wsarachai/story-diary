@@ -145,12 +145,11 @@ export default function AdminChaptersPage() {
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id || !serverChapters) return;
+    if (!over || active.id === over.id) return;
 
-    const base = serverChapters.map((ch) => ch.id);
-    const oldIndex = base.findIndex((id) => String(id) === String(active.id));
-    const newIndex = base.findIndex((id) => String(id) === String(over.id));
-    const newOrder = arrayMove(base, oldIndex, newIndex);
+    const oldIndex = chapters.findIndex((ch) => String(ch.id) === String(active.id));
+    const newIndex = chapters.findIndex((ch) => String(ch.id) === String(over.id));
+    const newOrder = arrayMove(chapters.map((ch) => ch.id), oldIndex, newIndex);
 
     try {
       await reorderChapters(newOrder).unwrap();
@@ -242,8 +241,8 @@ export default function AdminChaptersPage() {
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <SortableContext items={chapters.map((ch) => String(ch.id))} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={chapters.map((ch) => String(ch.id))} strategy={verticalListSortingStrategy}>
+                    <tbody>
                       {chapters.map((ch) => (
                         <SortableRow
                           key={ch.id}
@@ -252,8 +251,8 @@ export default function AdminChaptersPage() {
                           onDelete={handleDelete}
                         />
                       ))}
-                    </SortableContext>
-                  </tbody>
+                    </tbody>
+                  </SortableContext>
                 </table>
               </DndContext>
             </div>
