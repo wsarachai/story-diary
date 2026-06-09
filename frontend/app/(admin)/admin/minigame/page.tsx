@@ -41,13 +41,18 @@ const EMPTY_FORM: CreateQuestionRequest = {
 
 function DragHandle() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.4 }}>
-      <circle cx="5" cy="4" r="1.5" />
-      <circle cx="11" cy="4" r="1.5" />
-      <circle cx="5" cy="8" r="1.5" />
-      <circle cx="11" cy="8" r="1.5" />
-      <circle cx="5" cy="12" r="1.5" />
-      <circle cx="11" cy="12" r="1.5" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      style={{ width: "1rem", height: "1rem", flexShrink: 0, cursor: "grab", color: "#999" }}
+      aria-hidden="true"
+    >
+      <line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="18" x2="16" y2="18" />
     </svg>
   );
 }
@@ -78,8 +83,10 @@ function SortableRow({
 
   return (
     <tr ref={setNodeRef} style={style}>
-      <td style={{ cursor: "grab", color: "#8b949e", width: 32 }} {...attributes} {...listeners}>
-        <DragHandle />
+      <td style={{ width: 32 }}>
+        <span {...attributes} {...listeners} style={{ display: "inline-flex", alignItems: "center", padding: "0 4px" }}>
+          <DragHandle />
+        </span>
       </td>
       <td>{position}</td>
       <td>{question.text.length > 60 ? question.text.slice(0, 60) + "…" : question.text}</td>
