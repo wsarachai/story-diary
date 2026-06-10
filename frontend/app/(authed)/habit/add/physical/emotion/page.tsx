@@ -6,7 +6,7 @@ import styles from "../../HabitAdd.module.css";
 type EmotionItem = { label: string; base: string; isMenu: boolean };
 
 const EMOTION_ITEMS: EmotionItem[] = [
-  { label: "สำรวจอารมณ์ตนเอง",   base: "/habit/add/physical/emotion/explore",                                        isMenu: true  },
+  { label: "สำรวจอารมณ์ตนเอง",   base: "/habit/add/physical/form?name=%E0%B8%AA%E0%B8%B3%E0%B8%A3%E0%B8%A7%E0%B8%88%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%A1%E0%B8%93%E0%B9%8C%E0%B8%95%E0%B8%99%E0%B9%80%E0%B8%AD%E0%B8%87", isMenu: false },
   { label: "สร้างอารมณ์เชิงบวก", base: "/habit/add/physical/form?name=%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87%E0%B8%AD%E0%B8%B2%E0%B8%A3%E0%B8%A1%E0%B8%93%E0%B9%8C%E0%B9%80%E0%B8%8A%E0%B8%B4%E0%B8%87%E0%B8%9A%E0%B8%A7%E0%B8%81", isMenu: false },
   { label: "ฝึกสติ",              base: "/habit/add/physical/form?name=%E0%B8%9D%E0%B8%B6%E0%B8%81%E0%B8%AA%E0%B8%95%E0%B8%B4",                                        isMenu: false },
 ];
