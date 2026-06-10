@@ -1,10 +1,10 @@
 .clipPlayerPage {
   height: 100%;
-  padding: 1rem 1.4rem;
+  padding: 1.2rem 1.6rem;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 0.5rem;
-  background: linear-gradient(165deg, #f0f7ff 0%, #e0eff5 55%, #d0e8f0 100%);
+  gap: 0.6rem;
+  background: transparent;
 }
 
 .clipPlayerPageHeader {
@@ -17,24 +17,27 @@
 .clipPlayerBack {
   text-decoration: none;
   color: #ffffff;
-  background: #508db9;
+  background: var(--panel-blue-deep);
   border-radius: 999px;
-  padding: 0.3rem 0.9rem;
+  padding: 0.35rem 1rem;
   font-weight: 700;
   font-size: 0.9em;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .clipPlayerBack:hover {
-  background: #2c5d80;
+  background: var(--panel-blue);
+  color: var(--ink);
   transform: translateY(-1px);
 }
 
 .clipPlayerTitle {
   margin: 0;
-  font-size: 1.2em;
+  font-size: 1.35em;
   font-weight: 700;
-  color: #2c5d80;
+  color: var(--panel-blue-deep);
+  text-shadow: 0 0.5px 1px rgba(0,0,0,0.05);
 }
 
 .clipPlayerFrameWrap {
@@ -42,7 +45,8 @@
   overflow: hidden;
   background: #fff;
   min-height: 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid var(--panel-blue-deep);
+  box-shadow: 0 6px 20px var(--shadow);
 }
 
 .clipPlayerFrame {
@@ -57,8 +61,8 @@
   place-items: center;
   text-align: center;
   gap: 0.75rem;
-  color: #508db9;
-  font-size: 1.2em;
+  color: var(--panel-blue-deep);
+  font-size: 1.25em;
   font-weight: 600;
 }
 
@@ -69,22 +73,24 @@
 .clipPlayerFallbackLink {
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: #508db9;
+  background: var(--panel-blue-deep);
   color: #fff;
   border-radius: 999px;
   text-decoration: none;
   font-size: 0.9em;
   font-weight: 700;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .clipPlayerFallbackLink:hover {
-  background: #2c5d80;
+  background: var(--panel-blue);
+  color: var(--ink);
 }
 
 .clipPlayerCaption {
   font-size: 0.9em;
   font-weight: 600;
-  color: #2c5d80;
+  color: var(--panel-blue-deep);
   text-align: center;
 }
+

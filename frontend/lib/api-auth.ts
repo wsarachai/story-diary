@@ -4,11 +4,23 @@ import { Errors } from "@/lib/errors";
 import { isAdmin, isRootAdmin } from "@/lib/roles";
 
 export function requireAuth(request: Request): string {
+  let token: string | null = null;
   const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else {
+    try {
+      const url = new URL(request.url);
+      token = url.searchParams.get("token");
+    } catch {
+      // ignore parsing error
+    }
+  }
+
+  if (!token) {
     throw Errors.unauthenticated();
   }
-  const token = authHeader.split(" ")[1];
+
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET ?? "story-diary-dev-secret") as { userId: string };
     return payload.userId;

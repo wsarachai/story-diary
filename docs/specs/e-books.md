@@ -16,8 +16,8 @@ E-books are PDF documents associated with story chapters. The user-facing list s
 
 | Route | Page file | Description |
 |-------|-----------|-------------|
-| `/e-books` | `frontend/app/(authed)/e-books/page.tsx` | E-book list; odd-indexed items on left page, even on right |
-| `/e-books/[id]` | `frontend/app/(authed)/e-books/[id]/page.tsx` | PDF viewer for a single e-book; uses `<iframe>` with toolbar/navpanes/scrollbar disabled |
+| `/e-books` | `frontend/app/(authed)/e-books/page.tsx` | E-book list; odd-indexed items on left page, even on right. Uses asymmetric padding class wrappers for seam alignment and realistic 3D book covers. |
+| `/e-books/[id]` | `frontend/app/(authed)/e-books/[id]/page.tsx` | PDF viewer for a single e-book; uses `<object>` inline with `/api/pdf-proxy` and toolbar/navpanes/scrollbar disabled, styled to match the warm book fill theme. |
 | `/admin/e-books` | `frontend/app/(admin)/admin/e-books/page.tsx` | Admin CRUD for e-book records (title + PDF URL) |
 
 ---
@@ -36,8 +36,8 @@ E-books are PDF documents associated with story chapters. The user-facing list s
 
 ## Key Components
 
-- `EBooksPage` — `frontend/app/(authed)/e-books/page.tsx` — fetches collection with `useGetEBooksQuery`; renders badge link back to `/chapters`; splits items into odd/even columns; each item has a play-button overlay linking to the detail page
-- `EBookViewerPage` — `frontend/app/(authed)/e-books/[id]/page.tsx` — finds the active e-book from the cached collection by `params.id`; renders an `<iframe>` with the PDF URL; shows "ไม่พบไฟล์ PDF" fallback if `pdfUrl` is absent
+- `EBooksPage` — `frontend/app/(authed)/e-books/page.tsx` — fetches collection with `useGetEBooksQuery`; renders badge link back to `/chapters`; splits items into odd/even columns; applies `.eBooksPageLeft` and `.eBooksPageRight` for seam-relative layout padding; each item is styled as a 3D book cover with lift and tilt animations.
+- `EBookViewerPage` — `frontend/app/(authed)/e-books/[id]/page.tsx` — finds the active e-book from the cached collection by `params.id`; renders an inline `<object>` via `/api/pdf-proxy`; styled with the warm book-fill theme and deep-blue accents; shows "ไม่พบไฟล์ PDF" fallback if `pdfUrl` is absent.
 - `AdminEBooksPage` — `frontend/app/(admin)/admin/e-books/page.tsx` — table of all e-books with inline create/edit form; uses `useCreateEBookMutation`, `useUpdateEBookMutation`, `useDeleteEBookMutation`
 - `AdminShell` — `frontend/components/AdminShell.tsx` — auth guard for admin pages
 - `AdminSidebar` — `frontend/components/AdminSidebar.tsx` — admin navigation

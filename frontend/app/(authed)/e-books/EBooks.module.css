@@ -1,6 +1,14 @@
-.eBooksPage {
+.eBooksPageLeft {
   height: 100%;
   padding: 7% 6% 7% 7%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1.2rem;
+}
+
+.eBooksPageRight {
+  height: 100%;
+  padding: 7% 7% 7% 6%;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 1.2rem;
@@ -9,7 +17,8 @@
 .clipsGridContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
+  column-gap: 1.2rem;
+  row-gap: 2.4rem; /* Substantial margin between book cover rows to prevent overlap */
   align-content: start;
   overflow-y: auto;
   overflow-x: hidden;
@@ -26,16 +35,18 @@
 }
 
 .clipsGridContainer::-webkit-scrollbar-thumb {
-  background: rgba(46, 122, 170, 0.3);
+  background: rgba(14, 152, 175, 0.3);
   border-radius: 0.3rem;
 }
 
 .clipsGridContainer::-webkit-scrollbar-thumb:hover {
-  background: rgba(46, 122, 170, 0.5);
+  background: rgba(14, 152, 175, 0.6);
 }
 
 .clipsGridItem {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .clipSectionLabelSpacer {
@@ -44,7 +55,7 @@
 
 .clipSectionLabelBadge {
   display: inline-block;
-  background: #508db9;
+  background: var(--panel-blue-deep);
   border-radius: 1.4rem;
   padding: 0.5rem 1.4rem 0.6rem;
   font-size: 1.55em;
@@ -52,6 +63,14 @@
   color: #fff;
   text-decoration: none;
   line-height: 1.2;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  box-shadow: 0 3px 6px var(--shadow);
+}
+
+.clipSectionLabelBadge:hover {
+  background: var(--panel-blue);
+  color: var(--ink);
+  transform: translateY(-1px);
 }
 
 .clipThumbnail {
@@ -60,28 +79,67 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: #508db9;
+  background: linear-gradient(135deg, var(--panel-blue-deep) 0%, var(--panel-blue) 100%);
   border-radius: 0.75rem;
   aspect-ratio: 2 / 3;
   width: 100%;
   cursor: pointer;
   text-decoration: none;
-  transition: filter 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s ease, filter 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 3D spine shadow crease */
+.clipThumbnail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 15%;
+  background: linear-gradient(to right, 
+    rgba(0, 0, 0, 0.24) 0%, 
+    rgba(0, 0, 0, 0.08) 25%, 
+    rgba(255, 255, 255, 0.15) 30%, 
+    transparent 50%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Spine line accent */
+.clipThumbnail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 10%;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .clipThumbnail:hover {
-  filter: brightness(1.08);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px) rotate(1deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  filter: brightness(1.05);
 }
 
 .clipThumbnailBookIcon {
-  width: 40%;
-  height: 40%;
-  fill: rgba(255, 255, 255, 0.22);
+  width: 38%;
+  height: 38%;
+  fill: rgba(255, 255, 255, 0.35);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
   flex-shrink: 0;
-  margin-bottom: 22%;
+  margin-bottom: 15%;
+  transition: transform 0.25s ease;
+  z-index: 1;
+}
+
+.clipThumbnail:hover .clipThumbnailBookIcon {
+  transform: scale(1.08);
 }
 
 .clipThumbnailTitle {
@@ -89,14 +147,17 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1;
+  z-index: 3;
   padding: 1.8rem 0.65rem 0.6rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
   color: #fff;
-  font-size: 0.82em;
+  font-size: 0.85em;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   border-radius: 0 0 0.75rem 0.75rem;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
+

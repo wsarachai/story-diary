@@ -13,9 +13,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
     }
 
+    let targetUrl = url;
+    if (url.startsWith("/")) {
+      const origin = req.nextUrl.origin;
+      targetUrl = `${origin}${url}`;
+    }
+
     let parsed: URL;
     try {
-      parsed = new URL(url);
+      parsed = new URL(targetUrl);
     } catch {
       return NextResponse.json({ error: "Invalid url" }, { status: 400 });
     }
@@ -24,8 +30,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Only http/https URLs are allowed" }, { status: 400 });
     }
 
-    const upstream = await fetch(url, {
-      headers: { Accept: "application/pdf,*/*" },
+    const upstream = await fetch(targetUrl, {
+      headers: { 
+        Accept: "application/pdf,*/*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
       signal: AbortSignal.timeout(15_000),
     });
 

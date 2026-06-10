@@ -33,7 +33,7 @@ export default function EBooksPage() {
       tight
       rail={<IconRail />}
       left={
-        <div className={styles.eBooksPage}>
+        <div className={styles.eBooksPageLeft}>
           <Link
             href="/chapters"
             className={styles.clipSectionLabelBadge}
@@ -56,7 +56,7 @@ export default function EBooksPage() {
         </div>
       }
       right={
-        <div className={styles.eBooksPage}>
+        <div className={styles.eBooksPageRight}>
           <div className={styles.clipSectionLabelSpacer} aria-hidden="true" />
 
           {isLoading ? (

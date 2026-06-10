@@ -18,6 +18,8 @@ export default function EBookViewerPage() {
         return collection?.chapters.find(c => c.id === ebookId);
     }, [collection, ebookId]);
 
+    const token = typeof window !== "undefined" ? (localStorage.getItem("auth_token") ?? "") : "";
+
     if (isLoading) {
         return (
             <BookShellLayout tight rail={<IconRail />} left={<div />} right={<div />} mergedOnly
@@ -65,7 +67,7 @@ export default function EBookViewerPage() {
                     <div className={styles.clipPlayerFrameWrap}>
                         <object
                             className={styles.clipPlayerFrame}
-                            data={`/api/pdf-proxy?url=${encodeURIComponent(activeEBook.pdfUrl)}#toolbar=0&navpanes=0&scrollbar=0`}
+                            data={`/api/pdf-proxy?url=${encodeURIComponent(activeEBook.pdfUrl)}&token=${encodeURIComponent(token)}#toolbar=0&navpanes=0&scrollbar=0`}
                             type="application/pdf"
                         >
                             <div className={styles.clipPlayerFallback}>
