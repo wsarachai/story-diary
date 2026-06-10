@@ -83,6 +83,23 @@ describe("createActivity", () => {
     const other = await createActivity("other-user", DAILY);
     expect(other.name).toBe("ยาเช้า");
   });
+
+  it("persists physicalPreset and physicalCategory round-trip", async () => {
+    const a = await createActivity(USER, {
+      category: "physical" as const,
+      physicalCategory: "emotion-management" as const,
+      physicalPreset: "explore_emotion" as const,
+      name: "จัดการอารมณ์",
+      schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+      archived: false,
+    });
+    expect(a.physicalPreset).toBe("explore_emotion");
+    expect(a.physicalCategory).toBe("emotion-management");
+
+    const [loaded] = await getActivities(USER);
+    expect(loaded.physicalPreset).toBe("explore_emotion");
+    expect(loaded.physicalCategory).toBe("emotion-management");
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────

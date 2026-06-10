@@ -12,7 +12,7 @@ import type {
   WeekdayIndex,
   PhysicalPresetKey,
 } from "@/types/habit";
-import { PHYSICAL_PRESETS } from "@/types/habit";
+import { PHYSICAL_PRESETS, PHYSICAL_PRESET_CATEGORY } from "@/types/habit";
 
 interface FormState {
   name: string;
@@ -137,6 +137,11 @@ function PhysicalFormInner() {
     try {
       await createActivity({
         category: "physical",
+        // Persist the preset so the checklist can route type-specific
+        // check-ins (e.g. explore_emotion → mood form) later.
+        ...(typeKey && typeKey in PHYSICAL_PRESET_CATEGORY
+          ? { physicalPreset: typeKey, physicalCategory: PHYSICAL_PRESET_CATEGORY[typeKey] }
+          : {}),
         name: form.name.trim(),
         iconColor: form.iconColor as `#${string}`,
         schedule,

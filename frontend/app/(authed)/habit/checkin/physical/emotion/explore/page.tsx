@@ -1,13 +1,12 @@
 "use client";
-import { useReducer, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useReducer, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveMoodCheckinMutation, useGetMoodCheckinQuery } from "@/store/habitsApi";
-import { useClientSearchParams } from "@/lib/hooks";
 import type { MoodLevel } from "@/types/habit";
-import styles from "../../../HabitAdd.module.css";
-import checkinStyles from "../../../../checkin/HabitCheckin.module.css";
+import styles from "../../../../add/HabitAdd.module.css";
+import checkinStyles from "../../../HabitCheckin.module.css";
 
 const MOOD_LEVELS: { level: MoodLevel; emoji: string; label: string }[] = [
   { level: "very-bad", emoji: "😞", label: "แย่มาก" },
@@ -35,18 +34,25 @@ function reducer(state: State, action: Action): State {
   return state;
 }
 
-export default function ExploreEmotionPage() {
+function ExploreEmotionInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  // Next's useSearchParams (not useClientSearchParams): params must be
+  // correct on the very first render, or the missing-occ guard below
+  // fires during the soft-navigation window before pushState lands.
+  const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/habit/checklist";
   const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
   
   const occId = searchParams.get("occ") ?? "";
-  const activityId = searchParams.get("actId") ?? "";
   const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
 
   const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
+
+  // A check-in only makes sense for a concrete occurrence.
+  useEffect(() => {
+    if (!occId) router.replace("/habit/checklist");
+  }, [occId, router]);
 
   useEffect(() => {
     if (existingCheckin) {
@@ -61,11 +67,10 @@ export default function ExploreEmotionPage() {
   const today = new Date().toISOString().split("T")[0];
 
   async function handleSave() {
-    if (saving) return;
-    const finalOccId = occId || "mood-occ-1";
+    if (saving || !occId) return;
     try {
       await saveMood({
-        occurrenceId: finalOccId,
+        occurrenceId: occId,
         mood: state.mood,
         sliderValue: state.sliderValue,
         date: today
@@ -75,6 +80,8 @@ export default function ExploreEmotionPage() {
       // ignore
     }
   }
+
+  if (!occId) return null;
 
   function handleCancel() {
     if (state.dirty) { discardRef.current?.showModal(); }
@@ -164,5 +171,13 @@ export default function ExploreEmotionPage() {
         </div>
       </dialog>
     </>
+  );
+}
+
+export default function ExploreEmotionPage() {
+  return (
+    <Suspense>
+      <ExploreEmotionInner />
+    </Suspense>
   );
 }

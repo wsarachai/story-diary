@@ -75,6 +75,22 @@ export const CreateActivitySchema = z.object({
       "other",
     ])
     .optional(),
+  physicalPreset: z
+    .enum([
+      "exercise",
+      "doctor_visit",
+      "pregnancy_planning",
+      "explore_emotion",
+      "positive_emotion",
+      "mindfulness",
+      "morning_sunlight",
+      "daytime_sunlight",
+      "wash_hands",
+      "wear_mask",
+      "social_distancing",
+      "other",
+    ])
+    .optional(),
   name: z.string().trim().min(1, "REQUIRED").max(100, "TOO_LONG"),
   iconColor: z
     .string()

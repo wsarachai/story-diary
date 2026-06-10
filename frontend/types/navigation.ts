@@ -107,11 +107,11 @@ export type AppRoute =
     | "/habit/add/physical/sunlight"
     | "/habit/add/physical/infection"
     | "/habit/add/physical/symptoms"
-    | "/habit/add/physical/emotion/explore"
     | "/habit/add/physical/form"
     // Habit — check-in
     | "/habit/checkin/medicine"
     | "/habit/checkin/nutrition"
+    | "/habit/checkin/physical/emotion/explore"
     // Minigame — quiz wizard
     | "/minigame/quiz"
     | "/minigame/quiz/feedback"

@@ -26,12 +26,21 @@ function getAccent(activity: HabitActivity): string {
   return "#ee8a4a";
 }
 
+/**
+ * All emotion-management activities (สำรวจอารมณ์ตนเอง, สร้างอารมณ์เชิงบวก,
+ * ฝึกสติ — and legacy ones without a preset) check in via the explore mood
+ * form at /habit/checkin/physical/emotion/explore.
+ */
+function usesExploreEmotionCheckin(activity: HabitActivity): boolean {
+  return activity.physicalCategory === "emotion-management";
+}
+
 function hasDetailedCheckin(activity: HabitActivity): boolean {
   return (
     activity.category === "medicine" ||
     activity.category === "nutrition" ||
     activity.physicalCategory === "symptoms" ||
-    activity.physicalCategory === "emotion-management"
+    usesExploreEmotionCheckin(activity)
   );
 }
 
@@ -216,8 +225,8 @@ export default function HabitChecklistPage() {
       router.push(`${base}/nutrition?${qs}`);
     } else if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/symptom?${qs}`);
-    } else if (activity.physicalCategory === "emotion-management") {
-      router.push(`/habit/add/physical/emotion/explore?${qs}`);
+    } else if (usesExploreEmotionCheckin(activity)) {
+      router.push(`${base}/physical/emotion/explore?${qs}`);
     }
   }
 

@@ -139,6 +139,13 @@ export interface HabitActivity {
     category: HabitCategory;
     /** Only present when category === "physical". */
     physicalCategory?: PhysicalCategory;
+    /**
+     * Which s024-tree preset the activity was created from
+     * (`/habit/add/physical/form?type=…`). Needed because the three emotion
+     * presets share one display name — the checklist routes
+     * `explore_emotion` to the mood check-in form by this key.
+     */
+    physicalPreset?: PhysicalPresetKey;
     /** Display name. e.g. "กินยา xxx" or "รับประทานอาหารครบ 5 หมู่". */
     name: string;
     /** Optional hex colour for the icon (s020 icon color picker). */
@@ -365,13 +372,29 @@ export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
   exercise: "การออกกำลังกาย",
   doctor_visit: "ตรวจตามนัดแพทย์",
   pregnancy_planning: "วางแผนการตั้งครรภ์",
-  explore_emotion: "จัดการอารมณ์",
-  positive_emotion: "จัดการอารมณ์",
-  mindfulness: "จัดการอารมณ์",
+  explore_emotion: "สำรวจอารมณ์ตนเอง",
+  positive_emotion: "สร้างอารมณ์เชิงบวก",
+  mindfulness: "ฝึกสติ",
   morning_sunlight: "รับแสงแดด",
   daytime_sunlight: "รับแสงแดด",
   wash_hands: "ป้องกันเชื้อโรค",
   wear_mask: "ป้องกันเชื้อโรค",
   social_distancing: "ป้องกันเชื้อโรค",
   other: "อื่นๆ",
+};
+
+/** Maps each form preset to the s024 physical sub-category it belongs to. */
+export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, PhysicalCategory>> = {
+  exercise: "exercise",
+  doctor_visit: "doctor-visit",
+  pregnancy_planning: "pregnancy-planning",
+  explore_emotion: "emotion-management",
+  positive_emotion: "emotion-management",
+  mindfulness: "emotion-management",
+  morning_sunlight: "sunlight",
+  daytime_sunlight: "sunlight",
+  wash_hands: "infection",
+  wear_mask: "infection",
+  social_distancing: "infection",
+  other: "other",
 };

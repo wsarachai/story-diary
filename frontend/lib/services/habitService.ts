@@ -55,6 +55,7 @@ function rowToActivity(row: HabitActivityDoc): HabitActivity {
         archived: row.archived,
     };
     if (row.physical_category) activity.physicalCategory = row.physical_category as HabitActivity["physicalCategory"];
+    if (row.physical_preset) activity.physicalPreset = row.physical_preset as HabitActivity["physicalPreset"];
     if (row.icon_color) activity.iconColor = row.icon_color as `#${string}`;
     if (row.meal_relation) activity.mealRelation = row.meal_relation;
     if (row.meal_slots_json) activity.mealSlots = JSON.parse(row.meal_slots_json);
@@ -284,6 +285,7 @@ export async function createActivity(
         user_id: userId,
         category: data.category,
         physical_category: data.physicalCategory ?? null,
+        physical_preset: data.physicalPreset ?? null,
         name: data.name.trim(),
         name_normalized: normalizedName,
         icon_color: data.iconColor ?? null,
@@ -325,6 +327,7 @@ export async function updateActivity(
     }
     if (patch.category !== undefined) updates.category = patch.category;
     if (patch.physicalCategory !== undefined) updates.physical_category = patch.physicalCategory;
+    if (patch.physicalPreset !== undefined) updates.physical_preset = patch.physicalPreset;
     if (patch.iconColor !== undefined) updates.icon_color = patch.iconColor;
     if (patch.schedule !== undefined) updates.schedule_json = JSON.stringify(patch.schedule);
     if (patch.mealRelation !== undefined) updates.meal_relation = patch.mealRelation;
