@@ -42,10 +42,10 @@ export default async function SunlightMenuPage({ searchParams }: { searchParams:
 
   return (
     <BookShellLayout
-      left={leftPage}
-      right={<div />}
+      tight
       rail={<IconRail />}
-      ariaLabel="Story Diary Create Sunlight Activity"
+      mergedOnly
+      merged={leftPage}
     />
   );
 }

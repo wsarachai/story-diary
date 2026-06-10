@@ -105,10 +105,10 @@ export default function SymptomsCheckinPage() {
   return (
     <>
       <BookShellLayout
-        left={leftPage}
-        right={<div />}
+        tight
         rail={<IconRail />}
-        ariaLabel="Story Diary Unusual Symptoms Checkin"
+        mergedOnly
+        merged={leftPage}
       />
       <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>

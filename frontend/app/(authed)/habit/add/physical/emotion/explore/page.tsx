@@ -132,10 +132,10 @@ export default function ExploreEmotionPage() {
   return (
     <>
       <BookShellLayout
-        left={leftPage}
-        right={<div />}
+        tight
         rail={<IconRail />}
-        ariaLabel="Story Diary Explore Emotion"
+        mergedOnly
+        merged={leftPage}
       />
       <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>

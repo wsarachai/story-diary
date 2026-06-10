@@ -54,10 +54,10 @@ export default async function EmotionMenuPage({ searchParams }: { searchParams: 
 
   return (
     <BookShellLayout
-      left={leftPage}
-      right={<div />}
+      tight
       rail={<IconRail />}
-      ariaLabel="Story Diary Create Emotion Activity"
+      mergedOnly
+      merged={leftPage}
     />
   );
 }
