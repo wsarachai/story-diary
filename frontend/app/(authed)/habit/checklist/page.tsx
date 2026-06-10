@@ -224,167 +224,169 @@ export default function HabitChecklistPage() {
       addHref="/habit/add?from=/habit/checklist"
       addLabel="เพิ่มกิจกรรม"
     >
-      {/* Filter Chips Row */}
-      {!isLoading && !isError && entries.length > 0 && (
-        <div className={styles.filterChipRow} role="group" aria-label="ตัวกรองความถี่ของกิจกรรม">
-          {[
-            { key: "all", label: "ทั้งหมด" },
-            { key: "daily", label: "รายวัน" },
-            { key: "weekly", label: "รายสัปดาห์" },
-            { key: "monthly", label: "รายเดือน" },
-            { key: "todo", label: "ต้องทำ" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setActiveFilter(f.key as any)}
-              className={`${styles.filterChip} ${activeFilter === f.key ? ` ${styles.isActive}` : ""}`}
-              aria-pressed={activeFilter === f.key}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className={styles.habitEntries}>
-        {isLoading && (
-          <PageSpinner
-            variant="inline"
-            height="12rem"
-            label="กำลังโหลดกิจกรรม…"
-          />
-        )}
-        {!isLoading && isError && <TrackerError onRetry={refetch} />}
-        {!isLoading && !isError && entries.length === 0 && (
-          <TrackerEmpty addFrom="/habit/checklist" />
-        )}
-        {!isLoading && !isError && entries.length > 0 && filteredEntries.length === 0 && (
-          <div className={styles.trackerState}>
-            <p className={styles.trackerStateTitle}>ไม่มีกิจกรรมในกลุ่มนี้สำหรับวันนี้</p>
-            <p className={styles.trackerStateSub}>ลองสลับตัวกรองเพื่อดูรายการกิจกรรมอื่น</p>
+      <div className={styles.checklistContent}>
+        {/* Filter Chips Row */}
+        {!isLoading && !isError && entries.length > 0 && (
+          <div className={styles.filterChipRow} role="group" aria-label="ตัวกรองความถี่ของกิจกรรม">
+            {([
+              { key: "all", label: "ทั้งหมด" },
+              { key: "daily", label: "รายวัน" },
+              { key: "weekly", label: "รายสัปดาห์" },
+              { key: "monthly", label: "รายเดือน" },
+              { key: "todo", label: "ต้องทำ" },
+            ] as const).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                className={`${styles.filterChip} ${activeFilter === f.key ? ` ${styles.activeFilter}` : ""}`}
+                aria-pressed={activeFilter === f.key}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         )}
-        {!isLoading &&
-          !isError &&
-          filteredEntries.map((entry) => {
-            const tappable = hasDetailedCheckin(entry.activity);
-            return (
-              <div
-                key={entry.activity.id}
-                className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
-                role="article"
-                aria-label={entry.activity.name}
-                onClick={() =>
-                  tappable &&
-                  handleEntryTap(entry.activity, entry.occurrence.id)
-                }
-              >
-                <div className={styles.habitEntryIcon}>
-                  <CategoryIcon accent={entry.accent} />
-                </div>
-                <div className={styles.habitEntryBody}>
-                  <p className={styles.habitEntryName}>{entry.activity.name}</p>
-                  <p className={styles.habitEntrySub}>{entry.subline}</p>
-                </div>
-                {tappable && (
-                  <span
-                    className={styles.habitEntryLogArrow}
-                    aria-hidden="true"
-                  >
-                    <svg viewBox="0 0 24 24">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </span>
-                )}
-                <button
-                  className={styles.habitDeleteBtn}
-                  aria-label={`ลบ ${entry.activity.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmId(entry.activity.id);
-                  }}
+
+        <div className={styles.habitEntries} style={{ flex: 1 }}>
+          {isLoading && (
+            <PageSpinner
+              variant="inline"
+              height="12rem"
+              label="กำลังโหลดกิจกรรม…"
+            />
+          )}
+          {!isLoading && isError && <TrackerError onRetry={refetch} />}
+          {!isLoading && !isError && entries.length === 0 && (
+            <TrackerEmpty addFrom="/habit/checklist" />
+          )}
+          {!isLoading && !isError && entries.length > 0 && filteredEntries.length === 0 && (
+            <div className={styles.trackerState}>
+              <p className={styles.trackerStateTitle}>ไม่มีกิจกรรมในกลุ่มนี้สำหรับวันนี้</p>
+              <p className={styles.trackerStateSub}>ลองสลับตัวกรองเพื่อดูรายการกิจกรรมอื่น</p>
+            </div>
+          )}
+          {!isLoading &&
+            !isError &&
+            filteredEntries.map((entry) => {
+              const tappable = hasDetailedCheckin(entry.activity);
+              return (
+                <div
+                  key={entry.activity.id}
+                  className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
+                  role="article"
+                  aria-label={entry.activity.name}
+                  onClick={() =>
+                    tappable &&
+                    handleEntryTap(entry.activity, entry.occurrence.id)
+                  }
                 >
-                  <TrashIcon />
-                </button>
-                {(entry.occurrence.status === "pending" ||
-                  entry.occurrence.status === "partial") && (
+                  <div className={styles.habitEntryIcon}>
+                    <CategoryIcon accent={entry.accent} />
+                  </div>
+                  <div className={styles.habitEntryBody}>
+                    <p className={styles.habitEntryName}>{entry.activity.name}</p>
+                    <p className={styles.habitEntrySub}>{entry.subline}</p>
+                  </div>
+                  {tappable && (
+                    <span
+                      className={styles.habitEntryLogArrow}
+                      aria-hidden="true"
+                    >
+                      <svg viewBox="0 0 24 24">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </span>
+                  )}
                   <button
-                    className={styles.habitSkipBtn}
-                    aria-label={`ข้าม ${entry.activity.name}`}
+                    className={styles.habitDeleteBtn}
+                    aria-label={`ลบ ${entry.activity.name}`}
                     onClick={(e) => {
                       e.stopPropagation();
+                      setConfirmId(entry.activity.id);
+                    }}
+                  >
+                    <TrashIcon />
+                  </button>
+                  {(entry.occurrence.status === "pending" ||
+                    entry.occurrence.status === "partial") && (
+                    <button
+                      className={styles.habitSkipBtn}
+                      aria-label={`ข้าม ${entry.activity.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggle({
+                          occurrenceId: entry.occurrence.id,
+                          activityId: entry.activity.id,
+                          status: "skipped",
+                          date: todayStr,
+                        });
+                      }}
+                    >
+                      <SkipIcon />
+                    </button>
+                  )}
+                  <button
+                    className={`${styles.habitCheck}${
+                      entry.occurrence.status === "done"
+                        ? ` ${styles.done}`
+                        : entry.occurrence.status === "skipped"
+                          ? ` ${styles.skip}`
+                          : entry.occurrence.status === "partial"
+                            ? ` ${styles.partial}`
+                            : ""
+                    }`}
+                    aria-label={
+                      entry.occurrence.status === "done"
+                        ? "ทำเสร็จแล้ว"
+                        : entry.occurrence.status === "skipped"
+                          ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
+                          : entry.occurrence.status === "partial"
+                            ? "กำลังทำ – แตะเพื่อทำเสร็จ"
+                            : "ยังไม่ทำ"
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // done undoes back to pending; everything else completes.
+                      const next =
+                        entry.occurrence.status === "done" ? "pending" : "done";
                       toggle({
                         occurrenceId: entry.occurrence.id,
                         activityId: entry.activity.id,
-                        status: "skipped",
+                        status: next,
                         date: todayStr,
                       });
                     }}
                   >
-                    <SkipIcon />
+                    {entry.occurrence.status === "done" && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    {entry.occurrence.status === "skipped" && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    )}
                   </button>
-                )}
-                <button
-                  className={`${styles.habitCheck}${
-                    entry.occurrence.status === "done"
-                      ? ` ${styles.done}`
-                      : entry.occurrence.status === "skipped"
-                        ? ` ${styles.skip}`
-                        : entry.occurrence.status === "partial"
-                          ? ` ${styles.partial}`
-                          : ""
-                  }`}
-                  aria-label={
-                    entry.occurrence.status === "done"
-                      ? "ทำเสร็จแล้ว"
-                      : entry.occurrence.status === "skipped"
-                        ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
-                        : entry.occurrence.status === "partial"
-                          ? "กำลังทำ – แตะเพื่อทำเสร็จ"
-                          : "ยังไม่ทำ"
-                  }
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // done undoes back to pending; everything else completes.
-                    const next =
-                      entry.occurrence.status === "done" ? "pending" : "done";
-                    toggle({
-                      occurrenceId: entry.occurrence.id,
-                      activityId: entry.activity.id,
-                      status: next,
-                      date: todayStr,
-                    });
-                  }}
-                >
-                  {entry.occurrence.status === "done" && (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                  {entry.occurrence.status === "skipped" && (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    >
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                  )}
-                </button>
-              </div>
+                </div>
             );
           })}
       </div>
-    </HabitTrackerHeader>
+    </div>
+  </HabitTrackerHeader>
   );
 
   return (

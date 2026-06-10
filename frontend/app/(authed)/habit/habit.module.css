@@ -1381,9 +1381,19 @@
   background: rgba(89, 214, 220, 0.35);
 }
 
-.filterChip.isActive {
+.filterChip.isActive,
+.activeFilter {
   background: #6a24f2;
   color: #fff;
 }
+
+.checklistContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 
 
