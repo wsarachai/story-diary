@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
 
     const upstream = await fetch(url, {
       headers: { Accept: "application/pdf,*/*" },
-      // @ts-expect-error — Node fetch supports signal via AbortSignal
       signal: AbortSignal.timeout(15_000),
     });
 

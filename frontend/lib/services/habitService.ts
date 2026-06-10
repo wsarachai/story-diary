@@ -34,8 +34,6 @@ import type {
     UnusualSymptomsCheckin,
     MoodCheckin,
     MoodLevel,
-    MealRelation,
-    MealSlot,
     SymptomCheck,
     MonthlyGoal,
     MonthlyResults,
@@ -162,7 +160,9 @@ function weekDates(weekStart: string): string[] {
     for (let i = 0; i < 7; i++) {
         const currentDate = new Date(start);
         currentDate.setDate(start.getDate() + i);
-        dates.push(currentDate.toISOString().slice(0, 10));
+        // Format from local components: toISOString() converts to UTC, which
+        // shifts local midnight to the previous day in UTC+ timezones.
+        dates.push(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`);
     }
     return dates;
 }

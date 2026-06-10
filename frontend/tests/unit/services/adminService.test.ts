@@ -26,7 +26,6 @@ import {
   adminDeleteVideoClip,
   adminReorderVideoClips,
 } from "@/lib/services/adminService";
-import { AppError } from "@/lib/errors";
 
 beforeEach(() => {
   clearTestData();

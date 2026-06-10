@@ -16,22 +16,11 @@ const DAY_FULL = [
   "วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ",
   "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์",
 ];
-const DAY_SHORT = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
 /** Parse "YYYY-MM-DD" or use current date. */
 function parseDate(iso?: string): Date {
   if (!iso) return new Date();
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
-}
-
-/** Last date of a month given "YYYY-MM" or a Date. */
-function lastOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

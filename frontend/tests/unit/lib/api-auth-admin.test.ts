@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import { requireAdmin } from "@/lib/api-auth";
 import { clearTestData, insertUser } from "@/lib/db";
-import { AppError } from "@/lib/errors";
 
 const SECRET = "story-diary-dev-secret";
 const ROOT_TEL = "0899999999";

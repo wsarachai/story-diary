@@ -8,7 +8,7 @@ import { useGetMeQuery } from "@/store/authApi";
  * Maximum probe hold: 1200 ms; after that the UI falls through regardless.
  */
 export default function AuthProbe() {
-  const { isLoading } = useGetMeQuery(undefined, {
+  useGetMeQuery(undefined, {
     // Avoid re-probing too often, but ensure it runs on mount
     refetchOnMountOrArgChange: false,
   });

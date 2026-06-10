@@ -22,7 +22,6 @@ import {
   updateUser,
   signToken,
 } from "@/lib/services/authService";
-import { AppError } from "@/lib/errors";
 
 const BASE = {
   name: "สมชาย ใจดี",
