@@ -15,21 +15,39 @@ const MOCK_SIDE_EFFECTS: SymptomCheck[] = [
   { id: "se3", label: "ผื่นคัน", checked: false },
 ];
 
-interface State { sideEffects: SymptomCheck[] }
+interface State {
+  sideEffects: SymptomCheck[];
+  checkedMealSlots: MealSlot[];
+}
 type Action =
-  | { type: "TOGGLE"; id: string }
-  | { type: "RESET"; sideEffects: SymptomCheck[] };
+  | { type: "TOGGLE_SIDE_EFFECT"; id: string }
+  | { type: "TOGGLE_MEAL_SLOT"; slot: MealSlot }
+  | { type: "RESET"; sideEffects: SymptomCheck[]; mealSlots: MealSlot[] };
 
 function reducer(state: State, action: Action): State {
-  if (action.type === "TOGGLE") {
+  if (action.type === "TOGGLE_SIDE_EFFECT") {
     return {
+      ...state,
       sideEffects: state.sideEffects.map(s =>
         s.id === action.id ? { ...s, checked: !s.checked } : s
       ),
     };
   }
+  if (action.type === "TOGGLE_MEAL_SLOT") {
+    const isChecked = state.checkedMealSlots.includes(action.slot);
+    const checkedMealSlots = isChecked
+      ? state.checkedMealSlots.filter(s => s !== action.slot)
+      : [...state.checkedMealSlots, action.slot];
+    return {
+      ...state,
+      checkedMealSlots,
+    };
+  }
   if (action.type === "RESET") {
-    return { sideEffects: action.sideEffects };
+    return {
+      sideEffects: action.sideEffects,
+      checkedMealSlots: action.mealSlots,
+    };
   }
   return state;
 }
@@ -53,12 +71,16 @@ function MedicineCheckinInner() {
   const { data: todayData } = useGetTodayHabitsQuery(today);
   const activity = todayData?.activities[activityId];
 
-  const [state, dispatch] = useReducer(reducer, { sideEffects: MOCK_SIDE_EFFECTS });
+  const [state, dispatch] = useReducer(reducer, { sideEffects: MOCK_SIDE_EFFECTS, checkedMealSlots: [] });
   const { data: existingCheckin, isLoading: checkinLoading } = useGetMedicineCheckinQuery(occId, { skip: !occId });
 
   useEffect(() => {
-    if (existingCheckin?.sideEffects) {
-      dispatch({ type: "RESET", sideEffects: existingCheckin.sideEffects });
+    if (existingCheckin) {
+      dispatch({
+        type: "RESET",
+        sideEffects: existingCheckin.sideEffects ?? MOCK_SIDE_EFFECTS,
+        mealSlots: existingCheckin.mealSlots ?? [],
+      });
     }
   }, [existingCheckin]);
 
@@ -75,7 +97,7 @@ function MedicineCheckinInner() {
         occurrenceId: occId,
         medicineName: activity?.name ?? "ยา",
         mealRelation: activity?.mealRelation ?? "after",
-        mealSlots: activity?.mealSlots ?? [],
+        mealSlots: state.checkedMealSlots,
         sideEffects: state.sideEffects,
         date: today,
       }).unwrap();
@@ -152,7 +174,7 @@ function MedicineCheckinInner() {
         </button>
       </div>
 
-      <div className={styles.ciCheckList} role="group" aria-label="รายการผลข้างเคียง">
+      <div className={styles.ciCheckList} style={{ marginBottom: "1rem" }} role="group" aria-label="รายการผลข้างเคียง">
         {state.sideEffects.map(se => (
           <label
             key={se.id}
@@ -162,7 +184,7 @@ function MedicineCheckinInner() {
               type="checkbox"
               checked={se.checked}
               aria-label={se.label}
-              onChange={() => dispatch({ type: "TOGGLE", id: se.id })}
+              onChange={() => dispatch({ type: "TOGGLE_SIDE_EFFECT", id: se.id })}
               style={{ display: "none" }}
             />
             <span className={styles.ciCheckCircle} aria-hidden="true">
@@ -174,6 +196,45 @@ function MedicineCheckinInner() {
           </label>
         ))}
       </div>
+
+      {mealSlots.length > 0 && (
+        <>
+          <div className={styles.ciSectionHeader} style={{ marginTop: "1rem" }}>
+            <h3 className={styles.ciSectionLabel}>
+              <svg viewBox="0 0 24 24" style={{ stroke: "#9b5de5" }}>
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15 15" />
+              </svg>
+              มื้อยาที่รับประทาน
+            </h3>
+          </div>
+          <div className={styles.ciCheckList} role="group" aria-label="รายการมื้อยาที่รับประทาน">
+            {mealSlots.map(slot => {
+              const isChecked = state.checkedMealSlots.includes(slot);
+              return (
+                <label
+                  key={slot}
+                  className={`${styles.ciCheckRow} ${isChecked ? styles.isChecked : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    aria-label={SLOT_LABEL[slot]}
+                    onChange={() => dispatch({ type: "TOGGLE_MEAL_SLOT", slot })}
+                    style={{ display: "none" }}
+                  />
+                  <span className={styles.ciCheckCircle} aria-hidden="true">
+                    {isChecked && (
+                      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                    )}
+                  </span>
+                  <span className={styles.ciCheckLabel} style={{ fontSize: "1.25em" }}>{SLOT_LABEL[slot]}</span>
+                </label>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 

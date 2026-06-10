@@ -39,6 +39,7 @@ import type {
     SymptomCheck,
     MonthlyGoal,
     MonthlyResults,
+    MealSlot,
 } from "@/types/habit";
 
 function rowToActivity(row: HabitActivityDoc): HabitActivity {
@@ -424,7 +425,11 @@ export async function getMoodCheckin(userId: string, occurrenceId: string): Prom
 }
 
 export async function saveMedicineCheckin(userId: string, data: MedicineCheckin): Promise<void> {
-    await getOwnedOccurrenceDoc(userId, data.occurrenceId);
+    const occurrence = await getOwnedOccurrenceDoc(userId, data.occurrenceId);
+    const activityDoc = await findHabitActivityById(occurrence.activity_id);
+    if (!activityDoc) {
+        throw Errors.notFound("VALIDATION_ERROR", "Activity not found");
+    }
     const now = new Date().toISOString();
 
     await replaceMedicineCheckin({
@@ -437,7 +442,20 @@ export async function saveMedicineCheckin(userId: string, data: MedicineCheckin)
         created_at: now,
     });
 
-    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+    const configSlots: MealSlot[] = activityDoc.meal_slots_json ? JSON.parse(activityDoc.meal_slots_json) : [];
+
+    let status: HabitOccurrenceStatus = "done";
+    if (configSlots.length > 0) {
+        const checkedSlots = data.mealSlots ?? [];
+        const allChecked = configSlots.every((slot) => checkedSlots.includes(slot));
+        const someChecked = configSlots.some((slot) => checkedSlots.includes(slot));
+        status = allChecked ? "done" : someChecked ? "partial" : "pending";
+    }
+
+    await updateOccurrence(data.occurrenceId, {
+        status,
+        completed_at: status === "done" ? now : null,
+    });
 }
 
 export async function saveNutritionCheckin(userId: string, data: NutritionCheckin): Promise<void> {

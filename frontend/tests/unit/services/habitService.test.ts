@@ -256,6 +256,60 @@ describe("saveMedicineCheckin", () => {
       })
     ).rejects.toBeInstanceOf(AppError);
   });
+
+  it("marks occurrence as partial when some but not all meal slots are checked", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["breakfast" as const, "dinner" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const occ = entries[0].occurrence;
+
+    await saveMedicineCheckin(USER, {
+      occurrenceId: occ.id,
+      medicineName: "ยาเช้า",
+      mealRelation: "after",
+      mealSlots: ["breakfast"],
+      sideEffects: [],
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("partial");
+    expect(after[0].occurrence.completedAt).toBeUndefined();
+  });
+
+  it("marks occurrence as pending when zero configured meal slots are checked", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["breakfast" as const, "dinner" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const occ = entries[0].occurrence;
+
+    await saveMedicineCheckin(USER, {
+      occurrenceId: occ.id,
+      medicineName: "ยาเช้า",
+      mealRelation: "after",
+      mealSlots: [],
+      sideEffects: [],
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("pending");
+    expect(after[0].occurrence.completedAt).toBeUndefined();
+  });
+
+  it("marks occurrence as done when all configured meal slots are checked", async () => {
+    await createActivity(USER, { ...DAILY, mealRelation: "after", mealSlots: ["breakfast" as const, "dinner" as const] });
+    const entries = await getTodayEntries(USER, TODAY);
+    const occ = entries[0].occurrence;
+
+    await saveMedicineCheckin(USER, {
+      occurrenceId: occ.id,
+      medicineName: "ยาเช้า",
+      mealRelation: "after",
+      mealSlots: ["breakfast", "dinner"],
+      sideEffects: [],
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+    expect(after[0].occurrence.completedAt).toBeDefined();
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────
