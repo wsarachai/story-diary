@@ -29,11 +29,15 @@ export default function HabitPage() {
       rail={<IconRail />}
       left={
         <div className={styles.habitContainerLeft}>
-          <h1 className={styles.trackerTitle}>Habit tracker</h1>
+          <h1 className={styles.trackerTitle}>ภาพรวมกิจวัตร</h1>
           <div className={styles.sectionLabelRow}>
-            <div className={styles.sectionLabel}>daily habits</div>
+            <div className={styles.sectionLabel}>เช็กลิสต์วันนี้</div>
           </div>
-          <Link href="/habit/checklist" className={styles.dailyCard} aria-label="Daily habit checklist">
+          <Link
+            href="/habit/checklist"
+            className={styles.dailyCard}
+            aria-label="ไปหน้ารายการเช็กอินวันนี้"
+          >
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className={styles.habitItem}>
                 <div className={styles.habitCheckbox} />
@@ -46,8 +50,12 @@ export default function HabitPage() {
       right={
         <div className={styles.habitContainerRight}>
           {/* Weekly habits */}
-          <Link href="/habit/weekly" className={styles.weeklySection} aria-label="ไปหน้า weekly habits">
-            <div className={styles.weeklyCard} aria-label="Weekly habit log">
+          <Link
+            href="/habit/weekly"
+            className={styles.weeklySection}
+            aria-label="ไปหน้ารายสัปดาห์"
+          >
+            <div className={styles.weeklyCard} aria-label="สรุปรายสัปดาห์">
               {DAYS.map((d) => (
                 <div key={d} className={styles.weeklyDay}>
                   <span className={styles.weeklyDayName}>{d}</span>
@@ -55,13 +63,25 @@ export default function HabitPage() {
                 </div>
               ))}
             </div>
-            <div className={styles.weeklyLabel} aria-label="Weekly habits">weekly<br />habits</div>
+            <div className={styles.weeklyLabel} aria-label="รายสัปดาห์">
+              ราย
+              <br />
+              สัปดาห์
+            </div>
           </Link>
 
           {/* Monthly habits */}
-          <Link href="/habit/monthly" className={styles.monthlySection} aria-label="ไปหน้า monthly habits">
-            <div className={styles.monthlyLabel} aria-label="Monthly habits">monthly<br />habits</div>
-            <div className={styles.monthlyCalendar} aria-label="Monthly calendar">
+          <Link
+            href="/habit/monthly"
+            className={styles.monthlySection}
+            aria-label="ไปหน้ารายเดือน"
+          >
+            <div className={styles.monthlyLabel} aria-label="รายเดือน">
+              ราย
+              <br />
+              เดือน
+            </div>
+            <div className={styles.monthlyCalendar} aria-label="สรุปรายเดือน">
               <div className={styles.calHeader} aria-hidden="true">
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                   <span key={i}>{d}</span>
@@ -69,7 +89,12 @@ export default function HabitPage() {
               </div>
               <div className={styles.calBody} aria-hidden="true">
                 {calCells.map((d, i) => (
-                  <div key={i} className={`${styles.calCell}${d === null ? ` ${styles.calCellEmpty}` : ""}`}>{d ?? "-"}</div>
+                  <div
+                    key={i}
+                    className={`${styles.calCell}${d === null ? ` ${styles.calCellEmpty}` : ""}`}
+                  >
+                    {d ?? "-"}
+                  </div>
                 ))}
               </div>
             </div>

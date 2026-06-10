@@ -17,47 +17,62 @@ export default function HabitSummaryPage() {
 
   const left = (
     <div className={styles.summaryLeft} aria-label="เป้าหมายประจำเดือน">
-      <h1 className={styles.trackerSectionTitle}>เป้าหมาย</h1>
+      <h1 className={styles.trackerSectionTitle}>เป้าหมายเดือนนี้</h1>
       <div className={styles.sectionRule} aria-hidden="true" />
 
       <div className={styles.goalsList}>
-        {loading && <PageSpinner variant="inline" height="12rem" label="กำลังโหลดเป้าหมาย…" />}
-        {!loading && (data?.goals ?? []).map((goal) => (
-          <div key={goal.activityId} className={styles.goalCard}>
-            <div>
-              <p className={styles.goalCardName}>{goal.name}</p>
-              <p className={styles.goalCardSub}>{goal.subline}</p>
+        {loading && (
+          <PageSpinner
+            variant="inline"
+            height="12rem"
+            label="กำลังโหลดเป้าหมาย…"
+          />
+        )}
+        {!loading &&
+          (data?.goals ?? []).map((goal) => (
+            <div key={goal.activityId} className={styles.goalCard}>
+              <div>
+                <p className={styles.goalCardName}>{goal.name}</p>
+                <p className={styles.goalCardSub}>{goal.subline}</p>
+              </div>
+              <svg
+                className={styles.goalProgressRing}
+                viewBox="0 0 60 60"
+                aria-label={`${goal.progressPercent}%`}
+              >
+                <circle className={styles.ringBg} cx="30" cy="30" r="25" />
+                <circle
+                  className={styles.ringFill}
+                  cx="30"
+                  cy="30"
+                  r="25"
+                  transform="rotate(-90 30 30)"
+                  style={{
+                    strokeDashoffset: ringDashOffset(goal.progressPercent),
+                  }}
+                />
+                <text className={styles.ringLabel} x="30" y="31">
+                  {goal.progressPercent}%
+                </text>
+              </svg>
             </div>
-            <svg
-              className={styles.goalProgressRing}
-              viewBox="0 0 60 60"
-              aria-label={`${goal.progressPercent}%`}
-            >
-              <circle className={styles.ringBg} cx="30" cy="30" r="25" />
-              <circle
-                className={styles.ringFill}
-                cx="30"
-                cy="30"
-                r="25"
-                transform="rotate(-90 30 30)"
-                style={{ strokeDashoffset: ringDashOffset(goal.progressPercent) }}
-              />
-              <text className={styles.ringLabel} x="30" y="31">{goal.progressPercent}%</text>
-            </svg>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
 
   const right = (
     <div className={styles.summaryRight} aria-label="ผลลัพธ์ประจำเดือน">
-      <h2 className={styles.resultsTitle}>ผลลัพธ์</h2>
+      <h2 className={styles.resultsTitle}>ผลลัพธ์เดือนนี้</h2>
 
       <div className={styles.resultsGrid}>
         {loading && (
           <div className={styles.summaryLoading}>
-            <PageSpinner variant="inline" height="12rem" label="กำลังโหลดผลลัพธ์…" />
+            <PageSpinner
+              variant="inline"
+              height="12rem"
+              label="กำลังโหลดผลลัพธ์…"
+            />
           </div>
         )}
         {!loading && data && (
@@ -69,7 +84,10 @@ export default function HabitSummaryPage() {
                 <span className={styles.resultStatUnit}>ครั้ง</span>
               </p>
               <div className={styles.resultBarWrap}>
-                <div className={styles.resultBar} style={{ width: `${data.results.completionPercent}%` }} />
+                <div
+                  className={styles.resultBar}
+                  style={{ width: `${data.results.completionPercent}%` }}
+                />
               </div>
             </div>
             <div className={styles.resultStat}>
@@ -94,7 +112,7 @@ export default function HabitSummaryPage() {
               </p>
             </div>
             <div className={styles.resultStat}>
-              <p className={styles.resultStatLabel}>Streak สูงสุด</p>
+              <p className={styles.resultStatLabel}>สตรีกสูงสุด</p>
               <p className={styles.resultStatValue}>
                 {data.results.longestStreak}{" "}
                 <span className={styles.resultStatUnit}>วัน</span>
@@ -107,11 +125,6 @@ export default function HabitSummaryPage() {
   );
 
   return (
-    <BookShellLayout
-      tight
-      rail={<IconRail />}
-      left={left}
-      right={right}
-    />
+    <BookShellLayout tight rail={<IconRail />} left={left} right={right} />
   );
 }
