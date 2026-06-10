@@ -217,7 +217,7 @@ export default function HabitChecklistPage() {
     } else if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/symptom?${qs}`);
     } else if (activity.physicalCategory === "emotion-management") {
-      router.push(`${base}/emotion?${qs}`);
+      router.push(`/habit/add/physical/emotion/explore?${qs}`);
     }
   }
 

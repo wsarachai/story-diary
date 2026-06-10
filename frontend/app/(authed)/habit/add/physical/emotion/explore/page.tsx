@@ -1,9 +1,9 @@
 "use client";
-import { useReducer, useRef } from "react";
+import { useReducer, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
-import { useSaveMoodCheckinMutation } from "@/store/habitsApi";
+import { useSaveMoodCheckinMutation, useGetMoodCheckinQuery } from "@/store/habitsApi";
 import { useClientSearchParams } from "@/lib/hooks";
 import type { MoodLevel } from "@/types/habit";
 import styles from "../../../HabitAdd.module.css";
@@ -25,11 +25,13 @@ interface State {
 
 type Action =
   | { type: "SET_MOOD"; mood: MoodLevel }
-  | { type: "SET_SLIDER"; value: number };
+  | { type: "SET_SLIDER"; value: number }
+  | { type: "RESET"; mood: MoodLevel; sliderValue: number };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "SET_MOOD") return { ...state, mood: action.mood, dirty: true };
   if (action.type === "SET_SLIDER") return { ...state, sliderValue: action.value, dirty: true };
+  if (action.type === "RESET") return { mood: action.mood, sliderValue: action.sliderValue, dirty: false };
   return state;
 }
 
@@ -39,15 +41,31 @@ export default function ExploreEmotionPage() {
   const from = searchParams.get("from") ?? "/habit/checklist";
   const [saveMood, { isLoading: saving }] = useSaveMoodCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
+  
+  const occId = searchParams.get("occ") ?? "";
+  const activityId = searchParams.get("actId") ?? "";
+  const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
+
   const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
+
+  useEffect(() => {
+    if (existingCheckin) {
+      dispatchLocal({
+        type: "RESET",
+        mood: existingCheckin.mood,
+        sliderValue: existingCheckin.sliderValue,
+      });
+    }
+  }, [existingCheckin]);
 
   const today = new Date().toISOString().split("T")[0];
 
   async function handleSave() {
     if (saving) return;
+    const finalOccId = occId || "mood-occ-1";
     try {
       await saveMood({
-        occurrenceId: "mood-occ-1",
+        occurrenceId: finalOccId,
         mood: state.mood,
         sliderValue: state.sliderValue,
         date: today
