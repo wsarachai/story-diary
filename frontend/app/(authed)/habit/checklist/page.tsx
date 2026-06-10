@@ -180,18 +180,32 @@ export default function HabitChecklistPage() {
   const [activeFilter, setActiveFilter] = useState<"all" | "daily" | "weekly" | "monthly" | "todo">("all");
 
   const entries = data
-    ? Object.values(data.activities).map((activity) => ({
+    ? Object.values(data.activities).map((activity, index) => ({
         activity,
         occurrence: data.todayByActivity[activity.id],
         subline: getSubline(activity),
         accent: getAccent(activity),
+        index,
       }))
     : [];
 
-  const filteredEntries = entries.filter((entry) => {
-    if (activeFilter === "all") return true;
-    return entry.activity.schedule.frequency === activeFilter;
-  });
+  const filteredEntries = entries
+    .filter((entry) => {
+      if (activeFilter === "all") return true;
+      return entry.activity.schedule.frequency === activeFilter;
+    })
+    .sort((a, b) => {
+      const statusOrder: Record<string, number> = {
+        pending: 0,
+        partial: 1,
+        skipped: 2,
+        done: 3,
+      };
+      const orderA = statusOrder[a.occurrence.status] ?? 0;
+      const orderB = statusOrder[b.occurrence.status] ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.index - b.index;
+    });
 
   function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
     const base = `/habit/checkin`;
