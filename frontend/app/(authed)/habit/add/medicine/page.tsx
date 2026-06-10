@@ -168,13 +168,15 @@ function MedicineFormInner() {
     if (form.dirty) {
       discardRef.current?.showModal();
     } else {
-      router.push(`/habit/add?from=${from}`);
+      const target = isNutrition ? `/habit/add/nutrition?from=${from}` : `/habit/add?from=${from}`;
+      router.push(target);
     }
   }
 
   function handleDiscard() {
     discardRef.current?.close();
-    router.push(`/habit/add?from=${from}`);
+    const target = isNutrition ? `/habit/add/nutrition?from=${from}` : `/habit/add?from=${from}`;
+    router.push(target);
   }
 
   void source;
