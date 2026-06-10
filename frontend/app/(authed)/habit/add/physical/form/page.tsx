@@ -1,5 +1,5 @@
 "use client";
-import { useReducer, useRef } from "react";
+import { useReducer, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -31,6 +31,7 @@ interface FormState {
 
 type FormAction =
   | { type: "SET_NAME"; value: string }
+  | { type: "SET_NAME_CLEAN"; value: string }
   | { type: "SET_GOAL"; value: string }
   | { type: "SET_GOAL_COUNT"; value: number }
   | { type: "SET_GOAL_UNIT"; value: string }
@@ -45,6 +46,7 @@ type FormAction =
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
     case "SET_NAME": return { ...state, name: action.value, dirty: true };
+    case "SET_NAME_CLEAN": return { ...state, name: action.value };
     case "SET_GOAL": return { ...state, goal: action.value, dirty: true };
     case "SET_GOAL_COUNT": return { ...state, goalCount: action.value, dirty: true };
     case "SET_GOAL_UNIT": return { ...state, goalUnit: action.value, dirty: true };
@@ -107,6 +109,12 @@ function PhysicalFormInner() {
     errors: {},
     dirty: false,
   } satisfies FormState);
+
+  useEffect(() => {
+    if (prefillName) {
+      dispatchForm({ type: "SET_NAME_CLEAN", value: prefillName });
+    }
+  }, [prefillName]);
 
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
