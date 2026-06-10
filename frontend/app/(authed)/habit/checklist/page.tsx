@@ -177,6 +177,7 @@ export default function HabitChecklistPage() {
   const [deleteActivity, { isLoading: isDeleting }] =
     useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "daily" | "weekly" | "monthly" | "todo">("all");
 
   const entries = data
     ? Object.values(data.activities).map((activity) => ({
@@ -186,6 +187,11 @@ export default function HabitChecklistPage() {
         accent: getAccent(activity),
       }))
     : [];
+
+  const filteredEntries = entries.filter((entry) => {
+    if (activeFilter === "all") return true;
+    return entry.activity.schedule.frequency === activeFilter;
+  });
 
   function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
     const base = `/habit/checkin`;
@@ -218,6 +224,28 @@ export default function HabitChecklistPage() {
       addHref="/habit/add?from=/habit/checklist"
       addLabel="เพิ่มกิจกรรม"
     >
+      {/* Filter Chips Row */}
+      {!isLoading && !isError && entries.length > 0 && (
+        <div className={styles.filterChipRow} role="group" aria-label="ตัวกรองความถี่ของกิจกรรม">
+          {[
+            { key: "all", label: "ทั้งหมด" },
+            { key: "daily", label: "รายวัน" },
+            { key: "weekly", label: "รายสัปดาห์" },
+            { key: "monthly", label: "รายเดือน" },
+            { key: "todo", label: "ต้องทำ" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setActiveFilter(f.key as any)}
+              className={`${styles.filterChip} ${activeFilter === f.key ? ` ${styles.isActive}` : ""}`}
+              aria-pressed={activeFilter === f.key}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className={styles.habitEntries}>
         {isLoading && (
           <PageSpinner
@@ -230,9 +258,15 @@ export default function HabitChecklistPage() {
         {!isLoading && !isError && entries.length === 0 && (
           <TrackerEmpty addFrom="/habit/checklist" />
         )}
+        {!isLoading && !isError && entries.length > 0 && filteredEntries.length === 0 && (
+          <div className={styles.trackerState}>
+            <p className={styles.trackerStateTitle}>ไม่มีกิจกรรมในกลุ่มนี้สำหรับวันนี้</p>
+            <p className={styles.trackerStateSub}>ลองสลับตัวกรองเพื่อดูรายการกิจกรรมอื่น</p>
+          </div>
+        )}
         {!isLoading &&
           !isError &&
-          entries.map((entry) => {
+          filteredEntries.map((entry) => {
             const tappable = hasDetailedCheckin(entry.activity);
             return (
               <div

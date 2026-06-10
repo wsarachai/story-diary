@@ -17,7 +17,7 @@ interface HabitTrackerHeaderProps {
 }
 
 const TAB_LABELS: Record<HabitTrackerTab, string> = {
-  list: "รายการ",
+  list: "รายการเช็กอิน",
   summary: "รายวัน",
   weekly: "รายสัปดาห์",
   monthly: "รายเดือน",

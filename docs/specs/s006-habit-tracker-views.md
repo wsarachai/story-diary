@@ -62,7 +62,7 @@ The summary card shows `done` (count of `done` occurrences) vs the summed target
 | Route | Page file | Description |
 |-------|-----------|-------------|
 | `/habit` | `frontend/app/(authed)/habit/page.tsx` | Habit hub; links to today, weekly, and monthly sub-views |
-| `/habit/checklist` | `frontend/app/(authed)/habit/checklist/page.tsx` | Daily checklist (รายการ); toggle/skip/delete; tappable entries open check-in forms. Check button states: green = done, orange = skipped, half-filled green = partial |
+| `/habit/checklist` | `frontend/app/(authed)/habit/checklist/page.tsx` | Daily checklist (รายการ); toggle/skip/delete; horizontal pill-shaped filters for daily, weekly, monthly, and to-do frequencies; tappable entries open check-in forms. Check button states: green = done, orange = skipped, half-filled green = partial |
 | `/habit/today` | `frontend/app/(authed)/habit/today/page.tsx` | Daily summary (สรุป); 4 count cards — ทำเสร็จ / กำลังทำ / ข้ามไป / ยังไม่ทำ — plus progress bar (done/total) and check-in CTA |
 | `/habit/weekly` | `frontend/app/(authed)/habit/weekly/page.tsx` | Mon–Sun dot grid over all scheduled activities; 5-entry legend (ทำเสร็จ/กำลังทำ/ข้ามไป/ไม่ได้ทำ/ยังไม่ถึง); today ring; week summary |
 | `/habit/monthly` | `frontend/app/(authed)/habit/monthly/page.tsx` | 31-column dot grid; same legend and today ring; month summary |
@@ -90,7 +90,7 @@ The summary card shows `done` (count of `done` occurrences) vs the summed target
 ## Key Components
 
 - `HabitPage` — `frontend/app/(authed)/habit/page.tsx` — hub with client-built calendar grid
-- `HabitChecklistPage` — `frontend/app/(authed)/habit/checklist/page.tsx` — entry list with category-color icons, sublines, skip/delete buttons, status-aware check button; includes `DeleteConfirmDialog`
+- `HabitChecklistPage` — `frontend/app/(authed)/habit/checklist/page.tsx` — entry list with category-color icons, sublines, skip/delete buttons, status-aware check button; includes `DeleteConfirmDialog` and horizontal pill-shaped filter controls for filtering habits by frequency (All/Daily/Weekly/Monthly/To-Do).
 - `HabitTodayPage` — `frontend/app/(authed)/habit/today/page.tsx` — 4 status count cards + progress bar
 - `HabitWeeklyPage` / `HabitMonthlyPage` — dot grids rendering `HabitGridCell`s via `gridDotState`
 - `gridDotState` — `frontend/lib/utils/habitStatus.ts` — derives off/missed/pending/partial/done/skipped render state from a cell + today's date
