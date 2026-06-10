@@ -1,13 +1,12 @@
 "use client";
-import { useReducer, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useReducer, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
-import { useSaveSymptomsCheckinMutation } from "@/store/habitsApi";
-import { useClientSearchParams } from "@/lib/hooks";
+import { useSaveSymptomsCheckinMutation, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
 import type { SymptomCheck } from "@/types/habit";
-import styles from "../../HabitAdd.module.css";
-import checkinStyles from "../../../checkin/HabitCheckin.module.css";
+import styles from "../../../add/HabitAdd.module.css";
+import checkinStyles from "../../HabitCheckin.module.css";
 
 const INITIAL_SYMPTOMS: SymptomCheck[] = [
   { id: "sym1", label: "อาการ 1 : ปวดศีรษะ", checked: false },
@@ -19,33 +18,56 @@ const INITIAL_SYMPTOMS: SymptomCheck[] = [
 
 interface State {
   items: SymptomCheck[];
+  dirty: boolean;
 }
 
-type Action = { type: "TOGGLE"; id: string };
+type Action =
+  | { type: "TOGGLE"; id: string }
+  | { type: "RESET"; items: SymptomCheck[] };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "TOGGLE") {
-    return { items: state.items.map((s) => s.id === action.id ? { ...s, checked: !s.checked } : s) };
+    return { items: state.items.map((s) => s.id === action.id ? { ...s, checked: !s.checked } : s), dirty: true };
+  }
+  if (action.type === "RESET") {
+    return { items: action.items, dirty: false };
   }
   return state;
 }
 
-export default function SymptomsCheckinPage() {
+function SymptomsCheckinInner() {
   const router = useRouter();
-  const searchParams = useClientSearchParams();
+  // Next's useSearchParams (not useClientSearchParams): params must be
+  // correct on the very first render, or the missing-occ guard below
+  // fires during the soft-navigation window before pushState lands.
+  const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/habit/checklist";
   const [saveSymptoms, { isLoading: saving }] = useSaveSymptomsCheckinMutation();
   const discardRef = useRef<HTMLDialogElement>(null);
-  const [state, dispatchLocal] = useReducer(reducer, { items: INITIAL_SYMPTOMS });
+  const [state, dispatchLocal] = useReducer(reducer, { items: INITIAL_SYMPTOMS, dirty: false });
 
-  const dirty = state.items.some((s) => s.checked);
+  const occId = searchParams.get("occ") ?? "";
+  const { data: existingCheckin } = useGetSymptomsCheckinQuery(occId, { skip: !occId });
+
+  // A check-in only makes sense for a concrete occurrence.
+  useEffect(() => {
+    if (!occId) router.replace("/habit/checklist");
+  }, [occId, router]);
+
+  useEffect(() => {
+    if (existingCheckin?.items) {
+      dispatchLocal({ type: "RESET", items: existingCheckin.items });
+    }
+  }, [existingCheckin]);
+
+  const dirty = state.dirty;
   const today = new Date().toISOString().split("T")[0];
 
   async function handleSave() {
-    if (saving) return;
+    if (saving || !occId) return;
     try {
       await saveSymptoms({
-        occurrenceId: "sym-occ-1",
+        occurrenceId: occId,
         items: state.items,
         date: today
       }).unwrap();
@@ -54,6 +76,8 @@ export default function SymptomsCheckinPage() {
       // ignore
     }
   }
+
+  if (!occId) return null;
 
   function handleCancel() {
     if (dirty) { discardRef.current?.showModal(); }
@@ -119,5 +143,13 @@ export default function SymptomsCheckinPage() {
         </div>
       </dialog>
     </>
+  );
+}
+
+export default function SymptomsCheckinPage() {
+  return (
+    <Suspense>
+      <SymptomsCheckinInner />
+    </Suspense>
   );
 }

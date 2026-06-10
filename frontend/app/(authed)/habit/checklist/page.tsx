@@ -224,7 +224,7 @@ export default function HabitChecklistPage() {
     } else if (activity.category === "nutrition") {
       router.push(`${base}/nutrition?${qs}`);
     } else if (activity.physicalCategory === "symptoms") {
-      router.push(`${base}/symptom?${qs}`);
+      router.push(`${base}/physical/symptoms?${qs}`);
     } else if (usesExploreEmotionCheckin(activity)) {
       router.push(`${base}/physical/emotion/explore?${qs}`);
     }

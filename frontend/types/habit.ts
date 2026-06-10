@@ -366,6 +366,7 @@ export type PhysicalPresetKey =
   | "wash_hands"
   | "wear_mask"
   | "social_distancing"
+  | "symptoms"
   | "other";
 
 export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
@@ -375,11 +376,12 @@ export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
   explore_emotion: "สำรวจอารมณ์ตนเอง",
   positive_emotion: "สร้างอารมณ์เชิงบวก",
   mindfulness: "ฝึกสติ",
-  morning_sunlight: "รับแสงแดด",
-  daytime_sunlight: "รับแสงแดด",
-  wash_hands: "ป้องกันเชื้อโรค",
-  wear_mask: "ป้องกันเชื้อโรค",
-  social_distancing: "ป้องกันเชื้อโรค",
+  morning_sunlight: "รับแสงแดดยามเช้า",
+  daytime_sunlight: "รับแสงแดดช่วงกลางวัน",
+  wash_hands: "ล้างมือด้วยสบู่",
+  wear_mask: "สวมหน้ากากอนามัย",
+  social_distancing: "เว้นระยะห่างทางสังคม",
+  symptoms: "อาการผิดปกติ",
   other: "อื่นๆ",
 };
 
@@ -396,5 +398,6 @@ export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, Physic
   wash_hands: "infection",
   wear_mask: "infection",
   social_distancing: "infection",
+  symptoms: "symptoms",
   other: "other",
 };

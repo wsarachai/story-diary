@@ -106,12 +106,12 @@ export type AppRoute =
     | "/habit/add/physical/emotion"
     | "/habit/add/physical/sunlight"
     | "/habit/add/physical/infection"
-    | "/habit/add/physical/symptoms"
     | "/habit/add/physical/form"
     // Habit — check-in
     | "/habit/checkin/medicine"
     | "/habit/checkin/nutrition"
     | "/habit/checkin/physical/emotion/explore"
+    | "/habit/checkin/physical/symptoms"
     // Minigame — quiz wizard
     | "/minigame/quiz"
     | "/minigame/quiz/feedback"

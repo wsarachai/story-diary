@@ -88,6 +88,7 @@ export const CreateActivitySchema = z.object({
       "wash_hands",
       "wear_mask",
       "social_distancing",
+      "symptoms",
       "other",
     ])
     .optional(),
