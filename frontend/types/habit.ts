@@ -77,14 +77,18 @@ export type HabitImportance = "general" | "moderate" | "high";
  * Status of a single occurrence (one cell in s013 weekly grid / s014 monthly
  * grid). Mirrors `.weekly-dot` / `.m-dot` modifier classes.
  *
- *   pending — default open dot
+ *   pending — default open dot (ยังไม่ถึง for future dates, ไม่ได้ทำ when past)
+ *   partial — half-filled green dot (กำลังทำ); produced only by a nutrition
+ *             check-in saved with 1–2 of its 3 meals filled. Counts as NOT
+ *             done in all summaries. Never settable via the toggle API.
  *   done    — green dot (#08c65a)
  *   skipped — orange dot (#f4a261)
  *
  * `today` is rendered as an additional outline modifier, not a status — it
- * combines orthogonally with the above. UI handles that as a derived flag.
+ * combines orthogonally with the above. UI handles that as a derived flag,
+ * as is the past/future split of `pending` (no extra stored state).
  */
-export type HabitOccurrenceStatus = "pending" | "done" | "skipped";
+export type HabitOccurrenceStatus = "pending" | "partial" | "done" | "skipped";
 
 /* ────────────────────────────────────────────────────────────────────────
  * Activity definitions (the "what to track")
@@ -262,6 +266,39 @@ export interface PeriodSummary {
     /** "ทำได้แล้ว" badge value. */
     done: number;
     /** "เป้าหมายสัปดาห์" / "เป้าหมายเดือน" badge value. */
+    target: number;
+}
+
+/** One cell of the weekly/monthly tracker grids. */
+export interface HabitGridCell {
+    /** YYYY-MM-DD. */
+    date: string;
+    status: HabitOccurrenceStatus;
+    /**
+     * Whether the activity is scheduled on this date. False only for
+     * daily-frequency activities on unselected weekdays — those cells render
+     * muted and contribute nothing to the period target.
+     */
+    scheduled: boolean;
+}
+
+/**
+ * One row of the weekly/monthly tracker grids. Covers all non-todo activities
+ * scheduled in the period, regardless of their frequency cadence.
+ */
+export interface HabitGridRow {
+    activityId: string;
+    activityName: string;
+    category: HabitCategory;
+    cells: HabitGridCell[];
+    /** Occurrences marked done within the period. */
+    done: number;
+    /**
+     * Real period target: daily → count of scheduled weekdays in the period;
+     * weekly → daysPerWeek (week view) or prorated to the month (month view);
+     * monthly → daysPerMonth (month view) or 0 in the week view (visibility
+     * only, no weekly target).
+     */
     target: number;
 }
 

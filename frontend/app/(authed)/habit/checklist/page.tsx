@@ -12,6 +12,7 @@ import type { HabitActivity } from "@/types/habit";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
+import { TrackerError, TrackerEmpty } from "../TrackerStates";
 
 function getAccent(activity: HabitActivity): string {
   if (activity.category === "medicine") return "#57a8db";
@@ -142,7 +143,7 @@ export default function HabitChecklistPage() {
   const router = useRouter();
   const { data: me } = useGetMeQuery();
   const todayStr = localDateStr(me?.timezone);
-  const { data, isLoading } = useGetTodayHabitsQuery(todayStr);
+  const { data, isLoading, isError, refetch } = useGetTodayHabitsQuery(todayStr);
   const [toggle] = useToggleOccurrenceMutation();
   const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -202,7 +203,9 @@ export default function HabitChecklistPage() {
         {isLoading && (
           <PageSpinner variant="inline" height="12rem" label="กำลังโหลดกิจกรรม…" />
         )}
-        {!isLoading && entries.map((entry) => {
+        {!isLoading && isError && <TrackerError onRetry={refetch} />}
+        {!isLoading && !isError && entries.length === 0 && <TrackerEmpty addFrom="/habit/checklist" />}
+        {!isLoading && !isError && entries.map((entry) => {
           const tappable = hasDetailedCheckin(entry.activity);
           return (
             <div
@@ -234,7 +237,7 @@ export default function HabitChecklistPage() {
               >
                 <TrashIcon />
               </button>
-              {entry.occurrence.status === "pending" && (
+              {(entry.occurrence.status === "pending" || entry.occurrence.status === "partial") && (
                 <button
                   className={styles.habitSkipBtn}
                   aria-label={`ข้าม ${entry.activity.name}`}
@@ -252,13 +255,20 @@ export default function HabitChecklistPage() {
                 </button>
               )}
               <button
-                className={`${styles.habitCheck}${entry.occurrence.status === "done" ? ` ${styles.done}` : ""}`}
-                aria-label={entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" : entry.occurrence.status === "skipped" ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ" : "ยังไม่ทำ"}
+                className={`${styles.habitCheck}${
+                  entry.occurrence.status === "done" ? ` ${styles.done}` :
+                  entry.occurrence.status === "skipped" ? ` ${styles.skip}` :
+                  entry.occurrence.status === "partial" ? ` ${styles.partial}` : ""
+                }`}
+                aria-label={
+                  entry.occurrence.status === "done" ? "ทำเสร็จแล้ว" :
+                  entry.occurrence.status === "skipped" ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ" :
+                  entry.occurrence.status === "partial" ? "กำลังทำ – แตะเพื่อทำเสร็จ" : "ยังไม่ทำ"
+                }
                 onClick={(e) => {
                   e.stopPropagation();
-                  const next =
-                    entry.occurrence.status === "done" ? "pending" :
-                    entry.occurrence.status === "skipped" ? "done" : "done";
+                  // done undoes back to pending; everything else completes.
+                  const next = entry.occurrence.status === "done" ? "pending" : "done";
                   toggle({
                     occurrenceId: entry.occurrence.id,
                     activityId: entry.activity.id,
@@ -270,6 +280,11 @@ export default function HabitChecklistPage() {
                 {entry.occurrence.status === "done" && (
                   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
+                {entry.occurrence.status === "skipped" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
                 )}
               </button>

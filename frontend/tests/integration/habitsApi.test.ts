@@ -329,7 +329,7 @@ describe("getWeeklyHabits", () => {
     expect(row.activityName).toBe(WEEKLY_RESPONSE.rowsByActivity[0].activityName);
   });
 
-  it("transformResponse maps occurrence statuses to a cells array", async () => {
+  it("transformResponse keeps the per-date grid cells", async () => {
     const store = createStore();
     const result = await store
       .dispatch(habitsApi.endpoints.getWeeklyHabits.initiate())
@@ -337,9 +337,20 @@ describe("getWeeklyHabits", () => {
 
     const cells = result.rowsByActivity[ACTIVITY_EXERCISE.id ?? "act-exe-001"]?.cells;
     expect(cells).toHaveLength(7);
-    expect(cells[0]).toBe("done");
-    expect(cells[1]).toBe("done");
-    expect(cells[2]).toBe("pending");
+    expect(cells[0]).toMatchObject({ status: "done", scheduled: true });
+    expect(cells[1].status).toBe("done");
+    expect(cells[2].status).toBe("pending");
+  });
+
+  it("exposes per-row done and target", async () => {
+    const store = createStore();
+    const result = await store
+      .dispatch(habitsApi.endpoints.getWeeklyHabits.initiate())
+      .unwrap();
+
+    const row = result.rowsByActivity[ACTIVITY_EXERCISE.id ?? "act-exe-001"];
+    expect(row.done).toBe(2);
+    expect(row.target).toBe(7);
   });
 
   it("exposes weekStartDate from the response", async () => {
@@ -400,8 +411,8 @@ describe("getMonthlyHabits", () => {
       .unwrap();
 
     const cells = result.rowsByActivity[ACTIVITY_MONTHLY.id ?? "act-mon-001"]?.cells;
-    expect(cells[14]).toBe("done");
-    expect(cells[0]).toBe("pending");
+    expect(cells[14].status).toBe("done");
+    expect(cells[0].status).toBe("pending");
   });
 
   it("exposes summary", async () => {

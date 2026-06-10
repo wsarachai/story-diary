@@ -3,6 +3,8 @@ import type {
   HabitActivity,
   HabitOccurrence,
   HabitOccurrenceStatus,
+  HabitGridCell,
+  HabitGridRow,
   TodayHabitEntry,
   PeriodSummary,
   MonthlyGoal,
@@ -12,6 +14,27 @@ import type {
   UnusualSymptomsCheckin,
   MoodCheckin,
 } from "@/types/habit";
+
+/** Grid row keyed for the tracker pages. */
+export interface GridRowView {
+  activityName: string;
+  cells: HabitGridCell[];
+  done: number;
+  target: number;
+}
+
+function keyRowsByActivity(rows: HabitGridRow[]): Record<string, GridRowView> {
+  const rowsByActivity: Record<string, GridRowView> = {};
+  for (const row of rows) {
+    rowsByActivity[row.activityId] = {
+      activityName: row.activityName,
+      cells: row.cells,
+      done: row.done,
+      target: row.target,
+    };
+  }
+  return rowsByActivity;
+}
 
 export const habitsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,46 +53,28 @@ export const habitsApi = apiSlice.injectEndpoints({
     }),
     getWeeklyHabits: builder.query<{
       weekStartDate: string;
-      rowsByActivity: Record<string, { activityName: string; cells: HabitOccurrenceStatus[] }>;
+      rowsByActivity: Record<string, GridRowView>;
       summary: PeriodSummary;
     }, void>({
       query: () => "/habits/weekly",
-      transformResponse: (response: { weekStartDate: string; rowsByActivity: any[]; summary: PeriodSummary }) => {
-        const rowsByActivity: Record<string, { activityName: string; cells: HabitOccurrenceStatus[] }> = {};
-        for (const row of response.rowsByActivity) {
-          rowsByActivity[row.activityId] = {
-            activityName: row.activityName,
-            cells: row.occurrences.map((o: any) => o.status),
-          };
-        }
-        return {
-          weekStartDate: response.weekStartDate,
-          rowsByActivity,
-          summary: response.summary,
-        };
-      },
+      transformResponse: (response: { weekStartDate: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }) => ({
+        weekStartDate: response.weekStartDate,
+        rowsByActivity: keyRowsByActivity(response.rowsByActivity),
+        summary: response.summary,
+      }),
       providesTags: ["Habits"],
     }),
     getMonthlyHabits: builder.query<{
       month: string;
-      rowsByActivity: Record<string, { activityName: string; cells: HabitOccurrenceStatus[] }>;
+      rowsByActivity: Record<string, GridRowView>;
       summary: PeriodSummary;
     }, string>({
       query: (month) => `/habits/monthly?month=${month}`,
-      transformResponse: (response: { month: string; rowsByActivity: any[]; summary: PeriodSummary }) => {
-        const rowsByActivity: Record<string, { activityName: string; cells: HabitOccurrenceStatus[] }> = {};
-        for (const row of response.rowsByActivity) {
-          rowsByActivity[row.activityId] = {
-            activityName: row.activityName,
-            cells: row.occurrences.map((o: any) => o.status),
-          };
-        }
-        return {
-          month: response.month,
-          rowsByActivity,
-          summary: response.summary,
-        };
-      },
+      transformResponse: (response: { month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }) => ({
+        month: response.month,
+        rowsByActivity: keyRowsByActivity(response.rowsByActivity),
+        summary: response.summary,
+      }),
       providesTags: ["Habits"],
     }),
     getMonthlySummary: builder.query<{ goals: MonthlyGoal[]; results: MonthlyResults }, string>({

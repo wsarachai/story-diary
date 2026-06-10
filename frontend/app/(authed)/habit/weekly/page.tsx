@@ -2,23 +2,35 @@
 
 import Link from "next/link";
 import { useGetWeeklyHabitsQuery } from "@/store/habitsApi";
-import type { HabitOccurrenceStatus } from "@/types/habit";
+import { useGetMeQuery } from "@/store/authApi";
+import type { HabitGridCell } from "@/types/habit";
+import { gridDotState } from "@/lib/utils/habitStatus";
+import { localDateStr } from "@/lib/utils/date";
 import IconRail from "@/components/IconRail";
 import { DateWeekRange } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
+import { TrackerError, TrackerEmpty } from "../TrackerStates";
 
 const DAY_LABELS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
-function dotClass(status: HabitOccurrenceStatus): string {
-  if (status === "done") return `${styles.weeklyDot} ${styles.done}`;
-  if (status === "skipped") return `${styles.weeklyDot} ${styles.skip}`;
-  return styles.weeklyDot;
+function dotClass(cell: HabitGridCell, todayStr: string): string {
+  const state = gridDotState(cell, todayStr);
+  if (state === "off") return styles.weeklyDotOff;
+  let cls = styles.weeklyDot;
+  if (state === "done") cls += ` ${styles.done}`;
+  else if (state === "skipped") cls += ` ${styles.skip}`;
+  else if (state === "partial") cls += ` ${styles.partial}`;
+  else if (state === "missed") cls += ` ${styles.missed}`;
+  if (cell.date === todayStr) cls += ` ${styles.todayRing}`;
+  return cls;
 }
 
 export default function HabitWeeklyPage() {
-  const { data, isLoading } = useGetWeeklyHabitsQuery();
+  const { data: me } = useGetMeQuery();
+  const todayStr = localDateStr(me?.timezone);
+  const { data, isLoading, isError, refetch } = useGetWeeklyHabitsQuery();
   const summary = data?.summary;
   const rows = data ? Object.values(data.rowsByActivity) : [];
 
@@ -46,7 +58,9 @@ export default function HabitWeeklyPage() {
 
       <div className={styles.weeklyContent}>
         {isLoading && <PageSpinner variant="inline" height="12rem" label="กำลังโหลดข้อมูล…" />}
-        {!isLoading && (
+        {!isLoading && isError && <TrackerError onRetry={refetch} />}
+        {!isLoading && !isError && rows.length === 0 && <TrackerEmpty addFrom="/habit/weekly" />}
+        {!isLoading && !isError && rows.length > 0 && (
           <>
             <div className={styles.weeklyGrid} role="table" aria-label="ตารางกิจกรรมรายสัปดาห์">
               <div className={styles.weeklyDayHeader} role="row">
@@ -57,9 +71,9 @@ export default function HabitWeeklyPage() {
                 {rows.map((row) => (
                   <div key={row.activityName} className={styles.weeklyRow} role="row">
                     <span className={styles.weeklyRowLabel}>{row.activityName}</span>
-                    {row.cells.map((status, i) => (
-                      <div key={i} className={styles.weeklyCell}>
-                        <div className={dotClass(status)} />
+                    {row.cells.map((cell) => (
+                      <div key={cell.date} className={styles.weeklyCell}>
+                        <div className={dotClass(cell, todayStr)} />
                       </div>
                     ))}
                   </div>
@@ -82,8 +96,16 @@ export default function HabitWeeklyPage() {
                   <span className={styles.legendLabel}>ทำเสร็จ</span>
                 </div>
                 <div className={styles.legendRow}>
+                  <div className={`${styles.legendDot} ${styles.partial}`} />
+                  <span className={styles.legendLabel}>กำลังทำ</span>
+                </div>
+                <div className={styles.legendRow}>
                   <div className={`${styles.legendDot} ${styles.skip}`} />
                   <span className={styles.legendLabel}>ข้ามไป</span>
+                </div>
+                <div className={styles.legendRow}>
+                  <div className={`${styles.legendDot} ${styles.missed}`} />
+                  <span className={styles.legendLabel}>ไม่ได้ทำ</span>
                 </div>
                 <div className={styles.legendRow}>
                   <div className={styles.legendDot} />

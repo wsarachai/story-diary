@@ -2,29 +2,36 @@
 
 import Link from "next/link";
 import { useGetMonthlyHabitsQuery } from "@/store/habitsApi";
-import type { HabitOccurrenceStatus } from "@/types/habit";
+import { useGetMeQuery } from "@/store/authApi";
+import type { HabitGridCell } from "@/types/habit";
+import { gridDotState } from "@/lib/utils/habitStatus";
+import { localDateStr, localMonthStr } from "@/lib/utils/date";
 import IconRail from "@/components/IconRail";
 import { DateMonthYear } from "@/components/DateBadge";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
+import { TrackerError, TrackerEmpty } from "../TrackerStates";
 
-const TODAY_DAY = new Date().getDate();
-
-function mDotClass(status: HabitOccurrenceStatus, dayIndex: number): string {
-  const isToday = dayIndex + 1 === TODAY_DAY;
+function mDotClass(cell: HabitGridCell, todayStr: string): string {
+  const state = gridDotState(cell, todayStr);
+  if (state === "off") return styles.mDotOff;
   let cls = styles.mDot;
-  if (isToday) cls += ` ${styles.today}`;
-  if (status === "done") cls += ` ${styles.done}`;
-  if (status === "skipped") cls += ` ${styles.skip}`;
+  if (state === "done") cls += ` ${styles.done}`;
+  else if (state === "skipped") cls += ` ${styles.skip}`;
+  else if (state === "partial") cls += ` ${styles.partial}`;
+  else if (state === "missed") cls += ` ${styles.missed}`;
+  if (cell.date === todayStr) cls += ` ${styles.todayRing}`;
   return cls;
 }
 
 const DAY_NUMBERS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 export default function HabitMonthlyPage() {
-  const month = new Date().toISOString().slice(0, 7);
-  const { data, isLoading } = useGetMonthlyHabitsQuery(month);
+  const { data: me } = useGetMeQuery();
+  const todayStr = localDateStr(me?.timezone);
+  const month = localMonthStr(me?.timezone);
+  const { data, isLoading, isError, refetch } = useGetMonthlyHabitsQuery(month);
   const rows = data ? Object.values(data.rowsByActivity) : [];
   const summary = data?.summary;
 
@@ -54,7 +61,9 @@ export default function HabitMonthlyPage() {
         {isLoading && (
           <PageSpinner variant="inline" height="12rem" label="กำลังโหลดข้อมูล…" />
         )}
-        {!isLoading && (
+        {!isLoading && isError && <TrackerError onRetry={refetch} />}
+        {!isLoading && !isError && rows.length === 0 && <TrackerEmpty addFrom="/habit/monthly" />}
+        {!isLoading && !isError && rows.length > 0 && (
           <>
             <div className={styles.monthlyGridWrap} role="table" aria-label="ตารางรายเดือน">
               <div className={styles.monthlyColHeader} role="row">
@@ -65,9 +74,9 @@ export default function HabitMonthlyPage() {
                 {rows.map((row) => (
                   <div key={row.activityName} className={styles.monthlyRow} role="row">
                     <span className={styles.monthlyRowLabel}>{row.activityName}</span>
-                    {row.cells.map((st, i) => (
-                      <div key={i} className={styles.monthlyCell}>
-                        <div className={mDotClass(st, i)} />
+                    {row.cells.map((cell) => (
+                      <div key={cell.date} className={styles.monthlyCell}>
+                        <div className={mDotClass(cell, todayStr)} />
                       </div>
                     ))}
                   </div>
@@ -90,8 +99,16 @@ export default function HabitMonthlyPage() {
                   <span className={styles.monthlyLegendLabel}>ทำเสร็จ</span>
                 </div>
                 <div className={styles.monthlyLegendRow}>
+                  <div className={`${styles.monthlyLegendDot} ${styles.partial}`} />
+                  <span className={styles.monthlyLegendLabel}>กำลังทำ</span>
+                </div>
+                <div className={styles.monthlyLegendRow}>
                   <div className={`${styles.monthlyLegendDot} ${styles.skip}`} />
                   <span className={styles.monthlyLegendLabel}>ข้ามไป</span>
+                </div>
+                <div className={styles.monthlyLegendRow}>
+                  <div className={`${styles.monthlyLegendDot} ${styles.missed}`} />
+                  <span className={styles.monthlyLegendLabel}>ไม่ได้ทำ</span>
                 </div>
                 <div className={styles.monthlyLegendRow}>
                   <div className={styles.monthlyLegendDot} />

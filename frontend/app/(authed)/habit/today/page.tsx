@@ -9,14 +9,16 @@ import { localDateStr } from "@/lib/utils/date";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
+import { TrackerError, TrackerEmpty } from "../TrackerStates";
 
 export default function HabitTodayPage() {
   const { data: me } = useGetMeQuery();
   const todayStr = localDateStr(me?.timezone);
-  const { data, isLoading } = useGetTodayHabitsQuery(todayStr);
+  const { data, isLoading, isError, refetch } = useGetTodayHabitsQuery(todayStr);
 
   const occurrences = data ? Object.values(data.todayByActivity) : [];
   const done    = occurrences.filter(o => o.status === "done").length;
+  const partial = occurrences.filter(o => o.status === "partial").length;
   const skipped = occurrences.filter(o => o.status === "skipped").length;
   const pending = occurrences.filter(o => o.status === "pending").length;
   const total   = occurrences.length;
@@ -46,6 +48,10 @@ export default function HabitTodayPage() {
 
       {isLoading ? (
         <PageSpinner variant="inline" height="12rem" label="กำลังโหลด…" />
+      ) : isError ? (
+        <TrackerError onRetry={refetch} />
+      ) : total === 0 ? (
+        <TrackerEmpty addFrom="/habit/today" />
       ) : (
         <div className={styles.dailySummaryContent}>
           {/* Count cards */}
@@ -53,6 +59,10 @@ export default function HabitTodayPage() {
             <div className={`${styles.dailySummaryCard} ${styles.dailySummaryCardDone}`}>
               <span className={styles.dailySummaryBadge}>{done}</span>
               <h3>ทำเสร็จ</h3>
+            </div>
+            <div className={`${styles.dailySummaryCard} ${styles.dailySummaryCardPartial}`}>
+              <span className={styles.dailySummaryBadge}>{partial}</span>
+              <h3>กำลังทำ</h3>
             </div>
             <div className={`${styles.dailySummaryCard} ${styles.dailySummaryCardSkip}`}>
               <span className={styles.dailySummaryBadge}>{skipped}</span>
@@ -72,22 +82,6 @@ export default function HabitTodayPage() {
             </div>
             <div className={styles.dailyProgressBar} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
               <div className={styles.dailyProgressFill} style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className={styles.dailySummaryLegend}>
-            <div className={styles.legendRow}>
-              <div className={`${styles.legendDot} ${styles.done}`} />
-              <span className={styles.legendLabel}>ทำเสร็จ</span>
-            </div>
-            <div className={styles.legendRow}>
-              <div className={`${styles.legendDot} ${styles.skip}`} />
-              <span className={styles.legendLabel}>ข้ามไป</span>
-            </div>
-            <div className={styles.legendRow}>
-              <div className={styles.legendDot} />
-              <span className={styles.legendLabel}>ยังไม่ถึง</span>
             </div>
           </div>
 

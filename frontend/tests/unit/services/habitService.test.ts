@@ -313,7 +313,7 @@ describe("getMedicineCheckin", () => {
 // saveNutritionCheckin + getNutritionCheckin
 // ────────────────────────────────────────────────────────────────────
 describe("saveNutritionCheckin", () => {
-  it("saves the checkin and marks occurrence as done", async () => {
+  it("marks occurrence done when all 3 meals are filled", async () => {
     await createActivity(USER, WEEKLY);
     const [entry] = await getTodayEntries(USER, TODAY);
     const occ = entry.occurrence;
@@ -325,6 +325,71 @@ describe("saveNutritionCheckin", () => {
       lunch: "ข้าวราดแกง",
       dinner: "ต้มยำ",
     });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+    expect(after[0].occurrence.completedAt).toBeDefined();
+  });
+
+  it("marks occurrence partial when only some meals are filled", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, {
+      occurrenceId: occ.id,
+      activityName: "บันทึกอาหาร",
+      breakfast: "ข้าวต้ม",
+      lunch: "",
+      dinner: "",
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("partial");
+    expect(after[0].occurrence.completedAt).toBeUndefined();
+  });
+
+  it("whitespace-only meals do not count as filled", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, {
+      occurrenceId: occ.id,
+      activityName: "บันทึกอาหาร",
+      breakfast: "ข้าวต้ม",
+      lunch: "ผัดผัก",
+      dinner: "   ",
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("partial");
+  });
+
+  it("keeps occurrence pending when no meals are filled", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, {
+      occurrenceId: occ.id,
+      activityName: "บันทึกอาหาร",
+      breakfast: "",
+      lunch: "",
+      dinner: "",
+    });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("pending");
+  });
+
+  it("completing the remaining meals upgrades partial to done", async () => {
+    await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveNutritionCheckin(USER, { occurrenceId: occ.id, activityName: "X", breakfast: "ข้าวต้ม", lunch: "", dinner: "" });
+    await saveNutritionCheckin(USER, { occurrenceId: occ.id, activityName: "X", breakfast: "ข้าวต้ม", lunch: "ผัดผัก", dinner: "ปลา" });
 
     const after = await getTodayEntries(USER, TODAY);
     expect(after[0].occurrence.status).toBe("done");
@@ -558,27 +623,86 @@ describe("getMoodCheckin", () => {
 // ────────────────────────────────────────────────────────────────────
 // getWeeklyView
 // ────────────────────────────────────────────────────────────────────
+const TODO = {
+  category: "physical" as const,
+  name: "งานครั้งเดียว",
+  schedule: { frequency: "todo" as const, importance: "general" as const },
+  archived: false,
+};
+
 describe("getWeeklyView", () => {
-  it("includes only weekly-frequency activities", async () => {
-    await createActivity(USER, DAILY);  // daily — excluded
-    await createActivity(USER, WEEKLY); // weekly — included
+  it("includes all scheduled activities except todo", async () => {
+    await createActivity(USER, DAILY);   // daily — included
+    await createActivity(USER, WEEKLY);  // weekly — included
+    await createActivity(USER, MONTHLY); // monthly — included (visibility)
+    await createActivity(USER, TODO);    // todo — excluded
     const result = await getWeeklyView(USER, "2026-05-25");
     expect(result.weekStartDate).toBe("2026-05-25");
+    expect(result.rowsByActivity).toHaveLength(3);
+    const names = result.rowsByActivity.map((r) => r.activityName);
+    expect(names).toContain("ยาเช้า");
+    expect(names).toContain("บันทึกอาหาร");
+    expect(names).not.toContain("งานครั้งเดียว");
+  });
+
+  it("rows span exactly 7 cells with dates", async () => {
+    await createActivity(USER, WEEKLY);
+    const result = await getWeeklyView(USER, "2026-05-25");
+    expect(result.rowsByActivity[0].cells).toHaveLength(7);
+    expect(result.rowsByActivity[0].cells[0].date).toBe("2026-05-25");
+    expect(result.rowsByActivity[0].cells[6].date).toBe("2026-05-31");
+  });
+
+  it("weekly target uses daysPerWeek, not 7", async () => {
+    await createActivity(USER, WEEKLY); // 3 days/week
+    const result = await getWeeklyView(USER, "2026-05-25");
+    expect(result.rowsByActivity[0].target).toBe(3);
+    expect(result.summary.target).toBe(3);
+  });
+
+  it("daily target counts only selected weekdays; off days are unscheduled", async () => {
+    // Mon/Wed/Fri only (1, 3, 5)
+    await createActivity(USER, {
+      ...DAILY,
+      schedule: { frequency: "daily" as const, weekdays: [1, 3, 5] as WeekdayIndex[] },
+    });
+    const result = await getWeeklyView(USER, "2026-05-25"); // Mon 25 – Sun 31
+    const row = result.rowsByActivity[0];
+    expect(row.target).toBe(3);
+    expect(row.cells.map((c) => c.scheduled)).toEqual([true, false, true, false, true, false, false]);
+  });
+
+  it("daily with no weekday selection targets all 7 days", async () => {
+    await createActivity(USER, DAILY);
+    const result = await getWeeklyView(USER, "2026-05-25");
+    expect(result.rowsByActivity[0].target).toBe(7);
+  });
+
+  it("monthly-frequency rows are visible but add no weekly target", async () => {
+    await createActivity(USER, MONTHLY);
+    const result = await getWeeklyView(USER, "2026-05-25");
     expect(result.rowsByActivity).toHaveLength(1);
-    expect(result.rowsByActivity[0].activityName).toBe("บันทึกอาหาร");
+    expect(result.rowsByActivity[0].target).toBe(0);
+    expect(result.summary.target).toBe(0);
   });
 
-  it("rows span exactly 7 dates", async () => {
-    await createActivity(USER, WEEKLY);
+  it("counts done occurrences into row and summary", async () => {
+    await createActivity(USER, DAILY);
+    const [entry] = await getTodayEntries(USER, TODAY); // TODAY is in this week
+    await toggleOccurrence(USER, entry.occurrence.id, "done");
     const result = await getWeeklyView(USER, "2026-05-25");
-    expect(result.rowsByActivity[0].dates).toHaveLength(7);
+    expect(result.rowsByActivity[0].done).toBe(1);
+    expect(result.summary.done).toBe(1);
   });
 
-  it("summary.done is 0 when no occurrences are marked done", async () => {
+  it("partial occurrences do not count as done", async () => {
     await createActivity(USER, WEEKLY);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    await saveNutritionCheckin(USER, { occurrenceId: entry.occurrence.id, activityName: "X", breakfast: "ข้าว", lunch: "", dinner: "" });
     const result = await getWeeklyView(USER, "2026-05-25");
-    expect(result.summary.done).toBe(0);
-    expect(result.summary.target).toBe(7);
+    expect(result.rowsByActivity[0].done).toBe(0);
+    const thursday = result.rowsByActivity[0].cells.find((c) => c.date === TODAY);
+    expect(thursday?.status).toBe("partial");
   });
 });
 
@@ -586,19 +710,29 @@ describe("getWeeklyView", () => {
 // getMonthlyView
 // ────────────────────────────────────────────────────────────────────
 describe("getMonthlyView", () => {
-  it("includes only monthly-frequency activities", async () => {
-    await createActivity(USER, DAILY);   // daily — excluded
-    await createActivity(USER, MONTHLY); // monthly — included
+  it("includes all scheduled activities except todo", async () => {
+    await createActivity(USER, DAILY);
+    await createActivity(USER, MONTHLY);
+    await createActivity(USER, TODO);
     const result = await getMonthlyView(USER, "2026-05");
     expect(result.month).toBe("2026-05");
-    expect(result.rowsByActivity).toHaveLength(1);
-    expect(result.rowsByActivity[0].activityName).toBe("ติดตามน้ำหนัก");
+    expect(result.rowsByActivity).toHaveLength(2);
   });
 
   it("rows span all days of the requested month", async () => {
     await createActivity(USER, MONTHLY);
     const result = await getMonthlyView(USER, "2026-05");
-    expect(result.rowsByActivity[0].dates).toHaveLength(31); // May has 31 days
+    expect(result.rowsByActivity[0].cells).toHaveLength(31); // May has 31 days
+  });
+
+  it("monthly target uses daysPerMonth; weekly is prorated", async () => {
+    await createActivity(USER, MONTHLY); // 4 days/month
+    await createActivity(USER, WEEKLY);  // 3 days/week → ~13 over 31 days
+    const result = await getMonthlyView(USER, "2026-05");
+    const monthlyRow = result.rowsByActivity.find((r) => r.activityName === "ติดตามน้ำหนัก");
+    const weeklyRow = result.rowsByActivity.find((r) => r.activityName === "บันทึกอาหาร");
+    expect(monthlyRow?.target).toBe(4);
+    expect(weeklyRow?.target).toBe(Math.round((3 * 31) / 7)); // 13
   });
 });
 
@@ -606,11 +740,21 @@ describe("getMonthlyView", () => {
 // getMonthlySummary
 // ────────────────────────────────────────────────────────────────────
 describe("getMonthlySummary", () => {
-  it("returns one goal per activity", async () => {
+  it("returns one goal per activity, excluding todo", async () => {
     await createActivity(USER, DAILY);
     await createActivity(USER, WEEKLY);
+    await createActivity(USER, TODO);
     const result = await getMonthlySummary(USER, "2026-05");
     expect(result.goals).toHaveLength(2);
+  });
+
+  it("goal targets follow the activity schedule", async () => {
+    await createActivity(USER, MONTHLY); // 4 days/month
+    const [entry] = await getTodayEntries(USER, TODAY);
+    await toggleOccurrence(USER, entry.occurrence.id, "done");
+    const result = await getMonthlySummary(USER, "2026-05");
+    expect(result.goals[0].progressPercent).toBe(25); // 1 of 4
+    expect(result.results.target).toBe(4);
   });
 
   it("results start at 0 done with a positive target", async () => {

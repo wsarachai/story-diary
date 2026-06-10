@@ -72,7 +72,7 @@ export interface HabitOccurrenceDoc {
   id: string;
   activity_id: string;
   date: string;
-  status: "pending" | "done" | "skipped";
+  status: "pending" | "partial" | "done" | "skipped";
   completed_at?: string | null;
 }
 

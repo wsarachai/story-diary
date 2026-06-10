@@ -29,6 +29,8 @@ import type {
     HabitSchedule,
     TodayHabitEntry,
     PeriodSummary,
+    HabitGridCell,
+    HabitGridRow,
     MedicineCheckin,
     NutritionCheckin,
     UnusualSymptomsCheckin,
@@ -177,20 +179,66 @@ function monthDates(month: string): string[] {
     return dates;
 }
 
-interface WeeklyRow {
-    activityId: string;
-    activityName: string;
-    category: string;
-    occurrences: HabitOccurrence[];
-    dates: string[];
+/**
+ * Real target for an activity over a period of dates.
+ *   daily   → number of scheduled weekdays among `dates`
+ *   weekly  → daysPerWeek in a week view; prorated by length in a month view
+ *   monthly → daysPerMonth in a month view; 0 in a week view (row is shown
+ *             for visibility but adds no weekly target)
+ *   todo    → 0 (todo activities are excluded from the grids upstream)
+ */
+function periodTarget(activity: HabitActivity, dates: string[], period: "week" | "month"): number {
+    const schedule = activity.schedule;
+    switch (schedule.frequency) {
+        case "daily":
+            return dates.filter((date) => isScheduledOnDate(activity, date)).length;
+        case "weekly":
+            return period === "week"
+                ? schedule.daysPerWeek
+                : Math.round((schedule.daysPerWeek * dates.length) / 7);
+        case "monthly":
+            return period === "month" ? schedule.daysPerMonth : 0;
+        default:
+            return 0;
+    }
 }
 
-interface MonthlyRow {
-    activityId: string;
-    activityName: string;
-    category: string;
-    occurrences: HabitOccurrence[];
-    dates: string[];
+async function buildGridRows(
+    userId: string,
+    dates: string[],
+    period: "week" | "month"
+): Promise<{ rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
+    const allActivities = await getActivities(userId);
+    const activities = allActivities.filter((a) => a.schedule.frequency !== "todo");
+
+    let totalDone = 0;
+    let totalTarget = 0;
+
+    const rowsByActivity = await Promise.all(activities.map(async (activity) => {
+        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, dates[0], dates[dates.length - 1]);
+        const byDate = new Map(occurrenceRows.map((row) => [row.date, rowToOccurrence(row)]));
+        const cells: HabitGridCell[] = dates.map((date) => ({
+            date,
+            status: byDate.get(date)?.status ?? "pending",
+            scheduled: isScheduledOnDate(activity, date),
+        }));
+
+        const done = cells.filter((cell) => cell.status === "done").length;
+        const target = periodTarget(activity, dates, period);
+        totalDone += done;
+        totalTarget += target;
+
+        return {
+            activityId: activity.id,
+            activityName: activity.name,
+            category: activity.category,
+            cells,
+            done,
+            target,
+        };
+    }));
+
+    return { rowsByActivity, summary: { done: totalDone, target: totalTarget } };
 }
 
 export async function getTodayEntries(userId: string, date: string): Promise<TodayHabitEntry[]> {
@@ -406,7 +454,14 @@ export async function saveNutritionCheckin(userId: string, data: NutritionChecki
         created_at: now,
     });
 
-    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+    // Nutrition is the one multi-part check-in: all 3 meals → done,
+    // 1–2 meals → partial (กำลังทำ), none → stays pending.
+    const filledMeals = [data.breakfast, data.lunch, data.dinner].filter((meal) => meal.trim() !== "").length;
+    const status: HabitOccurrenceStatus = filledMeals === 3 ? "done" : filledMeals > 0 ? "partial" : "pending";
+    await updateOccurrence(data.occurrenceId, {
+        status,
+        completed_at: status === "done" ? now : null,
+    });
 }
 
 export async function saveSymptomsCheckin(userId: string, data: UnusualSymptomsCheckin): Promise<void> {
@@ -441,83 +496,19 @@ export async function saveMoodCheckin(userId: string, data: MoodCheckin): Promis
 export async function getWeeklyView(
     userId: string,
     weekStart: string
-): Promise<{ weekStartDate: string; rowsByActivity: WeeklyRow[]; summary: PeriodSummary }> {
+): Promise<{ weekStartDate: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
     const dates = weekDates(weekStart);
-    const allActivities = await getActivities(userId);
-    const activities = allActivities.filter(a => a.schedule.frequency === "weekly");
-
-    let totalDone = 0;
-    let totalTarget = 0;
-
-    const rowsByActivity = await Promise.all(activities.map(async (activity) => {
-        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, dates[0], dates[dates.length - 1]);
-        const byDate = new Map(occurrenceRows.map((row) => [row.date, rowToOccurrence(row)]));
-        const occurrences = dates.map((date) => byDate.get(date) ?? {
-            id: "",
-            activityId: activity.id,
-            date,
-            status: "pending" as HabitOccurrenceStatus,
-        });
-
-        const done = occurrences.filter((occurrence) => occurrence.status === "done").length;
-        totalDone += done;
-        totalTarget += 7;
-
-        return {
-            activityId: activity.id,
-            activityName: activity.name,
-            category: activity.category,
-            occurrences,
-            dates,
-        };
-    }));
-
-    return {
-        weekStartDate: weekStart,
-        rowsByActivity,
-        summary: { done: totalDone, target: totalTarget },
-    };
+    const { rowsByActivity, summary } = await buildGridRows(userId, dates, "week");
+    return { weekStartDate: weekStart, rowsByActivity, summary };
 }
 
 export async function getMonthlyView(
     userId: string,
     month: string
-): Promise<{ month: string; rowsByActivity: MonthlyRow[]; summary: PeriodSummary }> {
+): Promise<{ month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
     const dates = monthDates(month);
-    const allActivities = await getActivities(userId);
-    const activities = allActivities.filter(a => a.schedule.frequency === "monthly");
-
-    let totalDone = 0;
-    let totalTarget = 0;
-
-    const rowsByActivity = await Promise.all(activities.map(async (activity) => {
-        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, dates[0], dates[dates.length - 1]);
-        const byDate = new Map(occurrenceRows.map((row) => [row.date, rowToOccurrence(row)]));
-        const occurrences = dates.map((date) => byDate.get(date) ?? {
-            id: "",
-            activityId: activity.id,
-            date,
-            status: "pending" as HabitOccurrenceStatus,
-        });
-
-        const done = occurrences.filter((occurrence) => occurrence.status === "done").length;
-        totalDone += done;
-        totalTarget += dates.length;
-
-        return {
-            activityId: activity.id,
-            activityName: activity.name,
-            category: activity.category,
-            occurrences,
-            dates,
-        };
-    }));
-
-    return {
-        month,
-        rowsByActivity,
-        summary: { done: totalDone, target: totalTarget },
-    };
+    const { rowsByActivity, summary } = await buildGridRows(userId, dates, "month");
+    return { month, rowsByActivity, summary };
 }
 
 export async function getMonthlySummary(
@@ -525,7 +516,8 @@ export async function getMonthlySummary(
     month: string
 ): Promise<{ goals: MonthlyGoal[]; results: MonthlyResults }> {
     const dates = monthDates(month);
-    const activities = await getActivities(userId);
+    const allActivities = await getActivities(userId);
+    const activities = allActivities.filter((a) => a.schedule.frequency !== "todo");
     const totalDays = dates.length;
 
     const goals: MonthlyGoal[] = [];
@@ -546,17 +538,22 @@ export async function getMonthlySummary(
         const occurrences = occurrenceRows.map(rowToOccurrence);
         const done = occurrences.filter((occurrence) => occurrence.status === "done").length;
         const skipped = occurrences.filter((occurrence) => occurrence.status === "skipped").length;
-        const target = totalDays;
+        const target = periodTarget(activity, dates, "month");
 
         overallDone += done;
         overallSkipped += skipped;
         overallTarget += target;
 
-        for (const date of dates) {
-            dayTotalCount[date]++;
-            const occurrence = occurrences.find((item) => item.date === date);
-            if (occurrence?.status === "done") {
-                dayDoneCount[date]++;
+        // Full days / streaks only consider daily-frequency activities: a
+        // weekly or monthly cadence has no expectation on any specific day.
+        if (activity.schedule.frequency === "daily") {
+            for (const date of dates) {
+                if (!isScheduledOnDate(activity, date)) continue;
+                dayTotalCount[date]++;
+                const occurrence = occurrences.find((item) => item.date === date);
+                if (occurrence?.status === "done") {
+                    dayDoneCount[date]++;
+                }
             }
         }
 
@@ -564,7 +561,7 @@ export async function getMonthlySummary(
             activityId: activity.id,
             name: activity.name,
             subline: buildSubline(activity),
-            progressPercent: target > 0 ? Math.round((done / target) * 100) : 0,
+            progressPercent: target > 0 ? Math.min(100, Math.round((done / target) * 100)) : 0,
         });
     }
 
@@ -591,7 +588,7 @@ export async function getMonthlySummary(
             skipped: overallSkipped,
             fullDays,
             longestStreak,
-            completionPercent: overallTarget > 0 ? Math.round((overallDone / overallTarget) * 100) : 0,
+            completionPercent: overallTarget > 0 ? Math.min(100, Math.round((overallDone / overallTarget) * 100)) : 0,
         },
     };
 }
