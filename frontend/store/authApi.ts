@@ -31,6 +31,7 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("auth_token", data.token);
+          dispatch(apiSlice.util.resetApiState());
           dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch {
           localStorage.removeItem("auth_token");
@@ -47,6 +48,7 @@ export const authApi = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           localStorage.setItem("auth_token", data.token);
+          dispatch(apiSlice.util.resetApiState());
           dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch {
           localStorage.removeItem("auth_token");
@@ -68,6 +70,7 @@ export const authApi = apiSlice.injectEndpoints({
           // ignore
         } finally {
           localStorage.removeItem("auth_token");
+          dispatch(apiSlice.util.resetApiState());
           dispatch(authApi.util.upsertQueryData("getMe", undefined, null));
         }
       },

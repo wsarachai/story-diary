@@ -8,7 +8,7 @@
 
 ## Summary
 
-The chapters feature is a story reader built on a visual-novel pattern. Users navigate a chapter menu, tap an unlocked chapter to enter its intro screen, then advance through scenes one at a time using a typewriter effect. Completing a chapter (advancing past the last scene) marks it `completed` and unlocks the next chapter in sort order. Locked chapters display a shake animation and a "not yet unlocked" hint when tapped. The chapters hub also surfaces video clips ("ดาวแห่งการเรียนรู้") and e-books as secondary content cards.
+The chapters feature is a story reader built on a visual-novel pattern. Users navigate a chapter menu, tap an unlocked chapter to enter its intro screen, then advance through scenes one at a time using a typewriter effect. Completing a chapter (advancing past the last scene) marks it `completed` and dynamically unlocks the next chapter in sort order for that specific user. Locked chapters display a shake animation and a "not yet unlocked" hint when tapped. Chapter lock states are isolated per-user, calculated dynamically at the service layer by checking the completion status of the preceding chapter in sort order. The chapters hub also surfaces video clips ("ดาวแห่งการเรียนรู้") and e-books as secondary content cards.
 
 ---
 
@@ -29,9 +29,9 @@ The chapters feature is a story reader built on a visual-novel pattern. Users na
 
 | Method | Path | Handler file | Description |
 |--------|------|--------------|-------------|
-| `GET` | `/api/chapters` | `frontend/app/api/chapters/route.ts` | List all chapters with user progress and lock state |
-| `GET` | `/api/chapters/[id]` | `frontend/app/api/chapters/[id]/route.ts` | Get single chapter with all scenes |
-| `POST` | `/api/chapters/[id]/progress` | `frontend/app/api/chapters/[id]/progress/route.ts` | Set chapter progress (`not-started`, `in-progress`, `completed`); completing unlocks next chapter |
+| `GET` | `/api/chapters` | `frontend/app/api/chapters/route.ts` | List all chapters with user-specific progress and lock state |
+| `GET` | `/api/chapters/[id]` | `frontend/app/api/chapters/[id]/route.ts` | Get single chapter with scenes and user-specific lock state |
+| `POST` | `/api/chapters/[id]/progress` | `frontend/app/api/chapters/[id]/progress/route.ts` | Set user chapter progress (`not-started`, `in-progress`, `completed`); completing dynamically unlocks next chapter for this user |
 | `GET` | `/api/video-clips` | `frontend/app/api/video-clips/route.ts` | List video clips |
 
 ---

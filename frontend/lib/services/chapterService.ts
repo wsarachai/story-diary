@@ -19,12 +19,26 @@ async function getProgress(userId: string, chapterId: number): Promise<ChapterPr
 export async function listChapters(userId: string): Promise<ChapterSummary[]> {
     const rows = await listChaptersDocs();
 
-    return Promise.all(rows.map(async (row) => ({
-        id: row.id,
-        title: row.title,
-        lockState: row.lock_state,
-        progress: await getProgress(userId, row.id),
-    })));
+    return Promise.all(rows.map(async (row) => {
+        let lockState = row.lock_state;
+        if (row.sort_order > 1) {
+            const prevRow = rows.find(r => r.sort_order === row.sort_order - 1);
+            if (prevRow) {
+                const prevProgress = await getProgress(userId, prevRow.id);
+                if (prevProgress === "completed") {
+                    lockState = "unlocked";
+                } else {
+                    lockState = "locked";
+                }
+            }
+        }
+        return {
+            id: row.id,
+            title: row.title,
+            lockState,
+            progress: await getProgress(userId, row.id),
+        };
+    }));
 }
 
 export async function getChapter(userId: string, chapterId: number): Promise<Chapter> {
@@ -36,12 +50,26 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
 
     const scenes = await listChapterScenesByChapterId(chapterId);
 
+    let lockState = row.lock_state;
+    if (row.sort_order > 1) {
+        const rows = await listChaptersDocs();
+        const prevRow = rows.find(r => r.sort_order === row.sort_order - 1);
+        if (prevRow) {
+            const prevProgress = await getProgress(userId, prevRow.id);
+            if (prevProgress === "completed") {
+                lockState = "unlocked";
+            } else {
+                lockState = "locked";
+            }
+        }
+    }
+
     return {
         id: row.id,
         title: row.title,
         introTitle: row.intro_title,
         ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
-        lockState: row.lock_state,
+        lockState,
         progress: await getProgress(userId, row.id),
         scenes: scenes.map((scene) => ({
             id: scene.id,
@@ -64,9 +92,6 @@ export async function setChapterProgress(
     }
 
     await upsertChapterProgress(userId, chapterId, progress);
-    if (progress === "completed") {
-        await unlockNextChapterBySortOrder(row.sort_order);
-    }
 }
 
 export async function getVideoClips(): Promise<VideoClipsCollection> {
