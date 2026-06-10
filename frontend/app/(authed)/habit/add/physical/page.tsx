@@ -7,13 +7,13 @@ type PhysicalItem = { label: string; base: string; isMenu: boolean };
 
 const PHYSICAL_ITEMS: PhysicalItem[] = [
   { label: "จัดการอารมณ์",          base: "/habit/add/physical/emotion",                                    isMenu: true  },
-  { label: "การออกกำลังกาย",        base: "/habit/add/physical/form?name=%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AD%E0%B8%AD%E0%B8%81%E0%B8%81%E0%B8%B3%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%81%E0%B8%B2%E0%B8%A2", isMenu: false },
+  { label: "การออกกำลังกาย",        base: "/habit/add/physical/form?type=exercise",                         isMenu: false },
   { label: "รับแสงแดด",             base: "/habit/add/physical/sunlight",                                   isMenu: true  },
   { label: "ป้องกันเชื้อโรค",       base: "/habit/add/physical/infection",                                  isMenu: true  },
   { label: "อาการผิดปกติ",          base: "/habit/add/physical/symptoms",                                   isMenu: false },
-  { label: "ตรวจตามนัดแพทย์",      base: "/habit/add/physical/form?name=%E0%B8%95%E0%B8%A3%E0%B8%A7%E0%B8%88%E0%B8%95%E0%B8%B2%E0%B8%A1%E0%B8%99%E0%B8%B1%E0%B8%94%E0%B9%81%E0%B8%9E%E0%B8%97%E0%B8%A2%E0%B9%8C", isMenu: false },
-  { label: "วางแผนการตั้งครรภ์",    base: "/habit/add/physical/form?name=%E0%B8%A7%E0%B8%B2%E0%B8%87%E0%B9%81%E0%B8%9C%E0%B8%99%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%84%E0%B8%A3%E0%B8%A3%E0%B8%A0%E0%B9%8C", isMenu: false },
-  { label: "อื่นๆ",                  base: "/habit/add/physical/form?name=other",                            isMenu: false },
+  { label: "ตรวจตามนัดแพทย์",      base: "/habit/add/physical/form?type=doctor_visit",                     isMenu: false },
+  { label: "วางแผนการตั้งครรภ์",    base: "/habit/add/physical/form?type=pregnancy_planning",               isMenu: false },
+  { label: "อื่นๆ",                  base: "/habit/add/physical/form?type=other",                            isMenu: false },
 ];
 
 export default async function AddPhysicalPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {

@@ -4,9 +4,9 @@ import BookShellLayout from "@/components/BookShellLayout";
 import styles from "../../HabitAdd.module.css";
 
 const SUNLIGHT_ITEMS = [
-  { label: "รับแสงแดดยามเช้า",      name: "%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B9%81%E0%B8%AA%E0%B8%87%E0%B9%81%E0%B8%94%E0%B8%94%E0%B8%A2%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%8A%E0%B9%89%E0%B8%B2" },
-  { label: "รับแสงแดดช่วงกลางวัน",  name: "%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B9%81%E0%B8%AA%E0%B8%87%E0%B9%81%E0%B8%94%E0%B8%94%E0%B8%8A%E0%B9%88%E0%B8%A7%E0%B8%87%E0%B8%81%E0%B8%A5%E0%B8%B2%E0%B8%87%E0%B8%A7%E0%B8%B1%E0%B8%99" },
-  { label: "อื่นๆ",                   name: "other" },
+  { label: "รับแสงแดดยามเช้า",      type: "morning_sunlight" },
+  { label: "รับแสงแดดช่วงกลางวัน",  type: "daytime_sunlight" },
+  { label: "อื่นๆ",                   type: "other" },
 ];
 
 export default async function SunlightMenuPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
@@ -23,12 +23,12 @@ export default async function SunlightMenuPage({ searchParams }: { searchParams:
           <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
         </header>
         <div className={styles.menuList} role="list" aria-label="ประเภทการรับแสงแดด">
-          {SUNLIGHT_ITEMS.map(({ label, name }) => (
+          {SUNLIGHT_ITEMS.map(({ label, type }) => (
             <Link
               key={label}
               className={styles.menuItem}
               role="listitem"
-              href={`/habit/add/physical/form?name=${name}&from=${from}`}
+              href={`/habit/add/physical/form?type=${type}&from=${from}`}
               aria-label={label}
             >
               <span className={styles.menuItemDot} aria-hidden="true" />

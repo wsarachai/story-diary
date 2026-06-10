@@ -346,3 +346,32 @@ export const NUTRITION_PRESETS: Readonly<Record<NutritionPresetKey, string>> = {
     nutrition_mild_taste: "รับประทานอาหารรสไม่จัด",
     nutrition_order_low_seasoning: "ซื้ออาหารตามสั่งจากร้าน บอกแม่ค้าปรุงรสอ่อน",
 };
+
+export type PhysicalPresetKey =
+  | "exercise"
+  | "doctor_visit"
+  | "pregnancy_planning"
+  | "explore_emotion"
+  | "positive_emotion"
+  | "mindfulness"
+  | "morning_sunlight"
+  | "daytime_sunlight"
+  | "wash_hands"
+  | "wear_mask"
+  | "social_distancing"
+  | "other";
+
+export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
+  exercise: "การออกกำลังกาย",
+  doctor_visit: "ตรวจตามนัดแพทย์",
+  pregnancy_planning: "วางแผนการตั้งครรภ์",
+  explore_emotion: "สำรวจอารมณ์ตนเอง",
+  positive_emotion: "สร้างอารมณ์เชิงบวก",
+  mindfulness: "ฝึกสติ",
+  morning_sunlight: "รับแสงแดดยามเช้า",
+  daytime_sunlight: "รับแสงแดดช่วงกลางวัน",
+  wash_hands: "ล้างมือด้วยสบู่",
+  wear_mask: "สวมหน้ากากอนามัย",
+  social_distancing: "เว้นระยะห่างทางสังคม",
+  other: "อื่นๆ",
+};

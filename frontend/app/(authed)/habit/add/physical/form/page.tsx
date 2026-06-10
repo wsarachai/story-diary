@@ -10,7 +10,9 @@ import type {
   HabitFrequency,
   HabitImportance,
   WeekdayIndex,
+  PhysicalPresetKey,
 } from "@/types/habit";
+import { PHYSICAL_PRESETS } from "@/types/habit";
 
 interface FormState {
   name: string;
@@ -78,12 +80,21 @@ function PhysicalFormInner() {
   const discardRef = useRef<HTMLDialogElement>(null);
   const colorDialogRef = useRef<HTMLDialogElement>(null);
 
+  const typeKey = searchParams.get("type") as PhysicalPresetKey | null;
   const rawName = searchParams.get("name") ?? "";
   const from = searchParams.get("from") ?? "/habit/checklist";
-  const isOther = rawName === "other";
+  
+  let prefillName = "";
+  if (typeKey && typeKey !== "other") {
+    prefillName = PHYSICAL_PRESETS[typeKey] ?? "";
+  } else if (rawName && rawName !== "other") {
+    prefillName = decodeURIComponent(rawName);
+  }
+
+  const isOther = typeKey === "other" || rawName === "other" || (!typeKey && !rawName);
 
   const [form, dispatchForm] = useReducer(formReducer, {
-    name: isOther ? "" : decodeURIComponent(rawName),
+    name: prefillName,
     goal: "",
     goalCount: 1,
     goalUnit: "ครั้ง",
