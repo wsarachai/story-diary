@@ -146,6 +146,8 @@ export interface HabitActivity {
      * `explore_emotion` to the mood check-in form by this key.
      */
     physicalPreset?: PhysicalPresetKey;
+    /** Stable key for nutrition presets selected from s021. */
+    nutritionPreset?: NutritionPresetKey;
     /** Display name. e.g. "กินยา xxx" or "รับประทานอาหารครบ 5 หมู่". */
     name: string;
     /** Optional hex colour for the icon (s020 icon color picker). */

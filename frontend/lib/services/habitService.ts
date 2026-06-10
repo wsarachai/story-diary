@@ -40,20 +40,35 @@ import type {
     MonthlyGoal,
     MonthlyResults,
     MealSlot,
+    NutritionPresetKey,
 } from "@/types/habit";
+import { NUTRITION_PRESETS } from "@/types/habit";
+
+function isNutritionPresetKey(value: unknown): value is NutritionPresetKey {
+    return typeof value === "string" && value in NUTRITION_PRESETS;
+}
+
+function resolveNutritionName(name: string, nutritionPreset?: NutritionPresetKey): string {
+    if (nutritionPreset) {
+        return NUTRITION_PRESETS[nutritionPreset];
+    }
+    return name.trim();
+}
 
 function rowToActivity(row: HabitActivityDoc): HabitActivity {
     const schedule = JSON.parse(row.schedule_json) as HabitSchedule;
+    const nutritionPreset = isNutritionPresetKey(row.nutrition_preset) ? row.nutrition_preset : undefined;
     const activity: HabitActivity = {
         id: row.id,
         userId: row.user_id,
         category: row.category,
-        name: row.name,
+        name: resolveNutritionName(row.name, nutritionPreset),
         schedule,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         archived: row.archived,
     };
+    if (nutritionPreset) activity.nutritionPreset = nutritionPreset;
     if (row.physical_category) activity.physicalCategory = row.physical_category as HabitActivity["physicalCategory"];
     if (row.physical_preset) activity.physicalPreset = row.physical_preset as HabitActivity["physicalPreset"];
     if (row.icon_color) activity.iconColor = row.icon_color as `#${string}`;
@@ -272,7 +287,11 @@ export async function createActivity(
     userId: string,
     data: Omit<HabitActivity, "id" | "userId" | "createdAt" | "updatedAt">
 ): Promise<HabitActivity> {
-    const normalizedName = normalizeActivityName(data.name);
+    const nutritionPreset = data.category === "nutrition" && isNutritionPresetKey(data.nutritionPreset)
+        ? data.nutritionPreset
+        : undefined;
+    const resolvedName = resolveNutritionName(data.name, nutritionPreset);
+    const normalizedName = normalizeActivityName(resolvedName);
     const conflict = await findHabitActivityConflictByName(userId, normalizedName);
 
     if (conflict) {
@@ -284,9 +303,10 @@ export async function createActivity(
         id: uuidv4(),
         user_id: userId,
         category: data.category,
+        nutrition_preset: nutritionPreset ?? null,
         physical_category: data.physicalCategory ?? null,
         physical_preset: data.physicalPreset ?? null,
-        name: data.name.trim(),
+        name: resolvedName,
         name_normalized: normalizedName,
         icon_color: data.iconColor ?? null,
         schedule_json: JSON.stringify(data.schedule),
@@ -312,8 +332,22 @@ export async function updateActivity(
         throw Errors.notFound("VALIDATION_ERROR", "Activity not found");
     }
 
-    if (patch.name && normalizeActivityName(patch.name) !== existing.name_normalized) {
-        const conflict = await findHabitActivityConflictByName(userId, normalizeActivityName(patch.name), activityId);
+    const nextCategory = patch.category ?? existing.category;
+    const existingNutritionPreset = isNutritionPresetKey(existing.nutrition_preset) ? existing.nutrition_preset : undefined;
+    const nextNutritionPreset = nextCategory === "nutrition"
+        ? (patch.nutritionPreset !== undefined
+            ? (isNutritionPresetKey(patch.nutritionPreset) ? patch.nutritionPreset : undefined)
+            : existingNutritionPreset)
+        : undefined;
+
+    const incomingName = patch.name ?? existing.name;
+    const resolvedName = nextCategory === "nutrition"
+        ? resolveNutritionName(incomingName, nextNutritionPreset)
+        : incomingName.trim();
+    const resolvedNormalized = normalizeActivityName(resolvedName);
+
+    if (resolvedNormalized !== existing.name_normalized) {
+        const conflict = await findHabitActivityConflictByName(userId, resolvedNormalized, activityId);
         if (conflict) {
             throw Errors.conflict("ACTIVITY_NAME_TAKEN", "An activity with this name already exists");
         }
@@ -321,11 +355,14 @@ export async function updateActivity(
 
     const updates: Partial<HabitActivityDoc> = {};
 
-    if (patch.name !== undefined) {
-        updates.name = patch.name.trim();
-        updates.name_normalized = normalizeActivityName(patch.name);
+    if (patch.name !== undefined || patch.category !== undefined || patch.nutritionPreset !== undefined) {
+        updates.name = resolvedName;
+        updates.name_normalized = resolvedNormalized;
     }
     if (patch.category !== undefined) updates.category = patch.category;
+    if (patch.category !== undefined || patch.nutritionPreset !== undefined) {
+        updates.nutrition_preset = nextCategory === "nutrition" ? (nextNutritionPreset ?? null) : null;
+    }
     if (patch.physicalCategory !== undefined) updates.physical_category = patch.physicalCategory;
     if (patch.physicalPreset !== undefined) updates.physical_preset = patch.physicalPreset;
     if (patch.iconColor !== undefined) updates.icon_color = patch.iconColor;

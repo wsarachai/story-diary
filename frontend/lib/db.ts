@@ -56,6 +56,7 @@ export interface HabitActivityDoc {
   id: string;
   user_id: string;
   category: "medicine" | "nutrition" | "physical";
+  nutrition_preset?: string | null;
   physical_category?: string | null;
   physical_preset?: string | null;
   name: string;

@@ -100,6 +100,23 @@ describe("createActivity", () => {
     expect(loaded.physicalPreset).toBe("explore_emotion");
     expect(loaded.physicalCategory).toBe("emotion-management");
   });
+
+  it("persists nutritionPreset and normalizes preset name to canonical label", async () => {
+    const a = await createActivity(USER, {
+      category: "nutrition" as const,
+      nutritionPreset: "nutrition_mild_taste" as const,
+      name: "ชื่อที่ไม่ควรถูกเก็บ",
+      schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+      archived: false,
+    });
+
+    expect(a.nutritionPreset).toBe("nutrition_mild_taste");
+    expect(a.name).toBe("รับประทานอาหารรสไม่จัด");
+
+    const [loaded] = await getActivities(USER);
+    expect(loaded.nutritionPreset).toBe("nutrition_mild_taste");
+    expect(loaded.name).toBe("รับประทานอาหารรสไม่จัด");
+  });
 });
 
 // ────────────────────────────────────────────────────────────────────
@@ -143,6 +160,39 @@ describe("updateActivity", () => {
     await expect(updateActivity(USER, a.id, { name: "บันทึกอาหาร" })).rejects.toMatchObject({
       code: "ACTIVITY_NAME_TAKEN",
     });
+  });
+
+  it("ignores incoming name changes for preset-backed nutrition and keeps canonical label", async () => {
+    const created = await createActivity(USER, {
+      category: "nutrition" as const,
+      nutritionPreset: "nutrition_5_groups" as const,
+      name: "รับประทานอาหารครบ 5 หมู่",
+      schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+      archived: false,
+    });
+
+    const updated = await updateActivity(USER, created.id, {
+      name: "พยายามแก้ชื่อ",
+    });
+
+    expect(updated.nutritionPreset).toBe("nutrition_5_groups");
+    expect(updated.name).toBe("รับประทานอาหารครบ 5 หมู่");
+  });
+
+  it("allows custom nutrition names when no nutritionPreset is set", async () => {
+    const created = await createActivity(USER, {
+      category: "nutrition" as const,
+      name: "จดอาหารแบบกำหนดเอง",
+      schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+      archived: false,
+    });
+
+    const updated = await updateActivity(USER, created.id, {
+      name: "แก้ชื่อแบบกำหนดเอง",
+    });
+
+    expect(updated.nutritionPreset).toBeUndefined();
+    expect(updated.name).toBe("แก้ชื่อแบบกำหนดเอง");
   });
 });
 

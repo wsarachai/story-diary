@@ -63,6 +63,14 @@ const MealSlotEnum = z.enum(["breakfast", "lunch", "dinner", "before-bed"]);
 
 export const CreateActivitySchema = z.object({
   category: z.enum(["medicine", "nutrition", "physical"]),
+  nutritionPreset: z
+    .enum([
+      "nutrition_5_groups",
+      "nutrition_clean_cooked",
+      "nutrition_mild_taste",
+      "nutrition_order_low_seasoning",
+    ])
+    .optional(),
   physicalCategory: z
     .enum([
       "emotion-management",

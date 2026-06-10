@@ -1,5 +1,5 @@
 "use client";
-import { useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -23,6 +23,16 @@ const NUTRITION_PRESET_KEYS: NutritionPresetKey[] = [
   "nutrition_order_low_seasoning",
 ];
 
+function resolveNutritionPreset(
+  value: string | null,
+): NutritionPresetKey | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase().replace(/-/g, "_");
+  return NUTRITION_PRESET_KEYS.includes(normalized as NutritionPresetKey)
+    ? (normalized as NutritionPresetKey)
+    : null;
+}
+
 interface FormState {
   name: string;
   iconColor: string;
@@ -39,6 +49,7 @@ interface FormState {
 
 type FormAction =
   | { type: "SET_NAME"; value: string }
+  | { type: "SYNC_NAME"; value: string }
   | { type: "SET_ICON_COLOR"; value: string }
   | { type: "SET_MEAL_RELATION"; value: MealRelation }
   | { type: "TOGGLE_MEAL_SLOT"; slot: MealSlot }
@@ -52,34 +63,49 @@ type FormAction =
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
-    case "SET_NAME": return { ...state, name: action.value, dirty: true };
-    case "SET_ICON_COLOR": return { ...state, iconColor: action.value, dirty: true };
-    case "SET_MEAL_RELATION": return { ...state, mealRelation: action.value, dirty: true };
+    case "SET_NAME":
+      return { ...state, name: action.value, dirty: true };
+    case "SYNC_NAME":
+      return { ...state, name: action.value };
+    case "SET_ICON_COLOR":
+      return { ...state, iconColor: action.value, dirty: true };
+    case "SET_MEAL_RELATION":
+      return { ...state, mealRelation: action.value, dirty: true };
     case "TOGGLE_MEAL_SLOT": {
       const slots = state.mealSlots.includes(action.slot)
         ? state.mealSlots.filter((s) => s !== action.slot)
         : [...state.mealSlots, action.slot];
       return { ...state, mealSlots: slots, dirty: true };
     }
-    case "SET_FREQUENCY": return {
-      ...state,
-      frequency: action.value,
-      // Auto-select all days when switching to "daily"
-      weekdays: action.value === "daily" ? ([0, 1, 2, 3, 4, 5, 6] as WeekdayIndex[]) : state.weekdays,
-      dirty: true,
-    };
+    case "SET_FREQUENCY":
+      return {
+        ...state,
+        frequency: action.value,
+        // Auto-select all days when switching to "daily"
+        weekdays:
+          action.value === "daily"
+            ? ([0, 1, 2, 3, 4, 5, 6] as WeekdayIndex[])
+            : state.weekdays,
+        dirty: true,
+      };
     case "TOGGLE_WEEKDAY": {
       const days = state.weekdays.includes(action.day)
         ? state.weekdays.filter((d) => d !== action.day)
         : [...state.weekdays, action.day];
       return { ...state, weekdays: days as WeekdayIndex[], dirty: true };
     }
-    case "SET_DAYS_PER_WEEK": return { ...state, daysPerWeek: action.value, dirty: true };
-    case "SET_DAYS_PER_MONTH": return { ...state, daysPerMonth: action.value, dirty: true };
-    case "SET_IMPORTANCE": return { ...state, importance: action.value, dirty: true };
-    case "SET_ERRORS": return { ...state, errors: action.errors };
-    case "CLEAR_ERRORS": return { ...state, errors: {} };
-    default: return state;
+    case "SET_DAYS_PER_WEEK":
+      return { ...state, daysPerWeek: action.value, dirty: true };
+    case "SET_DAYS_PER_MONTH":
+      return { ...state, daysPerMonth: action.value, dirty: true };
+    case "SET_IMPORTANCE":
+      return { ...state, importance: action.value, dirty: true };
+    case "SET_ERRORS":
+      return { ...state, errors: action.errors };
+    case "CLEAR_ERRORS":
+      return { ...state, errors: {} };
+    default:
+      return state;
   }
 }
 
@@ -100,11 +126,19 @@ function MedicineFormInner() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const source = searchParams.get("source");
-  const typeKey = searchParams.get("type") as NutritionPresetKey | null;
+  const categoryParam = searchParams.get("category");
+  const typeKey = searchParams.get("type");
+  const nutritionPresetParam = searchParams.get("nutritionPreset");
   const from = searchParams.get("from") ?? "/habit/checklist";
 
-  const isNutrition = typeKey !== null && NUTRITION_PRESET_KEYS.includes(typeKey);
-  const prefillName = typeKey && isNutrition ? (NUTRITION_PRESETS[typeKey] ?? "") : "";
+  const nutritionPreset =
+    resolveNutritionPreset(nutritionPresetParam) ??
+    resolveNutritionPreset(typeKey);
+  const isNutrition = categoryParam === "nutrition" || nutritionPreset !== null;
+  const hasLockedNutritionPreset = nutritionPreset !== null;
+  const prefillName = nutritionPreset
+    ? (NUTRITION_PRESETS[nutritionPreset] ?? "")
+    : "";
 
   const [form, dispatchForm] = useReducer(formReducer, {
     name: prefillName,
@@ -120,6 +154,13 @@ function MedicineFormInner() {
     dirty: false,
   } satisfies FormState);
 
+  useEffect(() => {
+    if (!hasLockedNutritionPreset) return;
+    if (!prefillName) return;
+    if (form.name === prefillName) return;
+    dispatchForm({ type: "SYNC_NAME", value: prefillName });
+  }, [hasLockedNutritionPreset, prefillName, form.name]);
+
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
     if (!form.name.trim()) errors.name = "กรุณาระบุชื่อ";
@@ -127,10 +168,16 @@ function MedicineFormInner() {
     if (form.frequency === "daily" && form.weekdays.length === 0) {
       errors.weekdays = "กรุณาเลือกอย่างน้อย 1 วัน";
     }
-    if (form.frequency === "weekly" && (form.daysPerWeek < 1 || form.daysPerWeek > 7)) {
+    if (
+      form.frequency === "weekly" &&
+      (form.daysPerWeek < 1 || form.daysPerWeek > 7)
+    ) {
       errors.daysPerWeek = "กรุณาระบุ 1-7";
     }
-    if (form.frequency === "monthly" && (form.daysPerMonth < 1 || form.daysPerMonth > 31)) {
+    if (
+      form.frequency === "monthly" &&
+      (form.daysPerMonth < 1 || form.daysPerMonth > 31)
+    ) {
       errors.daysPerMonth = "กรุณาระบุ 1-31";
     }
     if (form.frequency === "todo" && !form.importance) {
@@ -143,9 +190,15 @@ function MedicineFormInner() {
   async function handleSave() {
     if (!validate() || saving) return;
     const schedule = (() => {
-      if (form.frequency === "daily") return { frequency: "daily" as const, weekdays: form.weekdays };
-      if (form.frequency === "weekly") return { frequency: "weekly" as const, daysPerWeek: form.daysPerWeek };
-      if (form.frequency === "monthly") return { frequency: "monthly" as const, daysPerMonth: form.daysPerMonth };
+      if (form.frequency === "daily")
+        return { frequency: "daily" as const, weekdays: form.weekdays };
+      if (form.frequency === "weekly")
+        return { frequency: "weekly" as const, daysPerWeek: form.daysPerWeek };
+      if (form.frequency === "monthly")
+        return {
+          frequency: "monthly" as const,
+          daysPerMonth: form.daysPerMonth,
+        };
       return { frequency: "todo" as const, importance: form.importance };
     })();
     try {
@@ -154,7 +207,10 @@ function MedicineFormInner() {
         name: form.name.trim(),
         iconColor: form.iconColor as `#${string}`,
         schedule,
-        ...(isNutrition ? {} : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
+        ...(nutritionPreset ? { nutritionPreset } : {}),
+        ...(isNutrition
+          ? {}
+          : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
       }).unwrap();
       router.replace(from);
     } catch (err: unknown) {
@@ -168,14 +224,18 @@ function MedicineFormInner() {
     if (form.dirty) {
       discardRef.current?.showModal();
     } else {
-      const target = isNutrition ? `/habit/add/nutrition?from=${from}` : `/habit/add?from=${from}`;
+      const target = isNutrition
+        ? `/habit/add/nutrition?from=${from}`
+        : `/habit/add?from=${from}`;
       router.push(target);
     }
   }
 
   function handleDiscard() {
     discardRef.current?.close();
-    const target = isNutrition ? `/habit/add/nutrition?from=${from}` : `/habit/add?from=${from}`;
+    const target = isNutrition
+      ? `/habit/add/nutrition?from=${from}`
+      : `/habit/add?from=${from}`;
     router.push(target);
   }
 
@@ -187,16 +247,26 @@ function MedicineFormInner() {
         mergedOnly
         merged={
           <div className={styles.authoringPage} aria-label="สร้างกิจกรรม">
-            <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="create-title">
+            <div
+              className={styles.createCard}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-title"
+            >
               <header className={styles.createHeader}>
                 <button
                   className={styles.actionBtn}
                   aria-label="ยกเลิก"
                   onClick={handleCancel}
                 >
-                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                  <svg viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
-                <h2 className={styles.createTitle} id="create-title">เพิ่มกิจกรรม</h2>
+                <h2 className={styles.createTitle} id="create-title">
+                  เพิ่มกิจกรรม
+                </h2>
                 <button
                   className={`${styles.actionBtn}${saving ? ` ${styles.saving}` : ""}`}
                   aria-label="บันทึก"
@@ -204,25 +274,54 @@ function MedicineFormInner() {
                   disabled={saving}
                   style={{ borderColor: "#08c65a" }}
                 >
-                  {saving
-                    ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" /></svg>
-                    : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12" /></svg>
-                  }
+                  {saving ? (
+                    <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}>
+                      <circle cx="12" cy="12" r="9" strokeDasharray="20 40" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
                 </button>
               </header>
 
-              {saveError && <p className={styles.fieldError} role="alert" style={{ margin: "0 0 0.5em", textAlign: "center" }}>{saveError}</p>}
+              {saveError && (
+                <p
+                  className={styles.fieldError}
+                  role="alert"
+                  style={{ margin: "0 0 0.5em", textAlign: "center" }}
+                >
+                  {saveError}
+                </p>
+              )}
               <div className={styles.formPanel}>
                 {/* Name + icon-color */}
                 <div className={styles.nameRow}>
-                  <input
-                    className={`${styles.nameField}${isNutrition ? ` ${styles.nutritionFlavor}` : ""}${form.errors.name ? ` ${styles.error}` : ""}`}
-                    type="text"
-                    aria-label={isNutrition ? "ชื่อโภชนาการ" : "ชื่อยา"}
-                    placeholder={isNutrition ? "ชื่อโภชนาการ :" : "ชื่อยา :"}
-                    value={form.name}
-                    onChange={(e) => dispatchForm({ type: "SET_NAME", value: e.target.value })}
-                  />
+                  {hasLockedNutritionPreset ? (
+                    <input
+                      className={`${styles.nameField} ${styles.nutritionFlavor}${form.errors.name ? ` ${styles.error}` : ""}`}
+                      type="text"
+                      aria-label="ชื่อโภชนาการ"
+                      placeholder="ชื่อโภชนาการ :"
+                      value={form.name}
+                      readOnly
+                    />
+                  ) : (
+                    <input
+                      className={`${styles.nameField}${isNutrition ? ` ${styles.nutritionFlavor}` : ""}${form.errors.name ? ` ${styles.error}` : ""}`}
+                      type="text"
+                      aria-label={isNutrition ? "ชื่อโภชนาการ" : "ชื่อยา"}
+                      placeholder={isNutrition ? "ชื่อโภชนาการ :" : "ชื่อยา :"}
+                      value={form.name}
+                      onChange={(e) =>
+                        dispatchForm({
+                          type: "SET_NAME",
+                          value: e.target.value,
+                        })
+                      }
+                    />
+                  )}
                   <button
                     className={styles.nameIcon}
                     type="button"
@@ -230,22 +329,39 @@ function MedicineFormInner() {
                     onClick={() => dialogRef.current?.showModal()}
                     style={{ ["--name-icon-stroke" as string]: form.iconColor }}
                   >
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>
+                    <svg viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
+                    </svg>
                   </button>
                 </div>
-                {form.errors.name && <p className={styles.fieldError} role="alert">{form.errors.name}</p>}
+                {form.errors.name && (
+                  <p className={styles.fieldError} role="alert">
+                    {form.errors.name}
+                  </p>
+                )}
 
                 {/* Meal relation (medicine only) */}
                 {!isNutrition && (
                   <div className={styles.chipLine}>
-                    <div className={styles.chipTrack} style={{ maxWidth: "18rem" }} role="radiogroup" aria-label="เวลาก่อน/หลังอาหาร">
+                    <div
+                      className={styles.chipTrack}
+                      style={{ maxWidth: "18rem" }}
+                      role="radiogroup"
+                      aria-label="เวลาก่อน/หลังอาหาร"
+                    >
                       {(["before", "after"] as MealRelation[]).map((r) => (
                         <button
                           key={r}
                           className={`${styles.chip}${form.mealRelation === r ? ` ${styles.isSelected}` : ""}`}
                           role="radio"
                           aria-checked={form.mealRelation === r}
-                          onClick={() => dispatchForm({ type: "SET_MEAL_RELATION", value: r })}
+                          onClick={() =>
+                            dispatchForm({
+                              type: "SET_MEAL_RELATION",
+                              value: r,
+                            })
+                          }
                         >
                           {r === "before" ? "ก่อน" : "หลัง"}
                         </button>
@@ -259,13 +375,19 @@ function MedicineFormInner() {
                 {!isNutrition && (
                   <div className={styles.chipLine}>
                     <div className={styles.chipLabel}>มื้อ</div>
-                    <div className={styles.chipTrack} role="group" aria-label="มื้ออาหาร">
+                    <div
+                      className={styles.chipTrack}
+                      role="group"
+                      aria-label="มื้ออาหาร"
+                    >
                       {MEAL_SLOTS.map(({ slot, label }) => (
                         <button
                           key={slot}
                           className={`${styles.chip}${form.mealSlots.includes(slot) ? ` ${styles.isSelected}` : ""}`}
                           aria-pressed={form.mealSlots.includes(slot)}
-                          onClick={() => dispatchForm({ type: "TOGGLE_MEAL_SLOT", slot })}
+                          onClick={() =>
+                            dispatchForm({ type: "TOGGLE_MEAL_SLOT", slot })
+                          }
                         >
                           {label}
                         </button>
@@ -277,16 +399,30 @@ function MedicineFormInner() {
                 {/* Frequency */}
                 <div className={styles.chipLine}>
                   <div className={styles.chipLabel}>ความถี่</div>
-                  <div className={styles.chipTrack} role="radiogroup" aria-label="ความถี่">
-                    {(["daily", "weekly", "monthly", "todo"] as HabitFrequency[]).map((f) => (
+                  <div
+                    className={styles.chipTrack}
+                    role="radiogroup"
+                    aria-label="ความถี่"
+                  >
+                    {(
+                      ["daily", "weekly", "monthly", "todo"] as HabitFrequency[]
+                    ).map((f) => (
                       <button
                         key={f}
                         className={`${styles.chip}${form.frequency === f ? ` ${styles.isSelected}` : ""}`}
                         role="radio"
                         aria-checked={form.frequency === f}
-                        onClick={() => dispatchForm({ type: "SET_FREQUENCY", value: f })}
+                        onClick={() =>
+                          dispatchForm({ type: "SET_FREQUENCY", value: f })
+                        }
                       >
-                        {f === "daily" ? "ทุกวัน" : f === "weekly" ? "สัปดาห์" : f === "monthly" ? "เดือน" : "To-do"}
+                        {f === "daily"
+                          ? "ทุกวัน"
+                          : f === "weekly"
+                            ? "สัปดาห์"
+                            : f === "monthly"
+                              ? "เดือน"
+                              : "To-do"}
                       </button>
                     ))}
                   </div>
@@ -295,24 +431,42 @@ function MedicineFormInner() {
                 {/* Frequency sub-panels */}
                 {form.frequency === "daily" && (
                   <div>
-                    <div className={styles.weekdayRow} role="group" aria-label="เลือกวัน">
+                    <div
+                      className={styles.weekdayRow}
+                      role="group"
+                      aria-label="เลือกวัน"
+                    >
                       {WEEKDAY_LABELS.map((label, i) => (
                         <button
                           key={i}
                           className={`${styles.weekday}${form.weekdays.includes(i as WeekdayIndex) ? ` ${styles.isSelected}` : ""}`}
-                          aria-pressed={form.weekdays.includes(i as WeekdayIndex)}
-                          onClick={() => dispatchForm({ type: "TOGGLE_WEEKDAY", day: i as WeekdayIndex })}
+                          aria-pressed={form.weekdays.includes(
+                            i as WeekdayIndex,
+                          )}
+                          onClick={() =>
+                            dispatchForm({
+                              type: "TOGGLE_WEEKDAY",
+                              day: i as WeekdayIndex,
+                            })
+                          }
                         >
                           {label}
                         </button>
                       ))}
                     </div>
-                    {form.errors.weekdays && <p className={styles.fieldError} role="alert">{form.errors.weekdays}</p>}
+                    {form.errors.weekdays && (
+                      <p className={styles.fieldError} role="alert">
+                        {form.errors.weekdays}
+                      </p>
+                    )}
                   </div>
                 )}
                 {form.frequency === "weekly" && (
                   <div>
-                    <div className={styles.countRow} aria-label="จำนวนวันต่อสัปดาห์">
+                    <div
+                      className={styles.countRow}
+                      aria-label="จำนวนวันต่อสัปดาห์"
+                    >
                       <input
                         className={styles.countNum}
                         type="number"
@@ -320,16 +474,28 @@ function MedicineFormInner() {
                         max="7"
                         value={form.daysPerWeek}
                         aria-label="จำนวนวันต่อสัปดาห์"
-                        onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_WEEK", value: Number(e.target.value) })}
+                        onChange={(e) =>
+                          dispatchForm({
+                            type: "SET_DAYS_PER_WEEK",
+                            value: Number(e.target.value),
+                          })
+                        }
                       />
                       <div className={styles.countUnit}>วัน/สัปดาห์</div>
                     </div>
-                    {form.errors.daysPerWeek && <p className={styles.fieldError} role="alert">{form.errors.daysPerWeek}</p>}
+                    {form.errors.daysPerWeek && (
+                      <p className={styles.fieldError} role="alert">
+                        {form.errors.daysPerWeek}
+                      </p>
+                    )}
                   </div>
                 )}
                 {form.frequency === "monthly" && (
                   <div>
-                    <div className={styles.countRow} aria-label="จำนวนวันต่อเดือน">
+                    <div
+                      className={styles.countRow}
+                      aria-label="จำนวนวันต่อเดือน"
+                    >
                       <input
                         className={styles.countNum}
                         type="number"
@@ -337,26 +503,47 @@ function MedicineFormInner() {
                         max="31"
                         value={form.daysPerMonth}
                         aria-label="จำนวนวันต่อเดือน"
-                        onChange={(e) => dispatchForm({ type: "SET_DAYS_PER_MONTH", value: Number(e.target.value) })}
+                        onChange={(e) =>
+                          dispatchForm({
+                            type: "SET_DAYS_PER_MONTH",
+                            value: Number(e.target.value),
+                          })
+                        }
                       />
                       <div className={styles.countUnit}>วัน/เดือน</div>
                     </div>
-                    {form.errors.daysPerMonth && <p className={styles.fieldError} role="alert">{form.errors.daysPerMonth}</p>}
+                    {form.errors.daysPerMonth && (
+                      <p className={styles.fieldError} role="alert">
+                        {form.errors.daysPerMonth}
+                      </p>
+                    )}
                   </div>
                 )}
                 {form.frequency === "todo" && (
                   <div className={styles.importanceLine}>
                     <div className={styles.chipLabel}>ความสำคัญ</div>
-                    <div className={styles.chipTrack} role="radiogroup" aria-label="ความสำคัญ">
-                      {(["general", "moderate", "high"] as HabitImportance[]).map((imp) => (
+                    <div
+                      className={styles.chipTrack}
+                      role="radiogroup"
+                      aria-label="ความสำคัญ"
+                    >
+                      {(
+                        ["general", "moderate", "high"] as HabitImportance[]
+                      ).map((imp) => (
                         <button
                           key={imp}
                           className={`${styles.chip}${form.importance === imp ? ` ${styles.isSelected}` : ""}`}
                           role="radio"
                           aria-checked={form.importance === imp}
-                          onClick={() => dispatchForm({ type: "SET_IMPORTANCE", value: imp })}
+                          onClick={() =>
+                            dispatchForm({ type: "SET_IMPORTANCE", value: imp })
+                          }
                         >
-                          {imp === "general" ? "ทั่วไป" : imp === "moderate" ? "ปานกลาง" : "มาก"}
+                          {imp === "general"
+                            ? "ทั่วไป"
+                            : imp === "moderate"
+                              ? "ปานกลาง"
+                              : "มาก"}
                         </button>
                       ))}
                     </div>
@@ -371,17 +558,30 @@ function MedicineFormInner() {
       />
 
       {/* Icon-color dialog */}
-      <dialog ref={dialogRef} className={styles.colorDialog} aria-label="เลือกสีไอคอน">
+      <dialog
+        ref={dialogRef}
+        className={styles.colorDialog}
+        aria-label="เลือกสีไอคอน"
+      >
         <p className={styles.colorDialogTitle}>เลือกสีไอคอน</p>
         <div className={styles.swatchRow}>
-          {["#ffffff", "#111111", "#ff6b6b", "#f4a261", "#2a9d8f", "#4d8dff"].map((color) => (
+          {[
+            "#ffffff",
+            "#111111",
+            "#ff6b6b",
+            "#f4a261",
+            "#2a9d8f",
+            "#4d8dff",
+          ].map((color) => (
             <button
               key={color}
               className={styles.swatch}
               type="button"
               style={{ background: color }}
               aria-label={`สี ${color}`}
-              onClick={() => dispatchForm({ type: "SET_ICON_COLOR", value: color })}
+              onClick={() =>
+                dispatchForm({ type: "SET_ICON_COLOR", value: color })
+              }
             />
           ))}
         </div>
@@ -392,22 +592,47 @@ function MedicineFormInner() {
             id="custom-icon-color"
             type="color"
             value={form.iconColor}
-            onChange={(e) => dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })}
+            onChange={(e) =>
+              dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })
+            }
           />
         </div>
         <div className={styles.colorActions}>
-          <button className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`} type="button" onClick={() => dialogRef.current?.close()}>ปิด</button>
-          <button className={`${styles.dialogBtn} ${styles.dialogBtnPrimary}`} type="button" onClick={() => dialogRef.current?.close()}>ใช้สี</button>
+          <button
+            className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`}
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+          >
+            ปิด
+          </button>
+          <button
+            className={`${styles.dialogBtn} ${styles.dialogBtnPrimary}`}
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+          >
+            ใช้สี
+          </button>
         </div>
       </dialog>
 
       {/* DS-4 discard dialog */}
-      <dialog ref={discardRef} className={styles.discardDialog} aria-modal="true">
+      <dialog
+        ref={discardRef}
+        className={styles.discardDialog}
+        aria-modal="true"
+      >
         <h2>ละทิ้งการเปลี่ยนแปลง?</h2>
         <p>ข้อมูลที่กรอกไว้จะหายไป</p>
         <div className={styles.discardDialogBtns}>
-          <button className={styles.discardBtnCancel} onClick={() => discardRef.current?.close()}>กลับไปแก้ไข</button>
-          <button className={styles.discardBtnLeave} onClick={handleDiscard}>ละทิ้ง</button>
+          <button
+            className={styles.discardBtnCancel}
+            onClick={() => discardRef.current?.close()}
+          >
+            กลับไปแก้ไข
+          </button>
+          <button className={styles.discardBtnLeave} onClick={handleDiscard}>
+            ละทิ้ง
+          </button>
         </div>
       </dialog>
     </>

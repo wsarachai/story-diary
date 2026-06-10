@@ -12,6 +12,7 @@ import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
 import { localDateStr } from "@/lib/utils/date";
 import type { HabitActivity } from "@/types/habit";
+import { NUTRITION_PRESETS } from "@/types/habit";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
@@ -72,6 +73,13 @@ function getCategoryClass(accent: string): string {
   if (accent === "#2eb563") return styles.entryFood;
   if (accent === "#e76f51") return styles.entryMood;
   return styles.entryBody;
+}
+
+function getActivityDisplayName(activity: HabitActivity): string {
+  if (activity.category === "nutrition" && activity.nutritionPreset && activity.nutritionPreset in NUTRITION_PRESETS) {
+    return NUTRITION_PRESETS[activity.nutritionPreset];
+  }
+  return activity.name;
 }
 
 function CategoryIcon({ accent }: { accent: string }) {
@@ -231,6 +239,7 @@ export default function HabitChecklistPage() {
   }
 
   const confirmActivity = confirmId ? data?.activities[confirmId] : null;
+  const confirmActivityName = confirmActivity ? getActivityDisplayName(confirmActivity) : "";
 
   async function handleDeleteConfirm() {
     if (!confirmId) return;
@@ -297,7 +306,7 @@ export default function HabitChecklistPage() {
                   key={entry.activity.id}
                   className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
                   role="article"
-                  aria-label={entry.activity.name}
+                  aria-label={getActivityDisplayName(entry.activity)}
                   onClick={() =>
                     tappable &&
                     handleEntryTap(entry.activity, entry.occurrence.id)
@@ -307,7 +316,7 @@ export default function HabitChecklistPage() {
                     <CategoryIcon accent={entry.accent} />
                   </div>
                   <div className={styles.habitEntryBody}>
-                    <p className={styles.habitEntryName}>{entry.activity.name}</p>
+                    <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
                     <p className={styles.habitEntrySub}>{entry.subline}</p>
                   </div>
                   {tappable && (
@@ -416,7 +425,7 @@ export default function HabitChecklistPage() {
     <BookShellLayout tight rail={<IconRail />} mergedOnly merged={left}>
       {confirmActivity && (
         <DeleteConfirmDialog
-          activityName={confirmActivity.name}
+            activityName={confirmActivityName}
           isDeleting={isDeleting}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmId(null)}
