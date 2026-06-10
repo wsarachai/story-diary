@@ -13,6 +13,7 @@ const PRESET_KEYS: NutritionPresetKey[] = [
 
 export default async function AddNutritionPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const { from = "/habit/checklist" } = await searchParams;
+  const encodedFrom = encodeURIComponent(from);
 
   return (
     <BookShellLayout
@@ -39,7 +40,7 @@ export default async function AddNutritionPage({ searchParams }: { searchParams:
                   key={key}
                   className={styles.nutritionItem}
                   role="listitem"
-                  href={`/habit/add/medicine?type=${key}&from=${from}`}
+                  href={`/habit/add/nutrition/${key}?from=${encodedFrom}`}
                   aria-label={NUTRITION_PRESETS[key]}
                 >
                   <span className={styles.nutritionItemDot} aria-hidden="true" />
@@ -49,6 +50,18 @@ export default async function AddNutritionPage({ searchParams }: { searchParams:
                   </svg>
                 </Link>
               ))}
+              <Link
+                className={styles.nutritionItem}
+                role="listitem"
+                href={`/habit/add/nutrition/custom?from=${encodedFrom}`}
+                aria-label="อื่นๆ"
+              >
+                <span className={styles.nutritionItemDot} aria-hidden="true" />
+                <span className={styles.nutritionItemLabel}>อื่นๆ</span>
+                <svg className={styles.nutritionItemChevron} viewBox="0 0 24 24" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </Link>
             </div>
           </div>
         </div>
