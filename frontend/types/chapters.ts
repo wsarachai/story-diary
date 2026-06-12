@@ -23,7 +23,7 @@ export type ChapterId = number;
  *
  *   "unlocked" — fully accessible (s008 chapter 1: no lock icon)
  *   "locked"   — gated; the wireframe still renders the pin-pill but with a
- *                lock-key.svg overlay. Tapping it should NOT navigate; UI
+ *                lock icon (lucide LockKeyhole) overlay. Tapping it should NOT navigate; UI
  *                should show a tooltip / inline copy explaining the gate.
  *
  * The wireframe currently has chapters 2-5 all locked, suggesting the gate is

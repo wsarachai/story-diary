@@ -128,8 +128,6 @@ export interface NavRailItem {
     screenId: ScreenId;
     /** Top-level Next.js route. */
     href: AppRoute;
-    /** Filename under `assets/icons/` in the wireframe. */
-    icon: "home.svg" | "book.svg" | "edit.svg" | "game.svg";
     /** Thai aria-label, taken from the wireframe. */
     ariaLabel: string;
     /**
@@ -149,7 +147,6 @@ export const RAIL_ITEMS: readonly NavRailItem[] = [
         key: "home",
         screenId: "s004-home",
         href: "/home",
-        icon: "home.svg",
         ariaLabel: "ไปหน้าแรก",
         activeAccent: "#ff3131",
     },
@@ -157,7 +154,6 @@ export const RAIL_ITEMS: readonly NavRailItem[] = [
         key: "chapters",
         screenId: "s005-chapters",
         href: "/chapters",
-        icon: "book.svg",
         ariaLabel: "ไปหน้าอ่านเนื้อเรื่อง",
         activeAccent: "#08c65a",
     },
@@ -165,7 +161,6 @@ export const RAIL_ITEMS: readonly NavRailItem[] = [
         key: "habit",
         screenId: "s006-habit-tracker",
         href: "/habit",
-        icon: "edit.svg",
         ariaLabel: "ไปหน้า habit tracker",
         activeAccent: "#6a24f2",
     },
@@ -173,7 +168,6 @@ export const RAIL_ITEMS: readonly NavRailItem[] = [
         key: "minigame",
         screenId: "s007-minigame",
         href: "/minigame",
-        icon: "game.svg",
         ariaLabel: "ไปหน้ามินิเกม",
         activeAccent: "#c771e8",
     },
