@@ -95,6 +95,7 @@ function MedicineCheckinInner() {
     try {
       await saveMedicine({
         occurrenceId: occId,
+        activityId,
         medicineName: activity?.name ?? "ยา",
         mealRelation: activity?.mealRelation ?? "after",
         mealSlots: state.checkedMealSlots,

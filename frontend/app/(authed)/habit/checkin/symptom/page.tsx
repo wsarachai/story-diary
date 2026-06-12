@@ -68,6 +68,7 @@ function SymptomCheckinInner() {
     try {
       await saveSymptoms({
         occurrenceId: occId,
+        activityId,
         items: state.items,
         date: today,
       }).unwrap();

@@ -13,6 +13,7 @@ import type {
   NutritionCheckin,
   UnusualSymptomsCheckin,
   MoodCheckin,
+  MealSlot,
 } from "@/types/habit";
 
 /** Grid row keyed for the tracker pages. */
@@ -21,6 +22,11 @@ export interface GridRowView {
   cells: HabitGridCell[];
   done: number;
   target: number;
+}
+
+interface TodayHabitsView {
+  activities: Record<string, HabitActivity>;
+  todayByActivity: Record<string, HabitOccurrence>;
 }
 
 function keyRowsByActivity(rows: HabitGridRow[]): Record<string, GridRowView> {
@@ -36,9 +42,43 @@ function keyRowsByActivity(rows: HabitGridRow[]): Record<string, GridRowView> {
   return rowsByActivity;
 }
 
+/**
+ * Every habit mutation changes the aggregate views (today list, weekly and
+ * monthly grids, monthly summary), so they always reconcile with the server
+ * after the optimistic patch. Per-occurrence check-in caches are tagged by
+ * occurrence id and only invalidated by their own mutation.
+ */
+const HABIT_AGGREGATES = [
+  "HabitToday",
+  "HabitWeekly",
+  "HabitMonthly",
+  "HabitMonthlySummary",
+] as const;
+
+/**
+ * Mirrors the server's meal-slot rule in habitService.saveMedicineCheckin:
+ * all configured slots checked → done, some → partial, none → pending.
+ * No configured slots → done. Reconciled by HabitToday invalidation.
+ */
+function medicineStatus(configSlots: MealSlot[] | undefined, checkedSlots: MealSlot[]): HabitOccurrenceStatus {
+  if (!configSlots || configSlots.length === 0) return "done";
+  const allChecked = configSlots.every((slot) => checkedSlots.includes(slot));
+  const someChecked = configSlots.some((slot) => checkedSlots.includes(slot));
+  return allChecked ? "done" : someChecked ? "partial" : "pending";
+}
+
+/**
+ * Mirrors habitService.saveNutritionCheckin: all 3 meals filled → done,
+ * 1–2 → partial, none → pending.
+ */
+function nutritionStatus(checkin: NutritionCheckin): HabitOccurrenceStatus {
+  const filledMeals = [checkin.breakfast, checkin.lunch, checkin.dinner].filter((meal) => meal.trim() !== "").length;
+  return filledMeals === 3 ? "done" : filledMeals > 0 ? "partial" : "pending";
+}
+
 export const habitsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getTodayHabits: builder.query<{ activities: Record<string, HabitActivity>; todayByActivity: Record<string, HabitOccurrence> }, string>({
+    getTodayHabits: builder.query<TodayHabitsView, string>({
       query: (date) => `/habits/today?date=${date}`,
       transformResponse: (response: { entries: TodayHabitEntry[] }) => {
         const activities: Record<string, HabitActivity> = {};
@@ -49,7 +89,7 @@ export const habitsApi = apiSlice.injectEndpoints({
         }
         return { activities, todayByActivity };
       },
-      providesTags: ["Habits"],
+      providesTags: ["HabitToday"],
     }),
     getWeeklyHabits: builder.query<{
       weekStartDate: string;
@@ -62,7 +102,7 @@ export const habitsApi = apiSlice.injectEndpoints({
         rowsByActivity: keyRowsByActivity(response.rowsByActivity),
         summary: response.summary,
       }),
-      providesTags: ["Habits"],
+      providesTags: ["HabitWeekly"],
     }),
     getMonthlyHabits: builder.query<{
       month: string;
@@ -75,11 +115,11 @@ export const habitsApi = apiSlice.injectEndpoints({
         rowsByActivity: keyRowsByActivity(response.rowsByActivity),
         summary: response.summary,
       }),
-      providesTags: ["Habits"],
+      providesTags: ["HabitMonthly"],
     }),
     getMonthlySummary: builder.query<{ goals: MonthlyGoal[]; results: MonthlyResults }, string>({
       query: (month) => `/habits/monthly-summary?month=${month}`,
-      providesTags: ["Habits"],
+      providesTags: ["HabitMonthlySummary"],
     }),
     toggleOccurrence: builder.mutation<HabitOccurrence, { occurrenceId: string; activityId: string; status: HabitOccurrenceStatus; date: string }>({
       query: ({ occurrenceId, status }) => ({
@@ -87,7 +127,7 @@ export const habitsApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { status },
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: [...HABIT_AGGREGATES],
       async onQueryStarted({ activityId, status, date }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
@@ -111,66 +151,174 @@ export const habitsApi = apiSlice.injectEndpoints({
         body: activity,
       }),
       transformResponse: (response: { activity: HabitActivity }) => response.activity,
-      invalidatesTags: ["Habits"],
+      // Pessimistic: the server generates the id and occurrence, and may
+      // reject with ACTIVITY_NAME_TAKEN.
+      invalidatesTags: [...HABIT_AGGREGATES],
     }),
     deleteActivity: builder.mutation<void, string>({
       query: (activityId) => ({
         url: `/habits/activities/${activityId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: [...HABIT_AGGREGATES],
+      async onQueryStarted(activityId, { dispatch, getState, queryFulfilled }) {
+        // The delete arg carries no date, so remove the entry from every
+        // cached today view.
+        const dates = habitsApi.util.selectCachedArgsForQuery(getState(), "getTodayHabits");
+        const patches = dates.map((date) =>
+          dispatch(
+            habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+              delete draft.activities[activityId];
+              delete draft.todayByActivity[activityId];
+            })
+          )
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach((patch) => patch.undo());
+        }
+      },
     }),
-    saveMedicineCheckin: builder.mutation<void, MedicineCheckin & { date: string }>({
-      query: (checkin) => ({
+    saveMedicineCheckin: builder.mutation<void, MedicineCheckin & { date: string; activityId: string }>({
+      query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
         url: "/habits/checkin/medicine",
         method: "POST",
-        body: checkin,
+        body: { ...checkin, date: _date },
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: (result, error, { occurrenceId }) => [
+        ...HABIT_AGGREGATES,
+        { type: "HabitCheckin", id: occurrenceId },
+      ],
+      async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
+        const todayPatch = dispatch(
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+            const occ = draft.todayByActivity[activityId];
+            if (occ) {
+              occ.status = medicineStatus(draft.activities[activityId]?.mealSlots, checkin.mealSlots);
+            }
+          })
+        );
+        const detailPatch = dispatch(
+          habitsApi.util.updateQueryData("getMedicineCheckin", checkin.occurrenceId, () => checkin)
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          todayPatch.undo();
+          detailPatch.undo();
+        }
+      },
     }),
-    saveNutritionCheckin: builder.mutation<void, NutritionCheckin & { date: string }>({
-      query: (checkin) => ({
+    saveNutritionCheckin: builder.mutation<void, NutritionCheckin & { date: string; activityId: string }>({
+      query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
         url: "/habits/checkin/nutrition",
         method: "POST",
-        body: checkin,
+        body: { ...checkin, date: _date },
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: (result, error, { occurrenceId }) => [
+        ...HABIT_AGGREGATES,
+        { type: "HabitCheckin", id: occurrenceId },
+      ],
+      async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
+        const todayPatch = dispatch(
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+            const occ = draft.todayByActivity[activityId];
+            if (occ) {
+              occ.status = nutritionStatus(checkin);
+            }
+          })
+        );
+        const detailPatch = dispatch(
+          habitsApi.util.updateQueryData("getNutritionCheckin", checkin.occurrenceId, () => checkin)
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          todayPatch.undo();
+          detailPatch.undo();
+        }
+      },
     }),
-    saveSymptomsCheckin: builder.mutation<void, UnusualSymptomsCheckin & { date: string }>({
-      query: (checkin) => ({
+    saveSymptomsCheckin: builder.mutation<void, UnusualSymptomsCheckin & { date: string; activityId: string }>({
+      query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
         url: `/habits/checkins/symptoms/${checkin.occurrenceId}`,
         method: "PUT",
-        body: checkin,
+        body: { ...checkin, date: _date },
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: (result, error, { occurrenceId }) => [
+        ...HABIT_AGGREGATES,
+        { type: "HabitCheckin", id: occurrenceId },
+      ],
+      async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
+        const todayPatch = dispatch(
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+            const occ = draft.todayByActivity[activityId];
+            if (occ) {
+              occ.status = "done";
+            }
+          })
+        );
+        const detailPatch = dispatch(
+          habitsApi.util.updateQueryData("getSymptomsCheckin", checkin.occurrenceId, () => checkin)
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          todayPatch.undo();
+          detailPatch.undo();
+        }
+      },
     }),
-    saveMoodCheckin: builder.mutation<void, MoodCheckin & { date: string }>({
-      query: (checkin) => ({
+    saveMoodCheckin: builder.mutation<void, MoodCheckin & { date: string; activityId: string }>({
+      query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
         url: `/habits/checkins/mood/${checkin.occurrenceId}`,
         method: "PUT",
-        body: checkin,
+        body: { ...checkin, date: _date },
       }),
-      invalidatesTags: ["Habits"],
+      invalidatesTags: (result, error, { occurrenceId }) => [
+        ...HABIT_AGGREGATES,
+        { type: "HabitCheckin", id: occurrenceId },
+      ],
+      async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
+        const todayPatch = dispatch(
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+            const occ = draft.todayByActivity[activityId];
+            if (occ) {
+              occ.status = "done";
+            }
+          })
+        );
+        const detailPatch = dispatch(
+          habitsApi.util.updateQueryData("getMoodCheckin", checkin.occurrenceId, () => checkin)
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          todayPatch.undo();
+          detailPatch.undo();
+        }
+      },
     }),
     getMedicineCheckin: builder.query<MedicineCheckin | null, string>({
       query: (occurrenceId) => `/habits/checkins/medicine/${occurrenceId}`,
       transformResponse: (response: { checkin: MedicineCheckin | null }) => response.checkin,
-      providesTags: ["Habits"],
+      providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
     }),
     getNutritionCheckin: builder.query<NutritionCheckin | null, string>({
       query: (occurrenceId) => `/habits/checkins/nutrition/${occurrenceId}`,
       transformResponse: (response: { checkin: NutritionCheckin | null }) => response.checkin,
-      providesTags: ["Habits"],
+      providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
     }),
     getSymptomsCheckin: builder.query<UnusualSymptomsCheckin | null, string>({
       query: (occurrenceId) => `/habits/checkins/symptoms/${occurrenceId}`,
       transformResponse: (response: { checkin: UnusualSymptomsCheckin | null }) => response.checkin,
-      providesTags: ["Habits"],
+      providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
     }),
     getMoodCheckin: builder.query<MoodCheckin | null, string>({
       query: (occurrenceId) => `/habits/checkins/mood/${occurrenceId}`,
       transformResponse: (response: { checkin: MoodCheckin | null }) => response.checkin,
-      providesTags: ["Habits"],
+      providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
     }),
   }),
 });

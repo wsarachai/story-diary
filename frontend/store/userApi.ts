@@ -11,12 +11,20 @@ export const userApi = apiSlice.injectEndpoints({
         body,
       }),
       transformResponse: (res: { user: UserProfile }) => res.user,
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+      async onQueryStarted(body, { dispatch, queryFulfilled }) {
+        // Optimistic: UpdateUserRequest is a strict subset of UserProfile,
+        // so the patch fields can be merged into the getMe cache directly.
+        const patch = dispatch(
+          authApi.util.updateQueryData("getMe", undefined, (draft) => {
+            if (draft) Object.assign(draft, body);
+          })
+        );
         try {
+          // Replace with the server's normalized profile once confirmed.
           const { data } = await queryFulfilled;
           dispatch(authApi.util.upsertQueryData("getMe", undefined, data));
         } catch {
-          // leave cache as-is on failure
+          patch.undo();
         }
       },
     }),

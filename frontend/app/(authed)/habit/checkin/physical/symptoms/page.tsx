@@ -47,6 +47,7 @@ function SymptomsCheckinInner() {
   const [state, dispatchLocal] = useReducer(reducer, { items: INITIAL_SYMPTOMS, dirty: false });
 
   const occId = searchParams.get("occ") ?? "";
+  const activityId = searchParams.get("actId") ?? "";
   const { data: existingCheckin } = useGetSymptomsCheckinQuery(occId, { skip: !occId });
 
   // A check-in only makes sense for a concrete occurrence.
@@ -68,6 +69,7 @@ function SymptomsCheckinInner() {
     try {
       await saveSymptoms({
         occurrenceId: occId,
+        activityId,
         items: state.items,
         date: today
       }).unwrap();
