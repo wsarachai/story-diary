@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Heart } from "lucide-react";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import Image from "next/image";
@@ -108,12 +109,11 @@ function DashboardPanel() {
           className={styles.heartContainer}
         >
           {[0, 1, 2].map((i) => (
-            <Image
+            <Heart
               key={i}
-              src="/icons/heart.svg"
-              alt=""
-              width={48}
-              height={48}
+              size={48}
+              color="#0e8dba"
+              fill="#0e8dba"
             />
           ))}
         </div>

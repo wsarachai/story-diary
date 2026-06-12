@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { LockKeyhole } from "lucide-react";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetChapterSummariesQuery } from "@/store/chaptersApi";
@@ -54,12 +54,10 @@ function ChapterRow({
         <div className={styles.chapterPill}>
           <span className={styles.chapterPillText}>{title}</span>
           {isLocked && (
-            <Image
+            <LockKeyhole
               className={styles.lockIcon}
-              src="/icons/lock-key.svg"
-              alt="ล็อก"
-              width={53}
-              height={53}
+              color="#1f8f9b"
+              strokeWidth={2.4}
               aria-hidden="true"
             />
           )}

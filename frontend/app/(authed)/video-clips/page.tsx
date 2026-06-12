@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Play } from "lucide-react";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
@@ -16,9 +17,7 @@ function PlayButton({ clip }: { clip: VideoClip }) {
       aria-label={`เล่นวิดีโอ ${clip.caption}`}
       title={`เล่นวิดีโอ ${clip.caption}`}
     >
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M8 5v14l11-7z" />
-      </svg>
+      <Play aria-hidden="true" />
     </Link>
   );
 }

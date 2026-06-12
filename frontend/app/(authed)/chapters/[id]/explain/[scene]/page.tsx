@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -163,9 +164,7 @@ export default function ChapterScenePage() {
         aria-label="กลับไปหน้าเลือกบท"
       >
         <span className={styles.chapterSceneExitIcon} aria-hidden="true">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14.5 5L7.5 12L14.5 19" />
-          </svg>
+          <ChevronLeft />
         </span>
         <span className={styles.chapterSceneExitLabel}>กลับ</span>
       </Link>

@@ -90,6 +90,8 @@
   width: 2rem;
   height: 2rem;
   fill: #2e7aaa;
+  stroke: #2e7aaa;
+  stroke-linejoin: round;
   margin-left: 0.3rem;
 }
 
