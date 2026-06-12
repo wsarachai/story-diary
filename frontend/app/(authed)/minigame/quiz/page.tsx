@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Home, BookOpen, NotebookPen, Gamepad2 } from "lucide-react";
+import { ArrowRight, Home, BookOpen, NotebookPen, Gamepad2 } from "lucide-react";
 import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
@@ -116,7 +116,8 @@ function QuizInner() {
           aria-label="ส่งคำตอบ"
           onClick={handleSubmit}
         >
-          ส่ง →
+          ส่ง
+          <ArrowRight className={styles.btnArrowIcon} aria-hidden="true" />
         </button>
       </div>
     </div>

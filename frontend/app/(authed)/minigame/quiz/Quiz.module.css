@@ -153,7 +153,15 @@
   box-shadow: 0 8px 22px -8px rgba(106, 36, 242, 0.48);
   transition: transform 0.15s;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.btnArrowIcon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
 }
 
 .quizSubmitBtn:hover:not(:disabled) {
@@ -219,6 +227,9 @@
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   text-decoration: none;
   display: inline-block;
 }

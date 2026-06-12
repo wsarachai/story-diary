@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight, Check, X } from "lucide-react";
 import IconRail from "@/components/IconRail";
 import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../../QuizProvider";
@@ -107,14 +108,9 @@ function FeedbackInner() {
       >
         <div className={styles.feedbackIcon} aria-hidden="true">
           {isCorrect ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+            <Check color="#fff" strokeWidth={2.5} />
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <X color="#fff" strokeWidth={2.5} />
           )}
         </div>
         <span className={styles.feedbackText}>
@@ -122,7 +118,8 @@ function FeedbackInner() {
         </span>
         {/* DS-3: flip button copy on last question */}
         <button className={styles.feedbackNextBtn} onClick={handleAdvance} aria-label={isLastQuestion ? "ดูคะแนน" : "ข้อต่อไป"}>
-          {isLastQuestion ? "ดูคะแนน →" : "ข้อต่อไป →"}
+          {isLastQuestion ? "ดูคะแนน" : "ข้อต่อไป"}
+          <ArrowRight className={styles.btnArrowIcon} aria-hidden="true" />
         </button>
       </div>
     </div>
