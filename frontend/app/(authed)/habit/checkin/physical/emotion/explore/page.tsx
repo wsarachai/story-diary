@@ -1,4 +1,5 @@
 "use client";
+import { Annoyed, Check, Frown, Laugh, LoaderCircle, Meh, Smile, X } from "lucide-react";
 import { Suspense, useReducer, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -8,12 +9,12 @@ import type { MoodLevel } from "@/types/habit";
 import styles from "../../../../add/HabitAdd.module.css";
 import checkinStyles from "../../../HabitCheckin.module.css";
 
-const MOOD_LEVELS: { level: MoodLevel; emoji: string; label: string }[] = [
-  { level: "very-bad", emoji: "😞", label: "แย่มาก" },
-  { level: "bad", emoji: "😕", label: "แย่" },
-  { level: "neutral", emoji: "😐", label: "เฉยๆ" },
-  { level: "good", emoji: "🙂", label: "ดี" },
-  { level: "very-good", emoji: "😊", label: "ดีมาก" },
+const MOOD_LEVELS: { level: MoodLevel; Face: typeof Smile; color: string; label: string }[] = [
+  { level: "very-bad", Face: Frown, color: "#d63a3a", label: "แย่มาก" },
+  { level: "bad", Face: Annoyed, color: "#e8a000", label: "แย่" },
+  { level: "neutral", Face: Meh, color: "#888888", label: "เฉยๆ" },
+  { level: "good", Face: Smile, color: "#2a9d8f", label: "ดี" },
+  { level: "very-good", Face: Laugh, color: "#3aab3a", label: "ดีมาก" },
 ];
 
 interface State {
@@ -100,7 +101,7 @@ function ExploreEmotionInner() {
       <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="mood-title">
         <header className={styles.createHeader}>
           <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <X />
           </button>
           <h2 className={styles.createTitle} id="mood-title">สำรวจอารมณ์ตนเอง</h2>
           <button
@@ -111,8 +112,8 @@ function ExploreEmotionInner() {
             style={{ borderColor: "#08c65a" }}
           >
             {saving
-              ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-              : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+              ? <LoaderCircle style={{ stroke: "#08c65a" }} />
+              : <Check style={{ stroke: "#08c65a" }} />
             }
           </button>
         </header>
@@ -120,7 +121,7 @@ function ExploreEmotionInner() {
         <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555", textAlign: "center" }}>วันนี้คุณรู้สึกอย่างไร?</p>
           <div className={checkinStyles.ciMoodRow} role="radiogroup" aria-label="ระดับอารมณ์">
-            {MOOD_LEVELS.map(({ level, emoji, label }) => (
+            {MOOD_LEVELS.map(({ level, Face, color, label }) => (
               <button
                 key={level}
                 className={`${checkinStyles.ciMoodBtn} ${state.mood === level ? checkinStyles.isSelected : ""}`}
@@ -129,7 +130,9 @@ function ExploreEmotionInner() {
                 aria-label={label}
                 onClick={() => dispatchLocal({ type: "SET_MOOD", mood: level })}
               >
-                <span className={checkinStyles.ciMoodEmoji}>{emoji}</span>
+                <span className={checkinStyles.ciMoodEmoji} aria-hidden="true">
+                  <Face color={color} />
+                </span>
                 <span className={checkinStyles.ciMoodLabel}>{label}</span>
               </button>
             ))}

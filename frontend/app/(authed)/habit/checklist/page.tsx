@@ -3,6 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  Pill,
+  Apple,
+  PersonStanding,
+  SmilePlus,
+  Trash2,
+  ChevronsRight,
+  ChevronRight,
+  Check,
+  Minus,
+} from "lucide-react";
+import {
   useGetTodayHabitsQuery,
   useToggleOccurrenceMutation,
   useDeleteActivityMutation,
@@ -83,60 +94,10 @@ function getActivityDisplayName(activity: HabitActivity): string {
 }
 
 function CategoryIcon({ accent }: { accent: string }) {
-  if (accent === "#57a8db") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#57a8db" strokeWidth="2">
-        <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
-        <rect x="9" y="1" width="6" height="4" rx="1" />
-        <line x1="9" y1="12" x2="15" y2="12" />
-        <line x1="12" y1="9" x2="12" y2="15" />
-      </svg>
-    );
-  }
-  if (accent === "#2eb563") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#2eb563" strokeWidth="2">
-        <path d="M3 2v7c0 1.66 1.34 3 3 3h1v9a1 1 0 0 0 2 0V5" />
-        <path d="M18 2v20M15 2v6a3 3 0 0 0 6 0V2" />
-      </svg>
-    );
-  }
-  if (accent === "#e76f51") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#e76f51" strokeWidth="2">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-        <line x1="9" y1="9" x2="9.01" y2="9" />
-        <line x1="15" y1="9" x2="15.01" y2="9" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="#ee8a4a" strokeWidth="2">
-      <circle cx="12" cy="5" r="2" />
-      <path d="M6 11h12M12 7v4M9 21l3-7 3 7" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-    </svg>
-  );
-}
-
-function SkipIcon() {
-  return (
-    <svg viewBox="0 0 24 24">
-      <polyline points="5 6 12 12 5 18" />
-      <polyline points="13 6 20 12 13 18" />
-    </svg>
-  );
+  if (accent === "#57a8db") return <Pill color={accent} />;
+  if (accent === "#2eb563") return <Apple color={accent} />;
+  if (accent === "#e76f51") return <SmilePlus color={accent} />;
+  return <PersonStanding color="#ee8a4a" />;
 }
 
 interface DeleteConfirmProps {
@@ -324,9 +285,7 @@ export default function HabitChecklistPage() {
                       className={styles.habitEntryLogArrow}
                       aria-hidden="true"
                     >
-                      <svg viewBox="0 0 24 24">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                      <ChevronRight />
                     </span>
                   )}
                   <button
@@ -337,7 +296,7 @@ export default function HabitChecklistPage() {
                       setConfirmId(entry.activity.id);
                     }}
                   >
-                    <TrashIcon />
+                    <Trash2 />
                   </button>
                   {(entry.occurrence.status === "pending" ||
                     entry.occurrence.status === "partial") && (
@@ -354,7 +313,7 @@ export default function HabitChecklistPage() {
                         });
                       }}
                     >
-                      <SkipIcon />
+                      <ChevronsRight />
                     </button>
                   )}
                   <button
@@ -390,27 +349,10 @@ export default function HabitChecklistPage() {
                     }}
                   >
                     {entry.occurrence.status === "done" && (
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#fff"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      <Check color="#fff" strokeWidth={3} />
                     )}
                     {entry.occurrence.status === "skipped" && (
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#fff"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      >
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                      </svg>
+                      <Minus color="#fff" strokeWidth={3} />
                     )}
                   </button>
                 </div>

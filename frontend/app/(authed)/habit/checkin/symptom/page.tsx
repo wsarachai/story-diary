@@ -1,4 +1,5 @@
 "use client";
+import { Activity, Check, ChevronLeft, LoaderCircle } from "lucide-react";
 import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -80,16 +81,14 @@ function SymptomCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลอาการ">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/checklist")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+          <ChevronLeft />
         </button>
         <h2 className={styles.ciTitle}>บันทึกอาการ</h2>
       </div>
 
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconSymptom}`} aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
+          <Activity />
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillSymptom}`}>
           {activity?.name ?? "อาการผิดปกติ"}
@@ -108,9 +107,7 @@ function SymptomCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "0.9rem" }} aria-label="รายการอาการ">
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
-          <svg viewBox="0 0 24 24" style={{ stroke: "#e76f51" }}>
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
+          <Activity style={{ stroke: "#e76f51" }} />
           อาการวันนี้
         </h3>
         <button
@@ -120,8 +117,8 @@ function SymptomCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+            ? <LoaderCircle style={{ animation: "spin 0.9s linear infinite" }} />
+            : <Check />
           }
         </button>
       </div>
@@ -141,7 +138,7 @@ function SymptomCheckinInner() {
             />
             <span className={styles.ciCheckCircle} aria-hidden="true">
               {item.checked && (
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                <Check />
               )}
             </span>
             <span className={styles.ciCheckLabel}>{item.label}</span>

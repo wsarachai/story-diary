@@ -1,4 +1,5 @@
 "use client";
+import { Check, ChevronLeft, Clock, LoaderCircle, Pill, TriangleAlert } from "lucide-react";
 import { Suspense, useReducer, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -113,29 +114,21 @@ function MedicineCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลยา">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/checklist")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+          <ChevronLeft />
         </button>
         <h2 className={styles.ciTitle}>บันทึกการกินยา</h2>
       </div>
 
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconMed}`} aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" />
-            <rect x="9" y="1" width="6" height="4" rx="1" />
-            <line x1="9" y1="12" x2="15" y2="12" />
-            <line x1="12" y1="9" x2="12" y2="15" />
-          </svg>
+          <Pill />
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillMed}`}>{activity?.name ?? "ยา"}</span>
       </div>
 
       <div className={styles.ciChips}>
         <span className={`${styles.ciChip} ${styles.ciChipTiming}`} style={{ fontSize: "1.2em" }}>
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" />
-            <polyline points="12 7 12 12 15 15" />
-          </svg>
+          <Clock />
           {mealRelationLabel}
         </span>
         {mealSlots.map(slot => (
@@ -155,11 +148,7 @@ function MedicineCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "0.9rem" }} aria-label="ผลข้างเคียง">
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
-          <svg viewBox="0 0 24 24">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
+          <TriangleAlert />
           ผลข้างเคียง
         </h3>
         <button
@@ -169,8 +158,8 @@ function MedicineCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+            ? <LoaderCircle style={{ animation: "spin 0.9s linear infinite" }} />
+            : <Check />
           }
         </button>
       </div>
@@ -190,7 +179,7 @@ function MedicineCheckinInner() {
             />
             <span className={styles.ciCheckCircle} aria-hidden="true">
               {se.checked && (
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                <Check />
               )}
             </span>
             <span className={styles.ciCheckLabel} style={{ fontSize: "1.25em" }}>{se.label}</span>
@@ -202,10 +191,7 @@ function MedicineCheckinInner() {
         <>
           <div className={styles.ciSectionHeader} style={{ marginTop: "1rem" }}>
             <h3 className={styles.ciSectionLabel}>
-              <svg viewBox="0 0 24 24" style={{ stroke: "#9b5de5" }}>
-                <circle cx="12" cy="12" r="9" />
-                <polyline points="12 7 12 12 15 15" />
-              </svg>
+              <Clock style={{ stroke: "#9b5de5" }} />
               มื้อยาที่รับประทาน
             </h3>
           </div>
@@ -226,7 +212,7 @@ function MedicineCheckinInner() {
                   />
                   <span className={styles.ciCheckCircle} aria-hidden="true">
                     {isChecked && (
-                      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                      <Check />
                     )}
                   </span>
                   <span className={styles.ciCheckLabel} style={{ fontSize: "1.25em" }}>{SLOT_LABEL[slot]}</span>

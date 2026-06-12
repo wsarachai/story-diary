@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
@@ -34,7 +35,7 @@ export default async function AddPhysicalPage({ searchParams }: { searchParams: 
           <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="physical-title">
             <header className={styles.createHeader}>
               <Link className={styles.actionBtn} href={`/habit/add?from=${from}`} aria-label="กลับ">
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                <ChevronLeft />
               </Link>
               <h2 className={styles.createTitle} id="physical-title">กิจกรรมทางกาย</h2>
               <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
@@ -51,9 +52,7 @@ export default async function AddPhysicalPage({ searchParams }: { searchParams: 
                   <span className={styles.menuItemDot} aria-hidden="true" />
                   <span className={styles.menuItemLabel}>{label}</span>
                   {isMenu && (
-                    <svg className={styles.menuItemChevron} viewBox="0 0 24 24" aria-hidden="true">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                    <ChevronRight className={styles.menuItemChevron} aria-hidden="true" />
                   )}
                 </Link>
               ))}

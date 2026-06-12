@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import styles from "@/app/(authed)/habit/habit.module.css";
 
 export type HabitTrackerTab = "list" | "summary" | "weekly" | "monthly";
@@ -46,16 +47,7 @@ export default function HabitTrackerHeader({
           {date}
         </div>
         <Link href={addHref} className={styles.addBtn} aria-label={addLabel}>
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="3"
-            strokeLinecap="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <Plus color="#fff" strokeWidth={3} />
         </Link>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, Pill, Apple, PersonStanding } from "lucide-react";
 import { useClientSearchParams } from "@/lib/hooks";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -19,13 +20,12 @@ export default function AddActivityPage() {
             aria-label="ย้อนกลับ"
             onClick={() => router.push(from)}
           >
-            <svg viewBox="0 0 24 24">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
+            <ChevronLeft aria-hidden="true" />
             ย้อนกลับ
           </button>
           <h2 className={styles.formCardTitle} id="form-title">เพิ่มกิจกรรม</h2>
         </header>
+        <p className={styles.formCardHint}>เลือกประเภทกิจกรรมที่ต้องการเพิ่ม</p>
         <div className={styles.categoryTabs} role="tablist" aria-label="ประเภทกิจกรรม">
           <Link
             className={`${styles.catTab} ${styles.catMed}`}
@@ -34,12 +34,10 @@ export default function AddActivityPage() {
             href={`/habit/add/medicine?source=medicine&from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
-              <svg viewBox="0 0 80 80" fill="none">
-                <rect x="28" y="10" width="24" height="60" rx="12" stroke="white" strokeWidth="5" />
-                <rect x="10" y="28" width="60" height="24" rx="12" stroke="white" strokeWidth="5" />
-              </svg>
+              <Pill />
             </div>
             <span className={styles.catTabLabel}>ยา</span>
+            <span className={styles.catTabHint}>บันทึกการกินยา</span>
           </Link>
           <Link
             className={`${styles.catTab} ${styles.catFood}`}
@@ -48,13 +46,10 @@ export default function AddActivityPage() {
             href={`/habit/add/nutrition?from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
-              <svg viewBox="0 0 80 80" fill="none">
-                <circle cx="40" cy="45" r="26" stroke="white" strokeWidth="5" />
-                <path d="M40 19 C40 10 55 10 55 19" stroke="white" strokeWidth="5" strokeLinecap="round" />
-                <line x1="40" y1="10" x2="40" y2="22" stroke="white" strokeWidth="5" strokeLinecap="round" />
-              </svg>
+              <Apple />
             </div>
             <span className={styles.catTabLabel}>โภชนาการ</span>
+            <span className={styles.catTabHint}>บันทึกการกินอาหาร</span>
           </Link>
           <Link
             className={`${styles.catTab} ${styles.catBody}`}
@@ -63,13 +58,10 @@ export default function AddActivityPage() {
             href={`/habit/add/physical?from=${from}`}
           >
             <div className={styles.catTabIcon} aria-hidden="true">
-              <svg viewBox="0 0 80 80" fill="none">
-                <circle cx="40" cy="18" r="8" stroke="white" strokeWidth="5" />
-                <path d="M20 40 L40 30 L60 40" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M30 40 L30 60 L40 55 L50 60 L50 40" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <PersonStanding />
             </div>
             <span className={styles.catTabLabel}>กิจกรรมทางกาย</span>
+            <span className={styles.catTabHint}>บันทึกการเคลื่อนไหวร่างกาย</span>
           </Link>
         </div>
       </div>

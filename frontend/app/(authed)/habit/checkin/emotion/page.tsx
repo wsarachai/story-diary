@@ -1,4 +1,5 @@
 "use client";
+import { Annoyed, Check, ChevronLeft, Frown, Laugh, LoaderCircle, Meh, Smile } from "lucide-react";
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -11,18 +12,18 @@ import styles from "../HabitCheckin.module.css";
 
 interface MoodOption {
   level: MoodLevel;
-  emoji: string;
+  Face: typeof Smile;
   label: string;
   sliderDefault: number;
   color: string;
 }
 
 const MOOD_OPTIONS: MoodOption[] = [
-  { level: "very-bad", emoji: "😢", label: "แย่มาก", sliderDefault: -80, color: "#d63a3a" },
-  { level: "bad", emoji: "😟", label: "แย่", sliderDefault: -40, color: "#e8a000" },
-  { level: "neutral", emoji: "😐", label: "เฉยๆ", sliderDefault: 0, color: "#888" },
-  { level: "good", emoji: "😊", label: "ดี", sliderDefault: 40, color: "#2a9d8f" },
-  { level: "very-good", emoji: "😄", label: "ดีมาก", sliderDefault: 80, color: "#3aab3a" },
+  { level: "very-bad", Face: Frown, label: "แย่มาก", sliderDefault: -80, color: "#d63a3a" },
+  { level: "bad", Face: Annoyed, label: "แย่", sliderDefault: -40, color: "#e8a000" },
+  { level: "neutral", Face: Meh, label: "เฉยๆ", sliderDefault: 0, color: "#888" },
+  { level: "good", Face: Smile, label: "ดี", sliderDefault: 40, color: "#2a9d8f" },
+  { level: "very-good", Face: Laugh, label: "ดีมาก", sliderDefault: 80, color: "#3aab3a" },
 ];
 
 function EmotionCheckinInner() {
@@ -69,19 +70,14 @@ function EmotionCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1.1rem" }} aria-label="ข้อมูลอารมณ์">
       <div className={styles.ciPageHeader}>
         <button className={styles.ciBtn} aria-label="กลับ" onClick={() => router.push("/habit/checklist")}>
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg>
+          <ChevronLeft />
         </button>
         <h2 className={styles.ciTitle}>บันทึกอารมณ์</h2>
       </div>
 
       <div className={styles.ciIdentity}>
         <div className={`${styles.ciIcon} ${styles.ciIconEmotion}`} aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-            <line x1="9" y1="9" x2="9.01" y2="9" />
-            <line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
+          <Smile />
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillEmotion}`}>
           {activity?.name ?? "จัดการอารมณ์"}
@@ -90,7 +86,9 @@ function EmotionCheckinInner() {
 
       {currentOption && (
         <div style={{ textAlign: "center", padding: "0.6em 0" }}>
-          <div style={{ fontSize: "3em", lineHeight: 1 }}>{currentOption.emoji}</div>
+          <div style={{ lineHeight: 1 }}>
+            <currentOption.Face size="3em" color={currentOption.color} aria-hidden="true" />
+          </div>
           <div style={{ fontSize: "1.4em", fontWeight: 700, color: currentOption.color, marginTop: "0.25em" }}>
             {currentOption.label}
           </div>
@@ -109,12 +107,7 @@ function EmotionCheckinInner() {
     <div style={{ padding: "1.2rem 1.4rem", display: "flex", flexDirection: "column", gap: "1rem" }} aria-label="เลือกระดับอารมณ์">
       <div className={styles.ciSectionHeader}>
         <h3 className={styles.ciSectionLabel}>
-          <svg viewBox="0 0 24 24" style={{ stroke: "#ee8a4a" }}>
-            <circle cx="12" cy="12" r="9" />
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-            <line x1="9" y1="9" x2="9.01" y2="9" />
-            <line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
+          <Smile style={{ stroke: "#ee8a4a" }} />
           อารมณ์วันนี้
         </h3>
         <button
@@ -124,8 +117,8 @@ function EmotionCheckinInner() {
           disabled={saving}
         >
           {saving
-            ? <svg viewBox="0 0 24 24" style={{ animation: "spin 0.9s linear infinite" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40" fill="none" /></svg>
-            : <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+            ? <LoaderCircle style={{ animation: "spin 0.9s linear infinite" }} />
+            : <Check />
           }
         </button>
       </div>
@@ -139,7 +132,9 @@ function EmotionCheckinInner() {
             aria-pressed={mood === option.level}
             onClick={() => selectMood(option)}
           >
-            <span className={styles.ciMoodEmoji} aria-hidden="true">{option.emoji}</span>
+            <span className={styles.ciMoodEmoji} aria-hidden="true">
+              <option.Face color={option.color} />
+            </span>
             <span className={styles.ciMoodLabel} style={{ fontSize: "1.2em" }}>{option.label}</span>
           </button>
         ))}

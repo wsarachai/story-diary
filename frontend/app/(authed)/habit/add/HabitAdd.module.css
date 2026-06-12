@@ -40,33 +40,48 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  color: rgba(13, 18, 23, 0.45);
-  font-size: 0.9em;
+  color: rgba(13, 18, 23, 0.55);
+  font-size: 1.1em;
   font-weight: 600;
   font-family: inherit;
-  padding: 0.3rem 0.5rem 0.3rem 0;
-  transition: color 0.15s;
+  min-height: 3rem;
+  padding: 0.3rem 1rem 0.3rem 0.6rem;
+  border-radius: 999px;
+  transition: color 0.15s, background-color 0.15s;
   flex-shrink: 0;
 }
 
 .formCardBack:hover {
-  color: rgba(13, 18, 23, 0.85);
+  color: rgba(13, 18, 23, 0.9);
+  background: rgba(13, 18, 23, 0.06);
+}
+
+.formCardBack:focus-visible {
+  outline: 3px solid var(--panel-blue, #59d6dc);
+  outline-offset: 2px;
 }
 
 .formCardBack svg {
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.6rem;
+  height: 1.6rem;
   stroke: currentColor;
   stroke-width: 2.5;
   fill: none;
+}
+
+.formCardHint {
+  margin: 0;
+  padding: 0.4rem 1.8rem 0;
+  font-size: 1.5em;
+  color: rgba(13, 18, 23, 0.55);
 }
 
 .categoryTabs {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.2rem;
-  padding: 1rem 1.8rem 1.8rem;
+  gap: 1.6rem;
+  padding: 1.2rem 1.8rem 1.8rem;
 }
 
 .catTab {
@@ -74,14 +89,32 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 1.2rem 1rem;
-  border-radius: 24px;
+  gap: 1.2rem;
+  padding: 1.6rem 1.2rem;
+  border-radius: 28px;
   cursor: pointer;
   border: none;
   color: #fff;
   font-family: inherit;
   text-decoration: none;
+  box-shadow: 0 10px 24px -12px rgba(13, 18, 35, 0.45);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.catTab:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 38px -14px rgba(13, 18, 35, 0.5);
+  filter: brightness(1.05);
+}
+
+.catTab:active {
+  transform: translateY(-2px) scale(0.985);
+  box-shadow: 0 10px 24px -12px rgba(13, 18, 35, 0.45);
+}
+
+.catTab:focus-visible {
+  outline: 5px solid #fff;
+  outline-offset: -10px;
 }
 
 .catTab.isActive {
@@ -89,36 +122,48 @@
 }
 
 .catTabIcon {
-  width: 14rem;
-  height: 14rem;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.28);
   display: grid;
   place-items: center;
 }
 
 .catTabIcon svg {
-  width: 100%;
-  height: 100%;
+  width: 7.5rem;
+  height: 7.5rem;
   stroke: #fff;
+  stroke-width: 1.7;
 }
 
 .catTabLabel {
-  font-size: 3.2em;
-  font-weight: 600;
+  font-size: 3em;
+  font-weight: 700;
   color: #fff;
   line-height: 1.05;
   text-align: center;
 }
 
+.catTabHint {
+  font-size: 1.6em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.2;
+  text-align: center;
+}
+
 .catMed {
-  background: #57a8db;
+  background: linear-gradient(180deg, #5fb1e3 0%, #4d9bd0 100%);
 }
 
 .catFood {
-  background: #2eb563;
+  background: linear-gradient(180deg, #3cbf6f 0%, #27a657 100%);
 }
 
 .catBody {
-  background: #ee8a4a;
+  background: linear-gradient(180deg, #f29457 0%, #e57e3c 100%);
 }
 
 .createCard {
@@ -151,6 +196,21 @@
   place-items: center;
   padding: 0;
   flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actionBtn:hover:not(:disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 8px 18px -8px rgba(13, 18, 35, 0.45);
+}
+
+.actionBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.actionBtn:focus-visible {
+  outline: 3px solid var(--panel-blue, #59d6dc);
+  outline-offset: 3px;
 }
 
 .actionBtn svg {
@@ -435,10 +495,17 @@
   cursor: pointer;
   color: #111;
   text-decoration: none;
+  transition: background-color 0.15s ease, transform 0.12s ease;
 }
 
 .nutritionItem:hover {
   background: #b8b3ab;
+  transform: translateX(3px);
+}
+
+.nutritionItem:focus-visible {
+  outline: 3px solid var(--panel-blue, #59d6dc);
+  outline-offset: 2px;
 }
 
 .nutritionItemDot {
@@ -502,10 +569,17 @@
   cursor: pointer;
   color: #111;
   text-decoration: none;
+  transition: background-color 0.15s ease, transform 0.12s ease;
 }
 
 .menuItem:hover {
   background: #b8b3ab;
+  transform: translateX(3px);
+}
+
+.menuItem:focus-visible {
+  outline: 3px solid var(--panel-blue, #59d6dc);
+  outline-offset: 2px;
 }
 
 .menuItemDot {

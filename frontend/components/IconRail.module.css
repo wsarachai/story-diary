@@ -20,13 +20,33 @@
   text-decoration: none;
 }
 
-.iconRailLink img {
-  display: block;
+.railTile {
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   position: relative;
   z-index: 1;
   border-radius: 0 1.3rem 1.3rem 0;
+  background: var(--rail-tile, var(--rail-accent, #ff3131));
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.railIcon {
+  width: 58%;
+  height: 58%;
+  color: #fff9f2;
+  stroke-width: 2;
+}
+
+.iconRailLink:hover .railTile {
+  transform: translateX(3px);
+  filter: brightness(1.08);
+}
+
+.iconRailLink:focus-visible {
+  outline: 3px solid var(--ink, #1a1a1a);
+  outline-offset: 2px;
 }
 
 .iconRailLink.isActive::before {
@@ -48,29 +68,8 @@
   border-top: 1.5px solid rgba(0, 0, 0, 0.1);
 }
 
-.adminIconImg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  z-index: 1;
-  border-radius: 0 1.3rem 1.3rem 0;
-  background: #1e3a5f;
-}
-
-.adminIconImg::after {
-  content: '';
-  position: absolute;
-  inset: 13%;
-  background: #a8d4ff;
-  -webkit-mask-image: url('/icons/admin-icon.png');
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-image: url('/icons/admin-icon.png');
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
+.iconRailAdminWrap .railIcon {
+  color: #a8d4ff;
 }
 
 @media (max-width: 900px) {
@@ -91,11 +90,7 @@
     border-radius: 0.9rem;
   }
 
-  .iconRailLink img {
-    border-radius: 0.9rem;
-  }
-
-  .adminIconImg {
+  .railTile {
     border-radius: 0.9rem;
   }
 

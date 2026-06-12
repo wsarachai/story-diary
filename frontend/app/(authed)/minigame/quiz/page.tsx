@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { Home, BookOpen, NotebookPen, Gamepad2 } from "lucide-react";
 import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
@@ -125,11 +125,11 @@ function QuizInner() {
   const customRail = (
     <nav className={styles.iconRail} aria-label="Main navigation">
       {[
-        { href: "/home", icon: "/icons/home.svg", label: "ไปหน้าแรก", activeAccent: "#ff3131" },
-        { href: "/chapters", icon: "/icons/book.svg", label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
-        { href: "/habit", icon: "/icons/edit.svg", label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
-        { href: "/minigame", icon: "/icons/game.svg", label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
-      ].map(({ href, icon, label, activeAccent }) => {
+        { href: "/home", Icon: Home, label: "ไปหน้าแรก", activeAccent: "#ff3131" },
+        { href: "/chapters", Icon: BookOpen, label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
+        { href: "/habit", Icon: NotebookPen, label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
+        { href: "/minigame", Icon: Gamepad2, label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
+      ].map(({ href, Icon, label, activeAccent }) => {
         const isActive = href === "/minigame" || href.startsWith("/minigame/");
         return (
           <button
@@ -141,7 +141,9 @@ function QuizInner() {
               ["--rail-accent" as string]: activeAccent,
             }}
           >
-            <Image src={icon} alt="" width={72} height={72} />
+            <span className={styles.railTile} aria-hidden="true">
+              <Icon className={styles.railIcon} />
+            </span>
           </button>
         );
       })}

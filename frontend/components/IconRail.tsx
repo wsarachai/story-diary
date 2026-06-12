@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
+import { Home, BookOpen, NotebookPen, Gamepad2, Settings } from "lucide-react";
 import { RAIL_ITEMS } from "@/types/navigation";
 import type { NavRailKey } from "@/types/navigation";
 import { useGetMeQuery } from "@/store/authApi";
@@ -15,6 +15,13 @@ function getActiveKey(pathname: string): NavRailKey | null {
   if (pathname.startsWith("/minigame")) return "minigame";
   return null;
 }
+
+const RAIL_ICONS: Record<NavRailKey, React.ComponentType<{ className?: string }>> = {
+  home: Home,
+  chapters: BookOpen,
+  habit: NotebookPen,
+  minigame: Gamepad2,
+};
 
 const ADMIN_ACCENT = "#3b82f6";
 
@@ -29,6 +36,7 @@ export default function IconRail() {
     <nav className={styles.iconRail} aria-label="Main navigation">
       {RAIL_ITEMS.map((item) => {
         const isActive = item.key === activeKey;
+        const Icon = RAIL_ICONS[item.key];
         return (
           <Link
             key={item.key}
@@ -36,14 +44,11 @@ export default function IconRail() {
             className={[styles.iconRailLink, isActive && styles.isActive].filter(Boolean).join(" ")}
             aria-label={item.ariaLabel}
             aria-current={isActive ? "page" : undefined}
-            style={isActive ? ({ "--rail-accent": item.activeAccent } as React.CSSProperties) : undefined}
+            style={{ "--rail-accent": item.activeAccent } as React.CSSProperties}
           >
-            <Image
-              src={`/icons/${item.icon}`}
-              alt=""
-              width={72}
-              height={72}
-            />
+            <span className={styles.railTile} aria-hidden="true">
+              <Icon className={styles.railIcon} />
+            </span>
           </Link>
         );
       })}
@@ -55,9 +60,11 @@ export default function IconRail() {
             className={[styles.iconRailLink, adminActive && styles.isActive].filter(Boolean).join(" ")}
             aria-label="ไปหน้าจัดการ Admin"
             aria-current={adminActive ? "page" : undefined}
-            style={adminActive ? ({ "--rail-accent": ADMIN_ACCENT } as React.CSSProperties) : undefined}
+            style={{ "--rail-accent": ADMIN_ACCENT, "--rail-tile": "#1e3a5f" } as React.CSSProperties}
           >
-            <div className={styles.adminIconImg} aria-hidden="true" />
+            <span className={styles.railTile} aria-hidden="true">
+              <Settings className={styles.railIcon} />
+            </span>
           </Link>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
@@ -29,7 +30,7 @@ export default async function AddNutritionPage({ searchParams }: { searchParams:
                 href={`/habit/add?from=${from}`}
                 aria-label="กลับ"
               >
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                <ChevronLeft />
               </Link>
               <h2 className={styles.createTitle} id="nutrition-title">โภชนาการ</h2>
               <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
@@ -45,9 +46,7 @@ export default async function AddNutritionPage({ searchParams }: { searchParams:
                 >
                   <span className={styles.nutritionItemDot} aria-hidden="true" />
                   <span className={styles.nutritionItemLabel}>{NUTRITION_PRESETS[key]}</span>
-                  <svg className={styles.nutritionItemChevron} viewBox="0 0 24 24" aria-hidden="true">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
+                  <ChevronRight className={styles.nutritionItemChevron} aria-hidden="true" />
                 </Link>
               ))}
               <Link
@@ -58,9 +57,7 @@ export default async function AddNutritionPage({ searchParams }: { searchParams:
               >
                 <span className={styles.nutritionItemDot} aria-hidden="true" />
                 <span className={styles.nutritionItemLabel}>อื่นๆ</span>
-                <svg className={styles.nutritionItemChevron} viewBox="0 0 24 24" aria-hidden="true">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
+                <ChevronRight className={styles.nutritionItemChevron} aria-hidden="true" />
               </Link>
             </div>
           </div>

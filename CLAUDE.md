@@ -37,6 +37,8 @@ pnpm lint       # ESLint (next/core-web-vitals + typescript)
 
 The `docz/layouts/` directory contains standalone HTML prototypes that are the **design source of truth** for the UI. When implementing screens, use these as the reference.
 
+**Exception — habit tracker & nav rail**: the implemented UI under `frontend/app/(authed)/habit/` and `frontend/components/IconRail.tsx` intentionally supersedes the wireframes (June 2026 UX refresh). Icons come from `lucide-react` — do not reintroduce hand-rolled inline SVGs or revert these screens toward the prototypes. Note: Baloo 2 has no Thai glyphs; Thai text must stay on Noto Sans Thai.
+
 - Screens are numbered `s001`–`s011`: Landing, Login, Register, Home, Chapters, Habit Tracker, Minigame, Chapters Menu, Chapters Explain, Chapters Explain Details, Video Clips.
 - All screens are Thai-language (`lang="th"`), desktop-first at 1920×1080.
 - Shared styles live in `docz/layouts/assets/common.css`; navigation uses `data-navigate="<filename>"` attributes handled by `common.js`.

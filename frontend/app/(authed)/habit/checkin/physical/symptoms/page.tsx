@@ -1,4 +1,5 @@
 "use client";
+import { Check, LoaderCircle, X } from "lucide-react";
 import { Suspense, useReducer, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -91,7 +92,7 @@ function SymptomsCheckinInner() {
       <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="symptoms-title">
         <header className={styles.createHeader}>
           <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <X />
           </button>
           <h2 className={styles.createTitle} id="symptoms-title">อาการผิดปกติ</h2>
           <button
@@ -102,8 +103,8 @@ function SymptomsCheckinInner() {
             style={{ borderColor: "#08c65a" }}
           >
             {saving
-              ? <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><circle cx="12" cy="12" r="9" strokeDasharray="20 40"/></svg>
-              : <svg viewBox="0 0 24 24" style={{ stroke: "#08c65a" }}><polyline points="20 6 9 17 4 12"/></svg>
+              ? <LoaderCircle style={{ stroke: "#08c65a" }} />
+              : <Check style={{ stroke: "#08c65a" }} />
             }
           </button>
         </header>
@@ -118,7 +119,7 @@ function SymptomsCheckinInner() {
                 onChange={() => dispatchLocal({ type: "TOGGLE", id: sym.id })}
               />
               <div className={checkinStyles.ciCheckCircle}>
-                {sym.checked && <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>}
+                {sym.checked && <Check />}
               </div>
               <span className={checkinStyles.ciCheckLabel} style={{ fontSize: "2em" }}>{sym.label}</span>
             </label>

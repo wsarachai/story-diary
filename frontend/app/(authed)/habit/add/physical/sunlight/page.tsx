@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
@@ -17,7 +18,7 @@ export default async function SunlightMenuPage({ searchParams }: { searchParams:
       <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="sunlight-title">
         <header className={styles.createHeader}>
           <Link className={styles.actionBtn} href={`/habit/add/physical?from=${from}`} aria-label="กลับ">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            <ChevronLeft />
           </Link>
           <h2 className={styles.createTitle} id="sunlight-title">รับแสงแดด</h2>
           <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
