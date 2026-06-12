@@ -172,7 +172,7 @@ export default function AdminChapterDetailPage() {
       speakerImageUrl: sceneForm.speakerImageUrl || undefined,
     };
     if (editSceneId !== null) {
-      await updateScene({ sceneId: editSceneId, body: body as UpdateSceneRequest });
+      await updateScene({ sceneId: editSceneId, chapterId, body: body as UpdateSceneRequest });
     } else {
       await createScene({ chapterId, body });
     }
@@ -181,7 +181,7 @@ export default function AdminChapterDetailPage() {
 
   async function handleDeleteScene(sceneId: string) {
     if (!window.confirm("ลบ scene นี้หรือไม่?")) return;
-    await deleteScene(sceneId);
+    await deleteScene({ sceneId, chapterId });
   }
 
   async function handleDragEnd(event: DragEndEvent) {

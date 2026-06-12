@@ -66,6 +66,7 @@ function NutritionCheckinInner() {
     try {
       await saveNutrition({
         occurrenceId: occId,
+        activityId,
         activityName: activity?.name ?? "โภชนาการ",
         breakfast: state.breakfast,
         lunch: state.lunch,

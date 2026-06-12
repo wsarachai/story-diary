@@ -45,6 +45,7 @@ function ExploreEmotionInner() {
   const discardRef = useRef<HTMLDialogElement>(null);
   
   const occId = searchParams.get("occ") ?? "";
+  const activityId = searchParams.get("actId") ?? "";
   const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
 
   const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
@@ -71,6 +72,7 @@ function ExploreEmotionInner() {
     try {
       await saveMood({
         occurrenceId: occId,
+        activityId,
         mood: state.mood,
         sliderValue: state.sliderValue,
         date: today

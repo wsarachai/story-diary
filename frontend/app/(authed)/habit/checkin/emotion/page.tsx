@@ -58,7 +58,7 @@ function EmotionCheckinInner() {
   async function handleSave() {
     if (saving) return;
     try {
-      await saveMood({ occurrenceId: occId, mood, sliderValue, date: today }).unwrap();
+      await saveMood({ occurrenceId: occId, activityId, mood, sliderValue, date: today }).unwrap();
       router.replace("/habit/checklist");
     } catch { /* ignore */ }
   }

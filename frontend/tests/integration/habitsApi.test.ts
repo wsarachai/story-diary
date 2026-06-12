@@ -536,6 +536,7 @@ describe("saveMedicineCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveMedicineCheckin.initiate({
         ...MEDICINE_CHECKIN,
+        activityId: OCC_MEDICINE.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -561,6 +562,7 @@ describe("saveMedicineCheckin", () => {
       store.dispatch(
         habitsApi.endpoints.saveMedicineCheckin.initiate({
           ...MEDICINE_CHECKIN,
+          activityId: OCC_MEDICINE.activityId,
           date: TODAY,
         })
       ).unwrap()
@@ -622,6 +624,7 @@ describe("saveNutritionCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveNutritionCheckin.initiate({
         ...NUTRITION_CHECKIN,
+        activityId: OCC_NUTRITION.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -639,6 +642,7 @@ describe("saveNutritionCheckin", () => {
       store.dispatch(
         habitsApi.endpoints.saveNutritionCheckin.initiate({
           occurrenceId: OCC_NUTRITION.id,
+          activityId: OCC_NUTRITION.activityId,
           activityName: "X",
           breakfast: "",
           lunch: "",
@@ -707,6 +711,7 @@ describe("saveSymptomsCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveSymptomsCheckin.initiate({
         ...SYMPTOMS_CHECKIN,
+        activityId: OCC_SYMPTOMS.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -728,6 +733,7 @@ describe("saveSymptomsCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveSymptomsCheckin.initiate({
         ...SYMPTOMS_CHECKIN,
+        activityId: OCC_SYMPTOMS.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -816,6 +822,7 @@ describe("saveMoodCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveMoodCheckin.initiate({
         ...MOOD_CHECKIN,
+        activityId: OCC_EMOTION.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -837,6 +844,7 @@ describe("saveMoodCheckin", () => {
     await store
       .dispatch(habitsApi.endpoints.saveMoodCheckin.initiate({
         ...MOOD_CHECKIN,
+        activityId: OCC_EMOTION.activityId,
         date: TODAY,
       }))
       .unwrap();
@@ -881,6 +889,7 @@ describe("Authorization header injection", () => {
     await store
       .dispatch(habitsApi.endpoints.saveMedicineCheckin.initiate({
         ...MEDICINE_CHECKIN,
+        activityId: OCC_MEDICINE.activityId,
         date: TODAY,
       }))
       .unwrap();

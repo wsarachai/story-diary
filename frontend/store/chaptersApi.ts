@@ -6,7 +6,7 @@ export const chaptersApi = apiSlice.injectEndpoints({
     getChapterSummaries: builder.query<ChapterSummary[], void>({
       query: () => "/chapters",
       transformResponse: (response: { chapters: ChapterSummary[] }) => response.chapters,
-      providesTags: ["Chapters"],
+      providesTags: [{ type: "Chapters", id: "LIST" }],
     }),
     getChapter: builder.query<Chapter, ChapterId>({
       query: (id) => `/chapters/${id}`,
@@ -21,7 +21,13 @@ export const chaptersApi = apiSlice.injectEndpoints({
         method: "POST",
         body: { progress },
       }),
-      invalidatesTags: ["Chapters"],
+      // Completing a chapter also unlocks the next one, so invalidate the
+      // list plus both chapter details rather than the whole Chapters type.
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Chapters", id: "LIST" },
+        { type: "Chapters", id },
+        { type: "Chapters", id: id + 1 },
+      ],
       async onQueryStarted({ id, progress }, { dispatch, queryFulfilled }) {
         // Optimistic update for getChapterSummaries
         const patchResult = dispatch(
