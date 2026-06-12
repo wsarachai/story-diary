@@ -1,8 +1,9 @@
 "use client";
 
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useGetMeQuery, useRegisterMutation } from "@/store/authApi";
 import type { Gender } from "@/types/auth";
 import type { ApiErrorCode } from "@/types/error";
@@ -82,6 +83,8 @@ export default function RegisterPage() {
   const [register, { isLoading: isSubmitting, error }] = useRegisterMutation();
 
   const [form, dispatchForm] = useReducer(formReducer, initialForm);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // DS-2: redirect if already authenticated
   useEffect(() => {
@@ -164,7 +167,7 @@ export default function RegisterPage() {
                   className={`${styles.registerInput} ${form.errors.name ? styles.registerInputError : ""}`}
                 />
               </div>
-              {form.errors.name && <span id="err-name" className={styles.fieldError}>{form.errors.name}</span>}
+              {form.errors.name && <span id="err-name" className={styles.fieldError}><CircleAlert className={styles.errorIcon} aria-hidden="true" />{form.errors.name}</span>}
 
               {/* Phone number (tel) */}
               <div className={styles.registerLineField}>
@@ -183,43 +186,65 @@ export default function RegisterPage() {
                   className={`${styles.registerInput} ${form.errors.tel ? styles.registerInputError : ""}`}
                 />
               </div>
-              {form.errors.tel && <span id="err-tel" className={styles.fieldError}>{form.errors.tel}</span>}
+              {form.errors.tel && <span id="err-tel" className={styles.fieldError}><CircleAlert className={styles.errorIcon} aria-hidden="true" />{form.errors.tel}</span>}
 
               {/* Password */}
               <div className={styles.registerLineField}>
                 <label htmlFor="password" className={styles.registerLabel}>
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={form.password}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "password", value: e.target.value }); }}
-                  aria-describedby={form.errors.password ? "err-password" : undefined}
-                  className={`${styles.registerInput} ${form.errors.password ? styles.registerInputError : ""}`}
-                />
+                <span className={styles.passwordWrap}>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(e) => { dispatchForm({ type: "SET", field: "password", value: e.target.value }); }}
+                    aria-describedby={form.errors.password ? "err-password" : undefined}
+                    className={`${styles.registerInput} ${form.errors.password ? styles.registerInputError : ""}`}
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeToggle}
+                    aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  </button>
+                </span>
               </div>
-              {form.errors.password && <span id="err-password" className={styles.fieldError}>{form.errors.password}</span>}
+              {form.errors.password && <span id="err-password" className={styles.fieldError}><CircleAlert className={styles.errorIcon} aria-hidden="true" />{form.errors.password}</span>}
 
               {/* Confirm Password */}
               <div className={styles.registerLineField}>
                 <label htmlFor="confirm-password" className={styles.registerLabel}>
                   ยืนยันรหัสผ่าน
                 </label>
-                <input
-                  id="confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={form.confirmPassword}
-                  onChange={(e) => { dispatchForm({ type: "SET", field: "confirmPassword", value: e.target.value }); }}
-                  aria-describedby={form.errors.confirmPassword ? "err-confirm" : undefined}
-                  className={`${styles.registerInput} ${form.errors.confirmPassword ? styles.registerInputError : ""}`}
-                />
+                <span className={styles.passwordWrap}>
+                  <input
+                    id="confirm-password"
+                    name="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={form.confirmPassword}
+                    onChange={(e) => { dispatchForm({ type: "SET", field: "confirmPassword", value: e.target.value }); }}
+                    aria-describedby={form.errors.confirmPassword ? "err-confirm" : undefined}
+                    className={`${styles.registerInput} ${form.errors.confirmPassword ? styles.registerInputError : ""}`}
+                  />
+                  <button
+                    type="button"
+                    className={styles.eyeToggle}
+                    aria-label={showConfirm ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                    aria-pressed={showConfirm}
+                    onClick={() => setShowConfirm((v) => !v)}
+                  >
+                    {showConfirm ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  </button>
+                </span>
               </div>
-              {form.errors.confirmPassword && <span id="err-confirm" className={styles.fieldError}>{form.errors.confirmPassword}</span>}
+              {form.errors.confirmPassword && <span id="err-confirm" className={styles.fieldError}><CircleAlert className={styles.errorIcon} aria-hidden="true" />{form.errors.confirmPassword}</span>}
             </div>
           </section>
 
@@ -233,6 +258,7 @@ export default function RegisterPage() {
                   aria-live="polite"
                   className={styles.topError}
                 >
+                  <CircleAlert className={styles.errorIcon} aria-hidden="true" />
                   {topError}
                 </p>
               )}
@@ -253,7 +279,7 @@ export default function RegisterPage() {
                   className={styles.charNameInput}
                 />
               </label>
-              {form.errors.characterName && <span id="err-char" className={styles.fieldError} style={{ marginTop: 0 }}>{form.errors.characterName}</span>}
+              {form.errors.characterName && <span id="err-char" className={styles.fieldError} style={{ marginTop: 0 }}><CircleAlert className={styles.errorIcon} aria-hidden="true" />{form.errors.characterName}</span>}
 
               {/* Gender radio group */}
               <div
@@ -300,6 +326,7 @@ export default function RegisterPage() {
                 disabled={isSubmitting}
                 className={`${sharedStyles.roundedPillButton} ${styles.registerSubmit}`}
               >
+                {isSubmitting && <LoaderCircle className={styles.submitSpinner} aria-hidden="true" />}
                 {isSubmitting ? "กำลังสร้างบัญชี…" : "ยืนยัน"}
               </button>
 

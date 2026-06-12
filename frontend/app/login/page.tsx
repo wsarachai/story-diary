@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CircleAlert, Eye, EyeOff, KeyRound, LoaderCircle, Phone } from "lucide-react";
 import { useGetMeQuery, useLoginMutation } from "@/store/authApi";
 import type { ApiErrorCode } from "@/types/error";
 import { useClientSearchParams } from "@/lib/hooks";
@@ -49,6 +50,7 @@ function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<ApiErrorCode | null>(null);
 
   const from = searchParams.get("from") ?? "/home";
@@ -92,6 +94,7 @@ function LoginForm() {
         className={styles.loginField}
       >
         <span className={styles.loginFieldLabel}>
+          <Phone className={styles.fieldIcon} aria-hidden="true" />
           เบอร์โทร
         </span>
         <input
@@ -118,22 +121,34 @@ function LoginForm() {
         className={styles.loginField}
       >
         <span className={styles.loginFieldLabel}>
+          <KeyRound className={styles.fieldIcon} aria-hidden="true" />
           รหัสผ่าน
         </span>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setLocalError(null);
-          }}
-          required
-          aria-describedby={submitError ? "login-error" : undefined}
-          className={styles.loginInput}
-        />
+        <span className={styles.passwordWrap}>
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setLocalError(null);
+            }}
+            required
+            aria-describedby={submitError ? "login-error" : undefined}
+            className={styles.loginInput}
+          />
+          <button
+            type="button"
+            className={styles.eyeToggle}
+            aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((v) => !v)}
+          >
+            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+          </button>
+        </span>
       </label>
 
       {/* Submit button — DS-3 states */}
@@ -142,6 +157,7 @@ function LoginForm() {
         disabled={isSubmitting}
         className={`${sharedStyles.roundedPillButton} ${styles.loginSubmit}`}
       >
+        {isSubmitting && <LoaderCircle className={styles.submitSpinner} aria-hidden="true" />}
         {isSubmitting ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
       </button>
 
@@ -153,6 +169,7 @@ function LoginForm() {
           aria-live="polite"
           className={styles.loginError}
         >
+          <CircleAlert className={styles.errorIcon} aria-hidden="true" />
           {errorCopy(submitError)}
         </p>
       )}

@@ -2,6 +2,60 @@
   font-size: 1.875em;
   font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.fieldIcon {
+  width: 0.9em;
+  height: 0.9em;
+  flex: 0 0 auto;
+  opacity: 0.85;
+}
+
+.passwordWrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: block;
+}
+
+.passwordWrap .loginInput {
+  padding-right: 3.4rem;
+}
+
+.eyeToggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.7rem;
+  height: 2.7rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(13, 18, 23, 0.5);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.eyeToggle:hover {
+  background: rgba(13, 18, 23, 0.07);
+  color: rgba(13, 18, 23, 0.85);
+}
+
+.eyeToggle:focus-visible {
+  outline: 3px solid var(--panel-blue-deep, #1f7d84);
+  outline-offset: 1px;
+}
+
+.eyeToggle svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .loginForm {
@@ -61,6 +115,30 @@
   font-size: 1.375em;
   text-align: center;
   color: #c0392b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+}
+
+.errorIcon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+.submitSpinner {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.35em;
+  vertical-align: -0.12em;
+  animation: loginSpin 0.9s linear infinite;
+}
+
+@keyframes loginSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loginFooter {
