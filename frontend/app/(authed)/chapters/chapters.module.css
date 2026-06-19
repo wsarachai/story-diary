@@ -418,6 +418,15 @@
 
 /* ── Chapter explain / scene: mobile fixes ── */
 @media (max-width: 900px) {
+  /* Give the full-bleed explain/scene screens a real height on mobile.
+     BookShellLayout.screen sets height:auto which wins by source order —
+     double the class to raise specificity and beat it. */
+  .chapterExplainScreen.chapterExplainScreen,
+  .chapterDetailsScreen.chapterDetailsScreen {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   /* Intro page: reduce title and shift center above the triangle indicator */
   .chapterExplainPanel h1 {
     font-size: 2.6em;
