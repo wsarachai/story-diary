@@ -420,10 +420,11 @@
 @media (max-width: 900px) {
   /* Give the full-bleed explain/scene screens a real height on mobile.
      BookShellLayout.screen sets height:auto which wins by source order —
-     double the class to raise specificity and beat it. */
+     double the class to raise specificity and beat it.
+     body has padding:8px so subtract that from the bottom to stay inside the viewport. */
   .chapterExplainScreen.chapterExplainScreen,
   .chapterDetailsScreen.chapterDetailsScreen {
-    height: 100dvh;
+    height: calc(100dvh - 8px);
     overflow: hidden;
   }
 
@@ -435,54 +436,92 @@
     padding-bottom: 5rem;
   }
 
-  /* Scene page: size speaker by viewport height so it stays in the upper portion */
-  .speakerFigure {
-    height: 40dvh;
+  /* Scene page: use fixed positioning so dialog/speaker are viewport-relative,
+     bypassing body padding and containing-block offset issues entirely */
+  .speakerFigure.speakerFigure {
+    position: fixed;
     width: auto;
-    right: 2%;
-    top: 2%;
     max-width: none;
+    z-index: 1;
   }
 
-  /* Scene page: dialog becomes an auto-height bottom sheet */
-  .dialogPanel {
-    height: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 24px 24px 0 0;
-    border-bottom: none;
-    padding: 1rem 1.4rem max(1.5rem, env(safe-area-inset-bottom));
+  .dialogPanel.dialogPanel {
+    position: fixed;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    border-radius: 24px;
+    overflow: hidden;
+    z-index: 2;
   }
 
-  .speakerName {
-    font-size: 1.1em;
-    top: -2rem;
-    left: 1.2rem;
-    padding: 0.3rem 0.9rem 0.35rem;
-    border-radius: 12px;
+  .speakerName.speakerName {
+    position: static;
+    display: inline-block;
+    font-size: 0.9em;
+    padding: 0.2rem 0.75rem 0.25rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
   }
 
-  .dialogText {
-    font-size: 1.1em;
-    overflow: visible;
+  .dialogText.dialogText {
+    font-size: 0.85em;
+    overflow-y: auto;
   }
 
-  /* Shrink the advance triangle */
-  .dialogNext {
-    right: 1.5rem;
-    bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
-    border-left-width: 14px;
-    border-right-width: 14px;
-    border-top-width: 24px;
+  .dialogNext.dialogNext {
+    right: 1.2rem;
+    bottom: max(0.8rem, calc(env(safe-area-inset-bottom) + 0.4rem));
+    border-left-width: 12px;
+    border-right-width: 12px;
+    border-top-width: 20px;
   }
 
-  /* Adjust the invisible advance tap target */
-  .dialogNextLink {
-    right: 0.8rem;
-    bottom: max(0.3rem, env(safe-area-inset-bottom));
-    width: 3.5rem;
-    height: 3.5rem;
+  .dialogNextLink.dialogNextLink {
+    right: 0.6rem;
+    bottom: max(0.2rem, env(safe-area-inset-bottom));
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/* Landscape mobile: speaker right-side, dialog bottom sheet */
+@media (max-width: 900px) and (orientation: landscape) {
+  .speakerFigure.speakerFigure {
+    height: 70dvh;
+    right: 6%;
+    left: auto;
+    bottom: calc(36dvh + max(8px, env(safe-area-inset-bottom)));
+    transform: none;
+  }
+
+  .dialogPanel.dialogPanel {
+    height: 36dvh;
+    padding: 0.75rem 1.2rem 1.1rem;
+  }
+
+  .dialogText.dialogText {
+    max-height: calc(36dvh - 4rem);
+  }
+}
+
+/* Portrait: speaker centered, dialog takes majority of screen */
+@media (max-width: 900px) and (orientation: portrait) {
+  .speakerFigure.speakerFigure {
+    height: 34dvh;
+    left: 50%;
+    right: auto;
+    bottom: calc(52dvh + max(8px, env(safe-area-inset-bottom)));
+    transform: translateX(-50%);
+  }
+
+  .dialogPanel.dialogPanel {
+    height: 52dvh;
+    padding: 1rem 1.4rem 1.5rem;
+  }
+
+  .dialogText.dialogText {
+    max-height: calc(52dvh - 5rem);
   }
 }
 
