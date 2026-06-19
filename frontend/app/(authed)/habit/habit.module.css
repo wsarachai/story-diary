@@ -1419,68 +1419,116 @@
   overflow: hidden;
 }
 
-@media (max-width: 900px) {
-  /* On mobile BookShellLayout has no fixed height, so overflow-y:auto on
-     habitEntries has nothing to scroll against. Cap it with a max-height
-     calculated from the viewport minus the fixed non-scrollable chrome. */
-  .habitEntries {
-    max-height: calc(100dvh - 22rem);
-  }
-
-  /* Filter chips: single horizontal scrolling row to save vertical space */
-  .filterChipRow {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 0.4rem;
-  }
-  .filterChipRow::-webkit-scrollbar {
-    display: none;
-  }
+/* ── Accordion (checklist grouped by frequency) ── */
+.accordionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-right: 0.3rem;
 }
 
-/* Landscape mobile: compress header so the list gets more room */
-@media (max-width: 900px) and (orientation: landscape) {
-  .habitTrackerContainer {
-    padding: 1.5% 3% 1%;
-    gap: 0.35rem;
-  }
+.accordionList::-webkit-scrollbar {
+  width: 4px;
+}
 
-  .trackerSectionTitle {
-    font-size: 1.1em;
-  }
+.accordionList::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  .dateLabel {
-    font-size: 0.7em;
-  }
+.accordionList::-webkit-scrollbar-thumb {
+  background: rgba(89, 214, 220, 0.4);
+  border-radius: 2px;
+}
 
-  /* Tab row: single scrollable row, no wrapping */
+.accordionSection {
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(89, 214, 220, 0.08);
+}
+
+.accordionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.accordionTitle {
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--panel-blue-deep);
+  flex: 1;
+}
+
+.accordionCount {
+  font-size: 0.78em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.45);
+}
+
+.accordionChevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--panel-blue-deep);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.accordionChevronOpen {
+  transform: rotate(180deg);
+}
+
+.accordionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0 0.5rem 0.6rem;
+}
+
+/* Desktop: height chain is complete — bookShell (position:absolute, definite
+   height) → grid-template-rows:1fr → bookShellMergedLayer fills track →
+   > * {height:100%} gives habitTrackerContainer definite height →
+   1fr row gives checklistContent definite height → accordionList scrolls. */
+
+/* Mobile: tab row single scrollable line to save vertical space */
+@media (max-width: 900px) {
   .trackerTabRow {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 0.1rem;
   }
   .trackerTabRow::-webkit-scrollbar {
     display: none;
   }
-
   .trackerTab {
-    font-size: 0.7em;
-    padding: 0.2rem 0.7rem;
     white-space: nowrap;
   }
+  /* No height constraints on checklist — native body/page scroll handles it */
+}
 
-  .filterChip {
-    font-size: 0.7em;
-    padding: 0.15rem 0.6rem;
+/* Landscape mobile: compress header */
+@media (max-width: 900px) and (orientation: landscape) {
+  .habitTrackerContainer {
+    padding: 1.5% 3% 1%;
+    gap: 0.35rem;
   }
-
-  /* Less non-scrollable content in landscape so list gets more height */
-  .habitEntries {
-    max-height: calc(100dvh - 14rem);
+  .trackerSectionTitle {
+    font-size: 1.1em;
+  }
+  .dateLabel {
+    font-size: 0.7em;
   }
 }
 

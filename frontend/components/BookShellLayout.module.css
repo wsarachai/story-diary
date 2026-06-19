@@ -71,6 +71,15 @@
 .pageRight {
 }
 
+/* Desktop: bookShell is position:absolute with a definite height. 1fr gives
+   all children (page, bookShellMergedLayer) a concrete track height so their
+   height:100% children resolve correctly and inner scroll containers work. */
+@media (min-width: 901px) {
+  .bookShell {
+    grid-template-rows: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .screen {
     width: 100%;

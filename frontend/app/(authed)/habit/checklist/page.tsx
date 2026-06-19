@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronsRight,
   ChevronRight,
+  ChevronDown,
   Check,
   Minus,
 } from "lucide-react";
@@ -22,13 +23,20 @@ import { useGetMeQuery } from "@/store/authApi";
 import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
 import { localDateStr } from "@/lib/utils/date";
-import type { HabitActivity } from "@/types/habit";
+import type { HabitActivity, HabitFrequency } from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
 import { TrackerError, TrackerEmpty } from "../TrackerStates";
 import HabitTrackerHeader from "@/components/HabitTrackerHeader";
+
+const GROUPS: { key: HabitFrequency; label: string }[] = [
+  { key: "daily",   label: "รายวัน" },
+  { key: "weekly",  label: "รายสัปดาห์" },
+  { key: "monthly", label: "รายเดือน" },
+  { key: "todo",    label: "ต้องทำ" },
+];
 
 function getAccent(activity: HabitActivity): string {
   if (activity.category === "medicine") return "#57a8db";
@@ -38,11 +46,6 @@ function getAccent(activity: HabitActivity): string {
   return "#ee8a4a";
 }
 
-/**
- * All emotion-management activities (สำรวจอารมณ์ตนเอง, สร้างอารมณ์เชิงบวก,
- * ฝึกสติ — and legacy ones without a preset) check in via the explore mood
- * form at /habit/checkin/physical/emotion/explore.
- */
 function usesExploreEmotionCheckin(activity: HabitActivity): boolean {
   return activity.physicalCategory === "emotion-management";
 }
@@ -145,6 +148,13 @@ function DeleteConfirmDialog({
   );
 }
 
+const STATUS_ORDER: Record<string, number> = {
+  pending: 0,
+  partial: 1,
+  skipped: 2,
+  done: 3,
+};
+
 export default function HabitChecklistPage() {
   const router = useRouter();
   const { data: me } = useGetMeQuery();
@@ -155,7 +165,9 @@ export default function HabitChecklistPage() {
   const [deleteActivity, { isLoading: isDeleting }] =
     useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<"all" | "daily" | "weekly" | "monthly" | "todo">("all");
+  const [openSections, setOpenSections] = useState<Set<HabitFrequency>>(
+    new Set<HabitFrequency>(["daily", "weekly", "monthly", "todo"])
+  );
 
   const entries = data
     ? Object.values(data.activities).map((activity, index) => ({
@@ -167,23 +179,28 @@ export default function HabitChecklistPage() {
       }))
     : [];
 
-  const filteredEntries = entries
-    .filter((entry) => {
-      if (activeFilter === "all") return true;
-      return entry.activity.schedule.frequency === activeFilter;
-    })
-    .sort((a, b) => {
-      const statusOrder: Record<string, number> = {
-        pending: 0,
-        partial: 1,
-        skipped: 2,
-        done: 3,
-      };
-      const orderA = statusOrder[a.occurrence.status] ?? 0;
-      const orderB = statusOrder[b.occurrence.status] ?? 0;
-      if (orderA !== orderB) return orderA - orderB;
-      return a.index - b.index;
+  const grouped = Object.fromEntries(
+    GROUPS.map(({ key }) => [
+      key,
+      entries
+        .filter((e) => e.activity.schedule.frequency === key)
+        .sort((a, b) => {
+          const orderA = STATUS_ORDER[a.occurrence.status] ?? 0;
+          const orderB = STATUS_ORDER[b.occurrence.status] ?? 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return a.index - b.index;
+        }),
+    ])
+  ) as Record<HabitFrequency, typeof entries>;
+
+  function toggleSection(key: HabitFrequency) {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
     });
+  }
 
   function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
     const base = `/habit/checkin`;
@@ -218,156 +235,149 @@ export default function HabitChecklistPage() {
       addLabel="เพิ่มกิจกรรม"
     >
       <div className={styles.checklistContent}>
-        {/* Filter Chips Row */}
+        {isLoading && (
+          <PageSpinner variant="inline" height="12rem" label="กำลังโหลดกิจกรรม…" />
+        )}
+        {!isLoading && isError && <TrackerError onRetry={refetch} />}
+        {!isLoading && !isError && entries.length === 0 && (
+          <TrackerEmpty addFrom="/habit/checklist" />
+        )}
         {!isLoading && !isError && entries.length > 0 && (
-          <div className={styles.filterChipRow} role="group" aria-label="ตัวกรองความถี่ของกิจกรรม">
-            {([
-              { key: "all", label: "ทั้งหมด" },
-              { key: "daily", label: "รายวัน" },
-              { key: "weekly", label: "รายสัปดาห์" },
-              { key: "monthly", label: "รายเดือน" },
-              { key: "todo", label: "ต้องทำ" },
-            ] as const).map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setActiveFilter(f.key)}
-                className={`${styles.filterChip} ${activeFilter === f.key ? ` ${styles.activeFilter}` : ""}`}
-                aria-pressed={activeFilter === f.key}
-              >
-                {f.label}
-              </button>
-            ))}
+          <div className={styles.accordionList}>
+            {GROUPS.map(({ key, label }) => {
+              const groupEntries = grouped[key];
+              if (!groupEntries || groupEntries.length === 0) return null;
+              const isOpen = openSections.has(key);
+              const doneCount = groupEntries.filter(
+                (e) => e.occurrence.status === "done"
+              ).length;
+              return (
+                <div key={key} className={styles.accordionSection}>
+                  <button
+                    className={styles.accordionHeader}
+                    onClick={() => toggleSection(key)}
+                    aria-expanded={isOpen}
+                  >
+                    <span className={styles.accordionTitle}>{label}</span>
+                    <span className={styles.accordionCount}>
+                      {doneCount}/{groupEntries.length}
+                    </span>
+                    <ChevronDown
+                      className={`${styles.accordionChevron}${isOpen ? ` ${styles.accordionChevronOpen}` : ""}`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className={styles.accordionBody}>
+                      {groupEntries.map((entry) => {
+                        const tappable = hasDetailedCheckin(entry.activity);
+                        return (
+                          <div
+                            key={entry.activity.id}
+                            className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
+                            role="article"
+                            aria-label={getActivityDisplayName(entry.activity)}
+                            onClick={() =>
+                              tappable &&
+                              handleEntryTap(entry.activity, entry.occurrence.id)
+                            }
+                          >
+                            <div className={styles.habitEntryIcon}>
+                              <CategoryIcon accent={entry.accent} />
+                            </div>
+                            <div className={styles.habitEntryBody}>
+                              <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
+                              <p className={styles.habitEntrySub}>{entry.subline}</p>
+                            </div>
+                            {tappable && (
+                              <span className={styles.habitEntryLogArrow} aria-hidden="true">
+                                <ChevronRight />
+                              </span>
+                            )}
+                            <button
+                              className={styles.habitDeleteBtn}
+                              aria-label={`ลบ ${entry.activity.name}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmId(entry.activity.id);
+                              }}
+                            >
+                              <Trash2 />
+                            </button>
+                            {(entry.occurrence.status === "pending" ||
+                              entry.occurrence.status === "partial") && (
+                              <button
+                                className={styles.habitSkipBtn}
+                                aria-label={`ข้าม ${entry.activity.name}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggle({
+                                    occurrenceId: entry.occurrence.id,
+                                    activityId: entry.activity.id,
+                                    status: "skipped",
+                                    date: todayStr,
+                                  });
+                                }}
+                              >
+                                <ChevronsRight />
+                              </button>
+                            )}
+                            <button
+                              className={`${styles.habitCheck}${
+                                entry.occurrence.status === "done"
+                                  ? ` ${styles.done}`
+                                  : entry.occurrence.status === "skipped"
+                                    ? ` ${styles.skip}`
+                                    : entry.occurrence.status === "partial"
+                                      ? ` ${styles.partial}`
+                                      : ""
+                              }`}
+                              aria-label={
+                                entry.occurrence.status === "done"
+                                  ? "ทำเสร็จแล้ว"
+                                  : entry.occurrence.status === "skipped"
+                                    ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
+                                    : entry.occurrence.status === "partial"
+                                      ? "กำลังทำ – แตะเพื่อทำเสร็จ"
+                                      : "ยังไม่ทำ"
+                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const next =
+                                  entry.occurrence.status === "done" ? "pending" : "done";
+                                toggle({
+                                  occurrenceId: entry.occurrence.id,
+                                  activityId: entry.activity.id,
+                                  status: next,
+                                  date: todayStr,
+                                });
+                              }}
+                            >
+                              {entry.occurrence.status === "done" && (
+                                <Check color="#fff" strokeWidth={3} />
+                              )}
+                              {entry.occurrence.status === "skipped" && (
+                                <Minus color="#fff" strokeWidth={3} />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
-
-        <div className={styles.habitEntries} style={{ flex: 1 }}>
-          {isLoading && (
-            <PageSpinner
-              variant="inline"
-              height="12rem"
-              label="กำลังโหลดกิจกรรม…"
-            />
-          )}
-          {!isLoading && isError && <TrackerError onRetry={refetch} />}
-          {!isLoading && !isError && entries.length === 0 && (
-            <TrackerEmpty addFrom="/habit/checklist" />
-          )}
-          {!isLoading && !isError && entries.length > 0 && filteredEntries.length === 0 && (
-            <div className={styles.trackerState}>
-              <p className={styles.trackerStateTitle}>ไม่มีกิจกรรมในกลุ่มนี้สำหรับวันนี้</p>
-              <p className={styles.trackerStateSub}>ลองสลับตัวกรองเพื่อดูรายการกิจกรรมอื่น</p>
-            </div>
-          )}
-          {!isLoading &&
-            !isError &&
-            filteredEntries.map((entry) => {
-              const tappable = hasDetailedCheckin(entry.activity);
-              return (
-                <div
-                  key={entry.activity.id}
-                  className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
-                  role="article"
-                  aria-label={getActivityDisplayName(entry.activity)}
-                  onClick={() =>
-                    tappable &&
-                    handleEntryTap(entry.activity, entry.occurrence.id)
-                  }
-                >
-                  <div className={styles.habitEntryIcon}>
-                    <CategoryIcon accent={entry.accent} />
-                  </div>
-                  <div className={styles.habitEntryBody}>
-                    <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
-                    <p className={styles.habitEntrySub}>{entry.subline}</p>
-                  </div>
-                  {tappable && (
-                    <span
-                      className={styles.habitEntryLogArrow}
-                      aria-hidden="true"
-                    >
-                      <ChevronRight />
-                    </span>
-                  )}
-                  <button
-                    className={styles.habitDeleteBtn}
-                    aria-label={`ลบ ${entry.activity.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmId(entry.activity.id);
-                    }}
-                  >
-                    <Trash2 />
-                  </button>
-                  {(entry.occurrence.status === "pending" ||
-                    entry.occurrence.status === "partial") && (
-                    <button
-                      className={styles.habitSkipBtn}
-                      aria-label={`ข้าม ${entry.activity.name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggle({
-                          occurrenceId: entry.occurrence.id,
-                          activityId: entry.activity.id,
-                          status: "skipped",
-                          date: todayStr,
-                        });
-                      }}
-                    >
-                      <ChevronsRight />
-                    </button>
-                  )}
-                  <button
-                    className={`${styles.habitCheck}${
-                      entry.occurrence.status === "done"
-                        ? ` ${styles.done}`
-                        : entry.occurrence.status === "skipped"
-                          ? ` ${styles.skip}`
-                          : entry.occurrence.status === "partial"
-                            ? ` ${styles.partial}`
-                            : ""
-                    }`}
-                    aria-label={
-                      entry.occurrence.status === "done"
-                        ? "ทำเสร็จแล้ว"
-                        : entry.occurrence.status === "skipped"
-                          ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
-                          : entry.occurrence.status === "partial"
-                            ? "กำลังทำ – แตะเพื่อทำเสร็จ"
-                            : "ยังไม่ทำ"
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // done undoes back to pending; everything else completes.
-                      const next =
-                        entry.occurrence.status === "done" ? "pending" : "done";
-                      toggle({
-                        occurrenceId: entry.occurrence.id,
-                        activityId: entry.activity.id,
-                        status: next,
-                        date: todayStr,
-                      });
-                    }}
-                  >
-                    {entry.occurrence.status === "done" && (
-                      <Check color="#fff" strokeWidth={3} />
-                    )}
-                    {entry.occurrence.status === "skipped" && (
-                      <Minus color="#fff" strokeWidth={3} />
-                    )}
-                  </button>
-                </div>
-            );
-          })}
       </div>
-    </div>
-  </HabitTrackerHeader>
+    </HabitTrackerHeader>
   );
 
   return (
     <BookShellLayout tight rail={<IconRail />} mergedOnly merged={left}>
       {confirmActivity && (
         <DeleteConfirmDialog
-            activityName={confirmActivityName}
+          activityName={confirmActivityName}
           isDeleting={isDeleting}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmId(null)}
