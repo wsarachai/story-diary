@@ -465,7 +465,7 @@
   }
 
   .dialogText.dialogText {
-    font-size: 0.85em;
+    font-size: 1.05em;
     overflow-y: auto;
   }
 
@@ -505,23 +505,38 @@
   }
 }
 
-/* Portrait: speaker centered, dialog takes majority of screen */
-@media (max-width: 900px) and (orientation: portrait) {
+/* Portrait phones (≤540px wide).
+   Use position:absolute with % so both elements share the same containing block:
+   character bottom:52% = dialog height:52% top, zero rounding gap possible. */
+@media (max-width: 540px) {
+  .chapterDetailsScreen.chapterDetailsScreen {
+    position: relative;
+  }
+
   .speakerFigure.speakerFigure {
-    height: 34dvh;
+    position: absolute;
+    height: 34%;
+    width: auto;
+    top: auto;
     left: 50%;
     right: auto;
-    bottom: calc(52dvh + max(8px, env(safe-area-inset-bottom)));
+    /* 8px matches the dialog's bottom offset so they stay flush */
+    bottom: calc(52% + 8px);
     transform: translateX(-50%);
   }
 
   .dialogPanel.dialogPanel {
-    height: 52dvh;
-    padding: 1rem 1.4rem 1.5rem;
+    position: absolute;
+    height: 52%;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    border-radius: 24px;
+    padding: 1rem 1.4rem max(1.5rem, env(safe-area-inset-bottom));
   }
 
   .dialogText.dialogText {
-    max-height: calc(52dvh - 5rem);
+    max-height: calc(52% - 5rem);
   }
 }
 
