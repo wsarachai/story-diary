@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ScrollText, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -101,6 +101,7 @@ export default function ChapterScenePage() {
   // Track which scene index typing has been completed for, so the "done" state
   // automatically resets when sceneIndex changes (no setState-in-effect needed).
   const [typingDoneForScene, setTypingDoneForScene] = useState<number | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
   const typingDone = typingDoneForScene === sceneIndex;
   const fullText = chapter?.scenes[sceneIndex]?.text ?? "";
 
@@ -169,6 +170,17 @@ export default function ChapterScenePage() {
         <span className={styles.chapterSceneExitLabel}>กลับ</span>
       </Link>
 
+      <button
+        className={styles.transcriptButton}
+        onClick={() => setShowTranscript(true)}
+        aria-label="ดูบทสนทนาทั้งหมด"
+      >
+        <span className={styles.chapterSceneExitLabel}>บทสนทนา</span>
+        <span className={styles.chapterSceneExitIcon} aria-hidden="true">
+          <ScrollText />
+        </span>
+      </button>
+
       {bgUrl ? (
         <Image
           className={styles.chapterDetailsBg}
@@ -196,6 +208,55 @@ export default function ChapterScenePage() {
         />
       ) : (
         <SpeakerPlaceholder />
+      )}
+
+      {showTranscript && (
+        <div
+          className={styles.transcriptOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="บทสนทนาทั้งหมด"
+        >
+          <div className={styles.transcriptPanel}>
+            <div className={styles.transcriptHeader}>
+              <h2 className={styles.transcriptTitle}>บทสนทนาทั้งหมด</h2>
+              <button
+                className={styles.transcriptClose}
+                onClick={() => setShowTranscript(false)}
+                aria-label="ปิด"
+              >
+                <X aria-hidden="true" />
+              </button>
+            </div>
+            <div className={styles.transcriptList}>
+              {chapter.scenes.map((s, i) => {
+                const isUser = s.speakerName === "ชื่อตัวละคร";
+                const displayName = isUser
+                  ? (currentUser?.characterName ?? s.speakerName)
+                  : s.speakerName;
+                return (
+                  <div
+                    key={i}
+                    className={[
+                      styles.transcriptBubbleWrap,
+                      isUser ? styles.transcriptRight : styles.transcriptLeft,
+                    ].join(" ")}
+                  >
+                    <span className={styles.transcriptSpeakerName}>{displayName}</span>
+                    <div className={styles.transcriptBubble}>
+                      {s.text.split("\n").map((line, j, arr) => (
+                        <span key={j}>
+                          {line}
+                          {j < arr.length - 1 && <br />}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
 
       <section className={styles.dialogPanel} aria-label="บทสนทนา">
