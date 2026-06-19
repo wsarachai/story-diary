@@ -1419,5 +1419,70 @@
   overflow: hidden;
 }
 
+@media (max-width: 900px) {
+  /* On mobile BookShellLayout has no fixed height, so overflow-y:auto on
+     habitEntries has nothing to scroll against. Cap it with a max-height
+     calculated from the viewport minus the fixed non-scrollable chrome. */
+  .habitEntries {
+    max-height: calc(100dvh - 22rem);
+  }
+
+  /* Filter chips: single horizontal scrolling row to save vertical space */
+  .filterChipRow {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.4rem;
+  }
+  .filterChipRow::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Landscape mobile: compress header so the list gets more room */
+@media (max-width: 900px) and (orientation: landscape) {
+  .habitTrackerContainer {
+    padding: 1.5% 3% 1%;
+    gap: 0.35rem;
+  }
+
+  .trackerSectionTitle {
+    font-size: 1.1em;
+  }
+
+  .dateLabel {
+    font-size: 0.7em;
+  }
+
+  /* Tab row: single scrollable row, no wrapping */
+  .trackerTabRow {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.1rem;
+  }
+  .trackerTabRow::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trackerTab {
+    font-size: 0.7em;
+    padding: 0.2rem 0.7rem;
+    white-space: nowrap;
+  }
+
+  .filterChip {
+    font-size: 0.7em;
+    padding: 0.15rem 0.6rem;
+  }
+
+  /* Less non-scrollable content in landscape so list gets more height */
+  .habitEntries {
+    max-height: calc(100dvh - 14rem);
+  }
+}
+
 
 
