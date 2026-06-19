@@ -204,7 +204,6 @@ export default function ChapterScenePage() {
           alt="ตัวละครผู้พูด"
           width={540}
           height={760}
-          style={{ position: "absolute", right: "22%", top: "7%", width: "30%", maxWidth: "540px", height: "auto", zIndex: 1 }}
         />
       ) : (
         <SpeakerPlaceholder />
