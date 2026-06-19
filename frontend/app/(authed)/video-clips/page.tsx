@@ -26,8 +26,9 @@ export default function VideoClipsPage() {
   const { data: collection, isLoading } = useGetVideoClipsQuery();
 
   const clips = collection?.clips ?? [];
-  const leftClips = clips.filter((_, index) => (index + 1) % 2 === 1);
-  const rightClips = clips.filter((_, index) => (index + 1) % 2 === 0);
+  const mid = Math.ceil(clips.length / 2);
+  const leftClips = clips.slice(0, mid);
+  const rightClips = clips.slice(mid);
 
   return (
     <BookShellLayout

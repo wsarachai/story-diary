@@ -25,8 +25,9 @@ export default function EBooksPage() {
   const { data: collection, isLoading } = useGetEBooksQuery();
 
   const chapters = collection?.chapters ?? [];
-  const leftChapters = chapters.filter((_, index) => (index + 1) % 2 === 1);
-  const rightChapters = chapters.filter((_, index) => (index + 1) % 2 === 0);
+  const mid = Math.ceil(chapters.length / 2);
+  const leftChapters = chapters.slice(0, mid);
+  const rightChapters = chapters.slice(mid);
 
   return (
     <BookShellLayout

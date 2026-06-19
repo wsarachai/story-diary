@@ -95,8 +95,10 @@ export default function ChaptersMenuPage() {
     };
   }, []);
 
-  const leftChapters = summaries.filter((s) => s.id % 2 !== 0);
-  const rightChapters = summaries.filter((s) => s.id % 2 === 0);
+  const sorted = [...summaries].sort((a, b) => a.id - b.id);
+  const mid = Math.ceil(sorted.length / 2);
+  const leftChapters = sorted.slice(0, mid);
+  const rightChapters = sorted.slice(mid);
 
   return (
     <BookShellLayout
