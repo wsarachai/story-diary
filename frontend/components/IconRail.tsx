@@ -54,19 +54,17 @@ export default function IconRail() {
       })}
 
       {isAdmin && (
-        <div className={styles.iconRailAdminWrap}>
-          <Link
-            href="/admin"
-            className={[styles.iconRailLink, adminActive && styles.isActive].filter(Boolean).join(" ")}
-            aria-label="ไปหน้าจัดการ Admin"
-            aria-current={adminActive ? "page" : undefined}
-            style={{ "--rail-accent": ADMIN_ACCENT, "--rail-tile": "#1e3a5f" } as React.CSSProperties}
-          >
-            <span className={styles.railTile} aria-hidden="true">
-              <Settings className={styles.railIcon} />
-            </span>
-          </Link>
-        </div>
+        <Link
+          href="/admin"
+          className={[styles.iconRailLink, adminActive && styles.isActive].filter(Boolean).join(" ")}
+          aria-label="ไปหน้าจัดการ Admin"
+          aria-current={adminActive ? "page" : undefined}
+          style={{ "--rail-accent": ADMIN_ACCENT } as React.CSSProperties}
+        >
+          <span className={styles.railTile} aria-hidden="true">
+            <Settings className={styles.railIcon} />
+          </span>
+        </Link>
       )}
     </nav>
   );

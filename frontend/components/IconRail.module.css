@@ -61,16 +61,6 @@
   z-index: 0;
 }
 
-/* ── Admin icon separator ────────────────────────────── */
-.iconRailAdminWrap {
-  margin-top: auto;
-  padding-top: 0.9rem;
-  border-top: 1.5px solid rgba(0, 0, 0, 0.1);
-}
-
-.iconRailAdminWrap .railIcon {
-  color: #a8d4ff;
-}
 
 @media (max-width: 900px) {
   .iconRail {
