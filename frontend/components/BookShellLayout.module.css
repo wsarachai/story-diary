@@ -72,11 +72,17 @@
 }
 
 /* Desktop: bookShell is position:absolute with a definite height. 1fr gives
-   all children (page, bookShellMergedLayer) a concrete track height so their
-   height:100% children resolve correctly and inner scroll containers work. */
+   all children (page, pageMergedOnly, bookShellMergedLayer) a concrete track
+   height. min-height:0 overrides the grid item's default min-height:auto so the
+   merged page is clamped to its track instead of growing to fit content — that
+   lets inner overflow-y:auto scroll containers engage. */
 @media (min-width: 901px) {
   .bookShell {
     grid-template-rows: 1fr;
+  }
+
+  .pageMergedOnly {
+    min-height: 0;
   }
 }
 
