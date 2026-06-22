@@ -458,6 +458,10 @@
   gap: 0.75rem;
   transition: transform 0.1s, box-shadow 0.1s;
   flex-shrink: 0;
+  /* Allow the row to shrink to its container; the nowrap name in
+     .habitEntryBody (min-width:0) absorbs the squeeze via ellipsis instead of
+     forcing the whole flex/grid chain wider than the viewport on mobile. */
+  min-width: 0;
 }
 
 .habitEntry.hasLog {
@@ -1416,6 +1420,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -1426,6 +1431,7 @@
   gap: 0.5rem;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -1498,6 +1504,7 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0 0.5rem 0.6rem;
+  min-width: 0;
 }
 
 /* Desktop: height chain is complete — bookShell (position:absolute, definite
