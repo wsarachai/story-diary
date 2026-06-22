@@ -1,10 +1,15 @@
 .authoringPage {
   padding: 5% 6% 5%;
   display: flex;
+  /* Fill the (definite-height) book page on desktop so the form card and its
+     flex:1 category grid shrink to fit instead of spilling below the book. */
+  height: 100%;
+  min-height: 0;
 }
 
 .formCard {
   flex: 1;
+  min-height: 0;
   border-radius: 36px;
   background: #fff;
   box-shadow: 0 16px 48px -12px rgba(13, 18, 35, 0.22);
@@ -78,6 +83,7 @@
 
 .categoryTabs {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.6rem;
@@ -769,6 +775,7 @@
 @media (max-width: 900px) {
   .authoringPage {
     padding: 3% 4% 4%;
+    height: auto;
   }
 
   .formCardTitle {
