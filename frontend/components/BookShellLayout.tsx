@@ -26,6 +26,12 @@ interface BookShellLayoutProps {
    * instead of at the top. Pairs with `fitViewport`. No effect on desktop.
    */
   centerMobile?: boolean;
+  /**
+   * Optional content rendered above the book on mobile only (e.g. a date +
+   * profile header). Hidden on desktop — supply your own `display:none` →
+   * visible breakpoint styles on the passed node's wrapper.
+   */
+  mobileHeader?: React.ReactNode;
   /** Optional persistent right-edge rail (s004+). */
   rail?: React.ReactNode;
   /** Custom aria-label for the main container. */
@@ -47,12 +53,14 @@ export default function BookShellLayout({
   fitViewport = false,
   hideLeftOnMobile = false,
   centerMobile = false,
+  mobileHeader,
   rail,
   ariaLabel = "Story Diary",
   children,
 }: BookShellLayoutProps) {
   return (
     <main className={styles.screen} aria-label={ariaLabel}>
+      {mobileHeader}
       <section
         className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}${fitViewport ? ` ${styles.bookShellFitViewport}` : ""}${hideLeftOnMobile ? ` ${styles.bookShellHideLeftMobile}` : ""}${centerMobile ? ` ${styles.bookShellCenterMobile}` : ""}`}
         style={rail ? { gridTemplateColumns: "1fr 1fr auto" } : undefined}

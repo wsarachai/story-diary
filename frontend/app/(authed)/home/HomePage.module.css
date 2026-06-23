@@ -123,3 +123,37 @@
   display: flex;
   gap: 0.45rem;
 }
+
+/* Mobile top bar (date + profile). Hidden on desktop, where this info lives at
+   the top of the dashboard panel instead. */
+.mobileTopBar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobileTopBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.8rem 0.4rem;
+  }
+
+  .mobileTopBarDate {
+    font-size: 1.1em;
+  }
+
+  /* The desktop date + profile move into the top bar on mobile. */
+  .dashDateDesktop,
+  .profileLinkWrapper {
+    display: none;
+  }
+
+  /* Without the header rows, let the two feature cards flow naturally. */
+  .dashboardPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    height: auto;
+  }
+}
