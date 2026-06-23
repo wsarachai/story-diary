@@ -195,7 +195,14 @@ export const habitsApi = apiSlice.injectEndpoints({
           habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
             const occ = draft.todayByActivity[activityId];
             if (occ) {
-              occ.status = medicineStatus(draft.activities[activityId]?.mealSlots, checkin.mealSlots);
+              const configSlots = draft.activities[activityId]?.mealSlots;
+              occ.status = medicineStatus(configSlots, checkin.mealSlots);
+              if (configSlots && configSlots.length > 0) {
+                occ.doseProgress = {
+                  taken: configSlots.filter((slot) => checkin.mealSlots.includes(slot)).length,
+                  total: configSlots.length,
+                };
+              }
             }
           })
         );

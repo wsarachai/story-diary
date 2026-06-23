@@ -7,7 +7,7 @@ import {
   Apple,
   PersonStanding,
   SmilePlus,
-  Trash2,
+  Pencil,
   ChevronsRight,
   ChevronRight,
   ChevronDown,
@@ -18,13 +18,21 @@ import {
   useGetTodayHabitsQuery,
   useToggleOccurrenceMutation,
   useDeleteActivityMutation,
+  useSaveMedicineCheckinMutation,
 } from "@/store/habitsApi";
 import { useGetMeQuery } from "@/store/authApi";
 import IconRail from "@/components/IconRail";
 import { DateFull } from "@/components/DateBadge";
 import { localDateStr } from "@/lib/utils/date";
-import type { HabitActivity, HabitFrequency } from "@/types/habit";
+import type {
+  HabitActivity,
+  HabitFrequency,
+  HabitOccurrence,
+  MealSlot,
+  SymptomCheck,
+} from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
+import { MEDICINES, isMedicineKey } from "@/types/medicines";
 import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
@@ -148,12 +156,71 @@ function DeleteConfirmDialog({
   );
 }
 
+interface EntryActionMenuProps {
+  activityName: string;
+  onUndo: () => void;
+  onDelete: () => void;
+  onCancel: () => void;
+}
+
+function EntryActionMenu({
+  activityName,
+  onUndo,
+  onDelete,
+  onCancel,
+}: EntryActionMenuProps) {
+  return (
+    <div className={styles.deleteConfirmOverlay} onClick={onCancel}>
+      <div
+        className={styles.deleteConfirmCard}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className={styles.deleteConfirmTitle}>{activityName}</p>
+        <div className={styles.entryMenuActions}>
+          <button className={styles.entryMenuUndo} onClick={onUndo}>
+            ย้อนกลับ (วันนี้)
+          </button>
+          <button className={styles.entryMenuDelete} onClick={onDelete}>
+            ลบกิจกรรม
+          </button>
+        </div>
+        <button className={styles.deleteConfirmCancel} onClick={onCancel}>
+          ยกเลิก
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const STATUS_ORDER: Record<string, number> = {
   pending: 0,
   partial: 1,
   skipped: 2,
   done: 3,
 };
+
+/** Doses are filled in this fixed order so the recorded slots stay meaningful. */
+const CANONICAL_MEAL_ORDER: MealSlot[] = [
+  "breakfast",
+  "lunch",
+  "dinner",
+  "before-bed",
+];
+
+/** Medicine accent fill (taken) and the card's resting tint (remaining). */
+const DOSE_FILL = "#bfe2f2";
+const DOSE_BASE = "#edf9fa";
+
+/** Baseline (all-unchecked) side-effect list for a known medicine, else []. */
+function defaultSideEffects(activity: HabitActivity): SymptomCheck[] {
+  if (activity.medicineKey && isMedicineKey(activity.medicineKey)) {
+    return MEDICINES[activity.medicineKey].sideEffects.map((se) => ({
+      ...se,
+      checked: false,
+    }));
+  }
+  return [];
+}
 
 export default function HabitChecklistPage() {
   const router = useRouter();
@@ -162,9 +229,11 @@ export default function HabitChecklistPage() {
   const { data, isLoading, isError, refetch } =
     useGetTodayHabitsQuery(todayStr);
   const [toggle] = useToggleOccurrenceMutation();
+  const [saveMedicine] = useSaveMedicineCheckinMutation();
   const [deleteActivity, { isLoading: isDeleting }] =
     useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<HabitFrequency>>(
     new Set<HabitFrequency>(["daily", "weekly", "monthly", "todo"])
   );
@@ -205,9 +274,7 @@ export default function HabitChecklistPage() {
   function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
     const base = `/habit/checkin`;
     const qs = `occ=${occurrenceId}&actId=${activity.id}`;
-    if (activity.category === "medicine") {
-      router.push(`${base}/medicine?${qs}`);
-    } else if (activity.category === "nutrition") {
+    if (activity.category === "nutrition") {
       router.push(`${base}/nutrition?${qs}`);
     } else if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/physical/symptoms?${qs}`);
@@ -216,8 +283,100 @@ export default function HabitChecklistPage() {
     }
   }
 
+  function openMedicineForm(activity: HabitActivity, occurrenceId: string) {
+    router.push(`/habit/checkin/medicine?occ=${occurrenceId}&actId=${activity.id}`);
+  }
+
+  /**
+   * One tap on a medicine's check circle. Each tap records the next meal dose
+   * (canonical order); reaching the last dose opens the side-effect form. A med
+   * with no configured meals goes straight to the form. Tapping a completed med
+   * reopens the form so the user can edit its side effects. (Clearing progress
+   * lives on the trash button's Undo option, not here.)
+   */
+  async function handleMedicineDose(
+    activity: HabitActivity,
+    occurrence: HabitOccurrence,
+  ) {
+    const configSlots = CANONICAL_MEAL_ORDER.filter((slot) =>
+      (activity.mealSlots ?? []).includes(slot),
+    );
+    const total = configSlots.length;
+
+    // N = 0 → no per-dose tracking, open the form directly.
+    if (total === 0) {
+      openMedicineForm(activity, occurrence.id);
+      return;
+    }
+
+    const taken =
+      occurrence.doseProgress?.taken ??
+      (occurrence.status === "done" ? total : 0);
+
+    // Already complete → reopen the form to edit side effects.
+    if (taken >= total) {
+      openMedicineForm(activity, occurrence.id);
+      return;
+    }
+
+    const nextTaken = taken + 1;
+    await saveMedicine({
+      occurrenceId: occurrence.id,
+      activityId: activity.id,
+      medicineName: activity.name,
+      mealRelation: activity.mealRelation ?? ("after" as const),
+      sideEffects: defaultSideEffects(activity),
+      date: todayStr,
+      mealSlots: configSlots.slice(0, nextTaken),
+    });
+
+    // Final dose taken → open the side-effect form.
+    if (nextTaken >= total) {
+      openMedicineForm(activity, occurrence.id);
+    }
+  }
+
+  /**
+   * Trash-button "ย้อนกลับ (วันนี้)": reset today's occurrence to pending.
+   * Medicine with configured meals must clear its recorded doses (otherwise the
+   * server recomputes the fill from the saved slots); everything else — and
+   * meal-less medicine — just un-completes via the toggle.
+   */
+  async function handleUndoToday(
+    activity: HabitActivity,
+    occurrence: HabitOccurrence,
+  ) {
+    setMenuId(null);
+    const medicineSlots =
+      activity.category === "medicine" ? activity.mealSlots ?? [] : [];
+    if (activity.category === "medicine" && medicineSlots.length > 0) {
+      await saveMedicine({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        medicineName: activity.name,
+        mealRelation: activity.mealRelation ?? ("after" as const),
+        sideEffects: defaultSideEffects(activity),
+        date: todayStr,
+        mealSlots: [],
+      });
+      return;
+    }
+    if (occurrence.status !== "pending") {
+      await toggle({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        status: "pending",
+        date: todayStr,
+      });
+    }
+  }
+
   const confirmActivity = confirmId ? data?.activities[confirmId] : null;
   const confirmActivityName = confirmActivity ? getActivityDisplayName(confirmActivity) : "";
+
+  const menuActivity = menuId ? data?.activities[menuId] : null;
+  const menuOccurrence = menuId ? data?.todayByActivity[menuId] : null;
+  const menuActivityName = menuActivity ? getActivityDisplayName(menuActivity) : "";
 
   async function handleDeleteConfirm() {
     if (!confirmId) return;
@@ -269,16 +428,36 @@ export default function HabitChecklistPage() {
                   {isOpen && (
                     <div className={styles.accordionBody}>
                       {groupEntries.map((entry) => {
-                        const tappable = hasDetailedCheckin(entry.activity);
+                        const { activity, occurrence } = entry;
+                        const isMedicine = activity.category === "medicine";
+                        // Medicine uses the check circle as a per-dose counter,
+                        // so its card body no longer navigates on tap.
+                        const cardTappable =
+                          hasDetailedCheckin(activity) && !isMedicine;
+                        const doseTotal = occurrence.doseProgress?.total ?? 0;
+                        const doseTaken =
+                          occurrence.doseProgress?.taken ??
+                          (occurrence.status === "done" ? doseTotal : 0);
+                        const showDoseFill = isMedicine && doseTotal > 0;
+                        const fillPct = showDoseFill
+                          ? Math.round((doseTaken / doseTotal) * 100)
+                          : 0;
                         return (
                           <div
-                            key={entry.activity.id}
-                            className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${tappable ? ` ${styles.hasLog}` : ""}`}
+                            key={activity.id}
+                            className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${cardTappable ? ` ${styles.hasLog}` : ""}`}
                             role="article"
-                            aria-label={getActivityDisplayName(entry.activity)}
+                            aria-label={getActivityDisplayName(activity)}
+                            style={
+                              showDoseFill
+                                ? {
+                                    background: `linear-gradient(90deg, ${DOSE_FILL} 0 ${fillPct}%, ${DOSE_BASE} ${fillPct}% 100%)`,
+                                  }
+                                : undefined
+                            }
                             onClick={() =>
-                              tappable &&
-                              handleEntryTap(entry.activity, entry.occurrence.id)
+                              cardTappable &&
+                              handleEntryTap(activity, occurrence.id)
                             }
                           >
                             <div className={styles.habitEntryIcon}>
@@ -288,20 +467,20 @@ export default function HabitChecklistPage() {
                               <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
                               <p className={styles.habitEntrySub}>{entry.subline}</p>
                             </div>
-                            {tappable && (
+                            {cardTappable && (
                               <span className={styles.habitEntryLogArrow} aria-hidden="true">
                                 <ChevronRight />
                               </span>
                             )}
                             <button
                               className={styles.habitDeleteBtn}
-                              aria-label={`ลบ ${entry.activity.name}`}
+                              aria-label={`จัดการ ${activity.name}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setConfirmId(entry.activity.id);
+                                setMenuId(activity.id);
                               }}
                             >
-                              <Trash2 />
+                              <Pencil />
                             </button>
                             {(entry.occurrence.status === "pending" ||
                               entry.occurrence.status === "partial") && (
@@ -321,44 +500,79 @@ export default function HabitChecklistPage() {
                                 <ChevronsRight />
                               </button>
                             )}
-                            <button
-                              className={`${styles.habitCheck}${
-                                entry.occurrence.status === "done"
-                                  ? ` ${styles.done}`
-                                  : entry.occurrence.status === "skipped"
-                                    ? ` ${styles.skip}`
-                                    : entry.occurrence.status === "partial"
-                                      ? ` ${styles.partial}`
+                            {isMedicine ? (
+                              <button
+                                className={`${styles.habitCheck}${
+                                  occurrence.status === "done"
+                                    ? ` ${styles.done}`
+                                    : occurrence.status === "skipped"
+                                      ? ` ${styles.skip}`
                                       : ""
-                              }`}
-                              aria-label={
-                                entry.occurrence.status === "done"
-                                  ? "ทำเสร็จแล้ว"
-                                  : entry.occurrence.status === "skipped"
-                                    ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
-                                    : entry.occurrence.status === "partial"
-                                      ? "กำลังทำ – แตะเพื่อทำเสร็จ"
-                                      : "ยังไม่ทำ"
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const next =
-                                  entry.occurrence.status === "done" ? "pending" : "done";
-                                toggle({
-                                  occurrenceId: entry.occurrence.id,
-                                  activityId: entry.activity.id,
-                                  status: next,
-                                  date: todayStr,
-                                });
-                              }}
-                            >
-                              {entry.occurrence.status === "done" && (
-                                <Check color="#fff" strokeWidth={3} />
-                              )}
-                              {entry.occurrence.status === "skipped" && (
-                                <Minus color="#fff" strokeWidth={3} />
-                              )}
-                            </button>
+                                }`}
+                                aria-label={
+                                  occurrence.status === "done"
+                                    ? "กินยาครบแล้ว – แตะเพื่อล้าง"
+                                    : occurrence.status === "skipped"
+                                      ? "ข้ามไปแล้ว"
+                                      : doseTotal > 0
+                                        ? `กินยาแล้ว ${doseTaken} จาก ${doseTotal} มื้อ – แตะเพื่อบันทึกมื้อถัดไป`
+                                        : "แตะเพื่อบันทึกการกินยา"
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMedicineDose(activity, occurrence);
+                                }}
+                              >
+                                {occurrence.status === "done" ? (
+                                  <Check color="#fff" strokeWidth={3} />
+                                ) : occurrence.status === "skipped" ? (
+                                  <Minus color="#fff" strokeWidth={3} />
+                                ) : doseTotal > 0 ? (
+                                  <span className={styles.habitCheckCount}>
+                                    {doseTaken}/{doseTotal}
+                                  </span>
+                                ) : null}
+                              </button>
+                            ) : (
+                              <button
+                                className={`${styles.habitCheck}${
+                                  occurrence.status === "done"
+                                    ? ` ${styles.done}`
+                                    : occurrence.status === "skipped"
+                                      ? ` ${styles.skip}`
+                                      : occurrence.status === "partial"
+                                        ? ` ${styles.partial}`
+                                        : ""
+                                }`}
+                                aria-label={
+                                  occurrence.status === "done"
+                                    ? "ทำเสร็จแล้ว"
+                                    : occurrence.status === "skipped"
+                                      ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
+                                      : occurrence.status === "partial"
+                                        ? "กำลังทำ – แตะเพื่อทำเสร็จ"
+                                        : "ยังไม่ทำ"
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const next =
+                                    occurrence.status === "done" ? "pending" : "done";
+                                  toggle({
+                                    occurrenceId: occurrence.id,
+                                    activityId: activity.id,
+                                    status: next,
+                                    date: todayStr,
+                                  });
+                                }}
+                              >
+                                {occurrence.status === "done" && (
+                                  <Check color="#fff" strokeWidth={3} />
+                                )}
+                                {occurrence.status === "skipped" && (
+                                  <Minus color="#fff" strokeWidth={3} />
+                                )}
+                              </button>
+                            )}
                           </div>
                         );
                       })}
@@ -375,6 +589,17 @@ export default function HabitChecklistPage() {
 
   return (
     <BookShellLayout tight rail={<IconRail />} mergedOnly merged={left}>
+      {menuActivity && menuOccurrence && (
+        <EntryActionMenu
+          activityName={menuActivityName}
+          onUndo={() => handleUndoToday(menuActivity, menuOccurrence)}
+          onDelete={() => {
+            setConfirmId(menuActivity.id);
+            setMenuId(null);
+          }}
+          onCancel={() => setMenuId(null)}
+        />
+      )}
       {confirmActivity && (
         <DeleteConfirmDialog
           activityName={confirmActivityName}

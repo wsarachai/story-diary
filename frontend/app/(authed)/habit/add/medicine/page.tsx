@@ -15,6 +15,7 @@ import type {
   NutritionPresetKey,
 } from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
+import { MEDICINES, MEDICINE_KEYS, type MedicineKey } from "@/types/medicines";
 import styles from "../HabitAdd.module.css";
 
 const NUTRITION_PRESET_KEYS: NutritionPresetKey[] = [
@@ -34,8 +35,13 @@ function resolveNutritionPreset(
     : null;
 }
 
+/** Medicine name source: a catalogue key, free-text "Other", or unset. */
+type MedicineMode = "" | "preset" | "other";
+
 interface FormState {
   name: string;
+  medicineKey: MedicineKey | null;
+  medicineMode: MedicineMode;
   iconColor: string;
   mealRelation: MealRelation;
   mealSlots: MealSlot[];
@@ -51,6 +57,7 @@ interface FormState {
 type FormAction =
   | { type: "SET_NAME"; value: string }
   | { type: "SYNC_NAME"; value: string }
+  | { type: "SELECT_MEDICINE"; value: MedicineKey | "other" | "" }
   | { type: "SET_ICON_COLOR"; value: string }
   | { type: "SET_MEAL_RELATION"; value: MealRelation }
   | { type: "TOGGLE_MEAL_SLOT"; slot: MealSlot }
@@ -68,6 +75,33 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, name: action.value, dirty: true };
     case "SYNC_NAME":
       return { ...state, name: action.value };
+    case "SELECT_MEDICINE": {
+      if (action.value === "other") {
+        return {
+          ...state,
+          medicineMode: "other",
+          medicineKey: null,
+          name: "",
+          dirty: true,
+        };
+      }
+      if (action.value === "") {
+        return {
+          ...state,
+          medicineMode: "",
+          medicineKey: null,
+          name: "",
+          dirty: true,
+        };
+      }
+      return {
+        ...state,
+        medicineMode: "preset",
+        medicineKey: action.value,
+        name: MEDICINES[action.value].label,
+        dirty: true,
+      };
+    }
     case "SET_ICON_COLOR":
       return { ...state, iconColor: action.value, dirty: true };
     case "SET_MEAL_RELATION":
@@ -143,6 +177,8 @@ function MedicineFormInner() {
 
   const [form, dispatchForm] = useReducer(formReducer, {
     name: prefillName,
+    medicineKey: null,
+    medicineMode: "",
     iconColor: "#aa85e5",
     mealRelation: "after",
     mealSlots: [],
@@ -164,8 +200,13 @@ function MedicineFormInner() {
 
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
-    if (!form.name.trim()) errors.name = "กรุณาระบุชื่อ";
-    else if (form.name.trim().length > 120) errors.name = "ชื่อยาวเกินไป";
+    if (!isNutrition && form.medicineMode === "") {
+      errors.name = "กรุณาเลือกชื่อยา";
+    } else if (!form.name.trim()) {
+      errors.name = isNutrition ? "กรุณาระบุชื่อ" : "กรุณาระบุชื่อยา";
+    } else if (form.name.trim().length > 120) {
+      errors.name = "ชื่อยาวเกินไป";
+    }
     if (form.frequency === "daily" && form.weekdays.length === 0) {
       errors.weekdays = "กรุณาเลือกอย่างน้อย 1 วัน";
     }
@@ -211,7 +252,11 @@ function MedicineFormInner() {
         ...(nutritionPreset ? { nutritionPreset } : {}),
         ...(isNutrition
           ? {}
-          : { mealRelation: form.mealRelation, mealSlots: form.mealSlots }),
+          : {
+              mealRelation: form.mealRelation,
+              mealSlots: form.mealSlots,
+              medicineKey: form.medicineKey,
+            }),
       }).unwrap();
       router.replace(from);
     } catch (err: unknown) {
@@ -292,29 +337,55 @@ function MedicineFormInner() {
               <div className={styles.formPanel}>
                 {/* Name + icon-color */}
                 <div className={styles.nameRow}>
-                  {hasLockedNutritionPreset ? (
-                    <input
-                      className={`${styles.nameField} ${styles.nutritionFlavor}${form.errors.name ? ` ${styles.error}` : ""}`}
-                      type="text"
-                      aria-label="ชื่อโภชนาการ"
-                      placeholder="ชื่อโภชนาการ :"
-                      value={form.name}
-                      readOnly
-                    />
+                  {isNutrition ? (
+                    hasLockedNutritionPreset ? (
+                      <input
+                        className={`${styles.nameField} ${styles.nutritionFlavor}${form.errors.name ? ` ${styles.error}` : ""}`}
+                        type="text"
+                        aria-label="ชื่อโภชนาการ"
+                        placeholder="ชื่อโภชนาการ :"
+                        value={form.name}
+                        readOnly
+                      />
+                    ) : (
+                      <input
+                        className={`${styles.nameField} ${styles.nutritionFlavor}${form.errors.name ? ` ${styles.error}` : ""}`}
+                        type="text"
+                        aria-label="ชื่อโภชนาการ"
+                        placeholder="ชื่อโภชนาการ :"
+                        value={form.name}
+                        onChange={(e) =>
+                          dispatchForm({
+                            type: "SET_NAME",
+                            value: e.target.value,
+                          })
+                        }
+                      />
+                    )
                   ) : (
-                    <input
-                      className={`${styles.nameField}${isNutrition ? ` ${styles.nutritionFlavor}` : ""}${form.errors.name ? ` ${styles.error}` : ""}`}
-                      type="text"
-                      aria-label={isNutrition ? "ชื่อโภชนาการ" : "ชื่อยา"}
-                      placeholder={isNutrition ? "ชื่อโภชนาการ :" : "ชื่อยา :"}
-                      value={form.name}
+                    <select
+                      className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
+                      aria-label="ชื่อยา"
+                      value={
+                        form.medicineMode === "other"
+                          ? "other"
+                          : (form.medicineKey ?? "")
+                      }
                       onChange={(e) =>
                         dispatchForm({
-                          type: "SET_NAME",
-                          value: e.target.value,
+                          type: "SELECT_MEDICINE",
+                          value: e.target.value as MedicineKey | "other" | "",
                         })
                       }
-                    />
+                    >
+                      <option value="">เลือกชื่อยา :</option>
+                      {MEDICINE_KEYS.map((key) => (
+                        <option key={key} value={key}>
+                          {MEDICINES[key].label}
+                        </option>
+                      ))}
+                      <option value="other">อื่นๆ</option>
+                    </select>
                   )}
                   <button
                     className={styles.nameIcon}
@@ -326,6 +397,18 @@ function MedicineFormInner() {
                     <Sun />
                   </button>
                 </div>
+                {!isNutrition && form.medicineMode === "other" && (
+                  <input
+                    className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
+                    type="text"
+                    aria-label="ระบุชื่อยา"
+                    placeholder="ระบุชื่อยา :"
+                    value={form.name}
+                    onChange={(e) =>
+                      dispatchForm({ type: "SET_NAME", value: e.target.value })
+                    }
+                  />
+                )}
                 {form.errors.name && (
                   <p className={styles.fieldError} role="alert">
                     {form.errors.name}

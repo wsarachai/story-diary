@@ -61,6 +61,18 @@ export const HabitScheduleSchema = z.discriminatedUnion("frequency", [
 
 const MealSlotEnum = z.enum(["breakfast", "lunch", "dinner", "before-bed"]);
 
+const MedicineKeyEnum = z.enum([
+  "prednisolone",
+  "cyclophosphamide",
+  "azathioprine",
+  "mycophenolate",
+  "cyclosporine",
+  "quinnel",
+  "nsaid",
+  "vitamin-d2",
+  "calcium-835",
+]);
+
 export const CreateActivitySchema = z.object({
   category: z.enum(["medicine", "nutrition", "physical"]),
   nutritionPreset: z
@@ -108,6 +120,7 @@ export const CreateActivitySchema = z.object({
   schedule: HabitScheduleSchema,
   mealRelation: z.enum(["before", "after"]).optional(),
   mealSlots: z.array(MealSlotEnum).optional(),
+  medicineKey: MedicineKeyEnum.nullish(),
   archived: z.boolean().optional(),
 });
 
@@ -129,6 +142,7 @@ export const MedicineCheckinSchema = z.object({
       checked: z.boolean(),
     })
   ),
+  sideEffectNote: z.string().max(1000).optional(),
 });
 
 export const NutritionCheckinSchema = z.object({

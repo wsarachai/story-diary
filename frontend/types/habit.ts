@@ -23,6 +23,8 @@
  * Cross-agent contract: shared by frontend (Redux + screens), backend, and tests.
  */
 
+import type { MedicineKey } from "./medicines";
+
 /* ────────────────────────────────────────────────────────────────────────
  * Categories & taxonomies
  * ──────────────────────────────────────────────────────────────────────── */
@@ -148,6 +150,13 @@ export interface HabitActivity {
     physicalPreset?: PhysicalPresetKey;
     /** Stable key for nutrition presets selected from s021. */
     nutritionPreset?: NutritionPresetKey;
+    /**
+     * Medicine-only: stable key into the medicine catalogue (types/medicines.ts),
+     * set when the user picks from the `/habit/add/medicine` select. Drives the
+     * medicine-specific side-effect checklist on check-in. `null`/absent means
+     * an "Other" (free-text) or legacy medicine — those use a free-text note.
+     */
+    medicineKey?: MedicineKey | null;
     /** Display name. e.g. "กินยา xxx" or "รับประทานอาหารครบ 5 หมู่". */
     name: string;
     /** Optional hex colour for the icon (s020 icon color picker). */
@@ -181,6 +190,12 @@ export interface HabitOccurrence {
     status: HabitOccurrenceStatus;
     /** Optional checked-in moment. Null when status === "pending". */
     completedAt?: string;
+    /**
+     * Medicine-only: how many of the activity's configured meal doses have been
+     * taken today. Drives the per-meal tap counter + background fill on the
+     * checklist. Absent for non-medicine or meal-less medicine activities.
+     */
+    doseProgress?: { taken: number; total: number };
 }
 
 /**
@@ -202,6 +217,11 @@ export interface MedicineCheckin {
     mealRelation: MealRelation;
     mealSlots: MealSlot[];
     sideEffects: SymptomCheck[];
+    /**
+     * Free-text side-effect note. Used by "Other"/legacy medicines that have no
+     * `medicineKey` and therefore no predefined checklist. Empty for known meds.
+     */
+    sideEffectNote?: string;
 }
 
 /** Nutrition check-in record (s023). 3 meal text fields. */

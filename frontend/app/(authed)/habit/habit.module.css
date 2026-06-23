@@ -581,6 +581,15 @@
   height: 0.8rem;
 }
 
+/* กินยา N มื้อ — dose counter shown inside the medicine check circle */
+.habitCheckCount {
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #2b7fb0;
+  letter-spacing: -0.02em;
+}
+
 .habitDeleteBtn {
   background: transparent;
   border: none;
@@ -697,6 +706,45 @@
 
 .deleteConfirmOk:hover {
   background: #e63939;
+}
+
+/* ── Entry action menu (trash button → Undo / Delete) ── */
+.entryMenuActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+}
+
+.entryMenuUndo,
+.entryMenuDelete {
+  width: 100%;
+  border-radius: 999px;
+  padding: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.entryMenuUndo {
+  border: 2px solid #9b5de5;
+  background: #f3e8ff;
+  color: #6b34c9;
+}
+
+.entryMenuUndo:hover {
+  background: #e9d8ff;
+}
+
+.entryMenuDelete {
+  border: 2px solid #ffd5d5;
+  background: #fff;
+  color: #e63939;
+}
+
+.entryMenuDelete:hover {
+  background: #fff0f0;
 }
 
 /* ── Weekly Tracker (s013) ── */

@@ -65,6 +65,8 @@ export interface HabitActivityDoc {
   schedule_json: string;
   meal_relation?: "before" | "after" | null;
   meal_slots_json?: string | null;
+  /** Medicine-only stable catalogue key; null for "Other"/legacy meds. */
+  medicine_key?: string | null;
   created_at: string;
   updated_at: string;
   archived: boolean;
@@ -108,6 +110,8 @@ export interface MedicineCheckinDoc {
   meal_relation: string;
   meal_slots_json: string;
   side_effects_json: string;
+  /** Free-text note for "Other"/legacy meds; absent for known meds. */
+  side_effect_note?: string | null;
   created_at: string;
 }
 

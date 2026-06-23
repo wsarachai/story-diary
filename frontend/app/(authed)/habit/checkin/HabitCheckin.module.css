@@ -201,6 +201,26 @@
   line-height: 1.55;
 }
 
+/* Free-text side-effect note for "Other"/legacy medicines (no checklist) */
+.ciNoteField {
+  width: 100%;
+  resize: vertical;
+  padding: 0.7em 0.9em;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid #e8e3da;
+  font: inherit;
+  font-size: 1.05em;
+  line-height: 1.5;
+  color: #333;
+}
+
+.ciNoteField:focus {
+  outline: none;
+  border-color: #9b5de5;
+  background: #faf7ff;
+}
+
 /* ── Side-effects checklist ── */
 .ciCheckList {
   display: flex;

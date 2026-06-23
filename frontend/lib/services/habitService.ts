@@ -74,6 +74,7 @@ function rowToActivity(row: HabitActivityDoc): HabitActivity {
     if (row.icon_color) activity.iconColor = row.icon_color as `#${string}`;
     if (row.meal_relation) activity.mealRelation = row.meal_relation;
     if (row.meal_slots_json) activity.mealSlots = JSON.parse(row.meal_slots_json);
+    if (row.medicine_key) activity.medicineKey = row.medicine_key as HabitActivity["medicineKey"];
     return activity;
 }
 
@@ -267,6 +268,17 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
         if (!isScheduledOnDate(activity, date)) continue;
 
         const occurrence = await ensureOccurrence(activity.id, date);
+
+        // Medicine with configured meals carries per-dose progress so the
+        // checklist can render the tap counter + background fill without a
+        // separate round-trip per row.
+        if (activity.category === "medicine" && activity.mealSlots && activity.mealSlots.length > 0) {
+            const checkin = await findMedicineCheckinByOccurrence(occurrence.id);
+            const checked: MealSlot[] = checkin ? JSON.parse(checkin.meal_slots_json) : [];
+            const taken = activity.mealSlots.filter((slot) => checked.includes(slot)).length;
+            occurrence.doseProgress = { taken, total: activity.mealSlots.length };
+        }
+
         entries.push({
             activity,
             occurrence,
@@ -312,6 +324,7 @@ export async function createActivity(
         schedule_json: JSON.stringify(data.schedule),
         meal_relation: data.mealRelation ?? null,
         meal_slots_json: data.mealSlots ? JSON.stringify(data.mealSlots) : null,
+        medicine_key: data.medicineKey ?? null,
         created_at: now,
         updated_at: now,
         archived: data.archived ?? false,
@@ -369,6 +382,7 @@ export async function updateActivity(
     if (patch.schedule !== undefined) updates.schedule_json = JSON.stringify(patch.schedule);
     if (patch.mealRelation !== undefined) updates.meal_relation = patch.mealRelation;
     if (patch.mealSlots !== undefined) updates.meal_slots_json = JSON.stringify(patch.mealSlots);
+    if (patch.medicineKey !== undefined) updates.medicine_key = patch.medicineKey ?? null;
     if (patch.archived !== undefined) updates.archived = patch.archived;
 
     if (Object.keys(updates).length === 0) {
@@ -427,6 +441,7 @@ export async function getMedicineCheckin(userId: string, occurrenceId: string): 
         mealRelation: doc.meal_relation as MedicineCheckin["mealRelation"],
         mealSlots: JSON.parse(doc.meal_slots_json),
         sideEffects: JSON.parse(doc.side_effects_json),
+        ...(doc.side_effect_note ? { sideEffectNote: doc.side_effect_note } : {}),
     };
 }
 
@@ -479,6 +494,7 @@ export async function saveMedicineCheckin(userId: string, data: MedicineCheckin)
         meal_relation: data.mealRelation,
         meal_slots_json: JSON.stringify(data.mealSlots),
         side_effects_json: JSON.stringify(data.sideEffects),
+        side_effect_note: data.sideEffectNote ?? null,
         created_at: now,
     });
 
