@@ -20,6 +20,12 @@ interface BookShellLayoutProps {
    * tall decorative left page. No effect on desktop (both pages still show).
    */
   hideLeftOnMobile?: boolean;
+  /**
+   * When true, the book-shell fills the mobile viewport and vertically centers
+   * its (stacked) pages, so short content sits in the middle of the screen
+   * instead of at the top. Pairs with `fitViewport`. No effect on desktop.
+   */
+  centerMobile?: boolean;
   /** Optional persistent right-edge rail (s004+). */
   rail?: React.ReactNode;
   /** Custom aria-label for the main container. */
@@ -40,6 +46,7 @@ export default function BookShellLayout({
   tight = false,
   fitViewport = false,
   hideLeftOnMobile = false,
+  centerMobile = false,
   rail,
   ariaLabel = "Story Diary",
   children,
@@ -47,7 +54,7 @@ export default function BookShellLayout({
   return (
     <main className={styles.screen} aria-label={ariaLabel}>
       <section
-        className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}${fitViewport ? ` ${styles.bookShellFitViewport}` : ""}${hideLeftOnMobile ? ` ${styles.bookShellHideLeftMobile}` : ""}`}
+        className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}${fitViewport ? ` ${styles.bookShellFitViewport}` : ""}${hideLeftOnMobile ? ` ${styles.bookShellHideLeftMobile}` : ""}${centerMobile ? ` ${styles.bookShellCenterMobile}` : ""}`}
         style={rail ? { gridTemplateColumns: "1fr 1fr auto" } : undefined}
       >
         {mergedOnly && merged ? (
