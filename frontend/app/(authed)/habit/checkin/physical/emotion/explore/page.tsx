@@ -9,29 +9,32 @@ import type { MoodLevel } from "@/types/habit";
 import styles from "../../../../add/HabitAdd.module.css";
 import checkinStyles from "../../../HabitCheckin.module.css";
 
-const MOOD_LEVELS: { level: MoodLevel; Face: typeof Smile; color: string; label: string }[] = [
-  { level: "very-bad", Face: Frown, color: "#d63a3a", label: "แย่มาก" },
-  { level: "bad", Face: Annoyed, color: "#e8a000", label: "แย่" },
-  { level: "neutral", Face: Meh, color: "#888888", label: "เฉยๆ" },
-  { level: "good", Face: Smile, color: "#2a9d8f", label: "ดี" },
-  { level: "very-good", Face: Laugh, color: "#3aab3a", label: "ดีมาก" },
+const MOOD_LEVELS: { level: MoodLevel; Face: typeof Smile; color: string; label: string; value: number }[] = [
+  { level: "very-bad", Face: Frown, color: "#d63a3a", label: "แย่มาก", value: -100 },
+  { level: "bad", Face: Annoyed, color: "#e8a000", label: "แย่", value: -50 },
+  { level: "neutral", Face: Meh, color: "#888888", label: "เฉยๆ", value: 0 },
+  { level: "good", Face: Smile, color: "#2a9d8f", label: "ดี", value: 50 },
+  { level: "very-good", Face: Laugh, color: "#3aab3a", label: "ดีมาก", value: 100 },
 ];
+
+/** Persisted sliderValue is derived from the chosen mood icon (the slider UI
+ *  was removed; icon selection is the only input on this screen). */
+function sliderValueForMood(mood: MoodLevel): number {
+  return MOOD_LEVELS.find((m) => m.level === mood)?.value ?? 0;
+}
 
 interface State {
   mood: MoodLevel;
-  sliderValue: number;
   dirty: boolean;
 }
 
 type Action =
   | { type: "SET_MOOD"; mood: MoodLevel }
-  | { type: "SET_SLIDER"; value: number }
-  | { type: "RESET"; mood: MoodLevel; sliderValue: number };
+  | { type: "RESET"; mood: MoodLevel };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "SET_MOOD") return { ...state, mood: action.mood, dirty: true };
-  if (action.type === "SET_SLIDER") return { ...state, sliderValue: action.value, dirty: true };
-  if (action.type === "RESET") return { mood: action.mood, sliderValue: action.sliderValue, dirty: false };
+  if (action.type === "RESET") return { mood: action.mood, dirty: false };
   return state;
 }
 
@@ -49,7 +52,7 @@ function ExploreEmotionInner() {
   const activityId = searchParams.get("actId") ?? "";
   const { data: existingCheckin } = useGetMoodCheckinQuery(occId, { skip: !occId });
 
-  const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", sliderValue: 0, dirty: false });
+  const [state, dispatchLocal] = useReducer(reducer, { mood: "neutral", dirty: false });
 
   // A check-in only makes sense for a concrete occurrence.
   useEffect(() => {
@@ -61,7 +64,6 @@ function ExploreEmotionInner() {
       dispatchLocal({
         type: "RESET",
         mood: existingCheckin.mood,
-        sliderValue: existingCheckin.sliderValue,
       });
     }
   }, [existingCheckin]);
@@ -75,7 +77,7 @@ function ExploreEmotionInner() {
         occurrenceId: occId,
         activityId,
         mood: state.mood,
-        sliderValue: state.sliderValue,
+        sliderValue: sliderValueForMood(state.mood),
         date: today
       }).unwrap();
       router.replace(from);
@@ -90,11 +92,6 @@ function ExploreEmotionInner() {
     if (state.dirty) { discardRef.current?.showModal(); }
     else { router.back(); }
   }
-
-  const sliderPct = (state.sliderValue + 100) / 2;
-  const sliderColor = state.sliderValue >= 0
-    ? `hsl(${120 * (sliderPct / 100)}, 70%, 50%)`
-    : `hsl(${360 - 40 * ((100 - sliderPct) / 100)}, 70%, 50%)`;
 
   const leftPage = (
     <div className={styles.authoringPage} aria-label="สำรวจอารมณ์ตนเอง">
@@ -137,23 +134,6 @@ function ExploreEmotionInner() {
               </button>
             ))}
           </div>
-
-          <div className={checkinStyles.ciMoodSliderWrap}>
-            <div className={checkinStyles.ciMoodSliderLabels} style={{ fontSize: "2em" }}>
-              <span className={checkinStyles.ciMoodSliderSign}>−</span>
-              <span className={checkinStyles.ciMoodSliderSign}>+</span>
-            </div>
-            <input
-              type="range"
-              className={checkinStyles.ciMoodSlider}
-              min="-100"
-              max="100"
-              value={state.sliderValue}
-              aria-label="ระดับอารมณ์ละเอียด"
-              style={{ background: sliderColor }}
-              onChange={(e) => dispatchLocal({ type: "SET_SLIDER", value: Number(e.target.value) })}
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -163,6 +143,8 @@ function ExploreEmotionInner() {
     <>
       <BookShellLayout
         tight
+        fitViewport
+        centerMobile
         rail={<IconRail />}
         mergedOnly
         merged={leftPage}
