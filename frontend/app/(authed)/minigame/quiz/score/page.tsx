@@ -29,6 +29,7 @@ export default function ScorePage() {
   return (
     <BookShellLayout
       tight
+      fitViewport
       rail={<IconRail />}
       left={
         <div className={styles.scoreLayoutLeft}>
