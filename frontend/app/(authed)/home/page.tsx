@@ -21,9 +21,51 @@ export default function HomePage() {
     <BookShellLayout
       tight
       rail={<IconRail />}
+      mobileHeader={<MobileTopBar />}
       left={<StoryCardPanel />}
       right={<DashboardPanel />}
     />
+  );
+}
+
+/** Date + profile, shown above the book on mobile only (hidden on desktop,
+ *  where the same info lives at the top of the dashboard panel). */
+function MobileTopBar() {
+  return (
+    <div className={styles.mobileTopBar}>
+      <DateFull className={styles.mobileTopBarDate} />
+      <ProfileChip />
+    </div>
+  );
+}
+
+/** Profile link (name + avatar). Reads the current user itself so it can be
+ *  reused in both the mobile top bar and the desktop dashboard. */
+function ProfileChip() {
+  const { data: user, isLoading: userLoading } = useGetMeQuery();
+  return (
+    <Link href="/profile" aria-label="ไปหน้าโปรไฟล์" className={styles.profileLink}>
+      <span className={styles.profileName}>
+        {userLoading
+          ? <PageSpinner variant="small" label="กำลังโหลด…" />
+          : (user?.characterName || "โปรไฟล์")
+        }
+      </span>
+      <div className={styles.avatarWrapper}>
+        {user?.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
+        ) : (
+          <Image
+            src="/images/chapter-speaker-girl-transparent.png"
+            alt=""
+            width={24}
+            height={24}
+            className={styles.avatarPlaceholder}
+          />
+        )}
+      </div>
+    </Link>
   );
 }
 
@@ -46,45 +88,14 @@ function StoryCardPanel() {
 }
 
 function DashboardPanel() {
-  const { data: user, isLoading: userLoading } = useGetMeQuery();
-
   return (
     <div className={styles.dashboardPanel}>
-      {/* Date */}
-      <DateFull />
+      {/* Date — desktop only (mobile shows it in the top bar) */}
+      <DateFull className={styles.dashDateDesktop} />
 
-      {/* Profile link */}
+      {/* Profile link — desktop only (mobile shows it in the top bar) */}
       <div className={styles.profileLinkWrapper}>
-        <Link
-          href="/profile"
-          aria-label="ไปหน้าโปรไฟล์"
-          className={styles.profileLink}
-        >
-          <span className={styles.profileName}>
-            {userLoading
-              ? <PageSpinner variant="small" label="กำลังโหลด…" />
-              : (user?.characterName || "โปรไฟล์")
-            }
-          </span>
-          <div className={styles.avatarWrapper}>
-            {user?.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.avatarUrl}
-                alt=""
-                className={styles.avatarImg}
-              />
-            ) : (
-              <Image
-                src="/images/chapter-speaker-girl-transparent.png"
-                alt=""
-                width={24}
-                height={24}
-                className={styles.avatarPlaceholder}
-              />
-            )}
-          </div>
-        </Link>
+        <ProfileChip />
       </div>
 
       {/* Habit tracker card */}
