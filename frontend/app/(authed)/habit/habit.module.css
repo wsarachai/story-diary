@@ -458,6 +458,10 @@
   gap: 0.75rem;
   transition: transform 0.1s, box-shadow 0.1s;
   flex-shrink: 0;
+  /* Allow the row to shrink to its container; the nowrap name in
+     .habitEntryBody (min-width:0) absorbs the squeeze via ellipsis instead of
+     forcing the whole flex/grid chain wider than the viewport on mobile. */
+  min-width: 0;
 }
 
 .habitEntry.hasLog {
@@ -1416,6 +1420,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -1426,6 +1431,7 @@
   gap: 0.5rem;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -1449,6 +1455,10 @@
   border-radius: 16px;
   overflow: hidden;
   background: rgba(89, 214, 220, 0.08);
+  /* accordionList is a flex column; overflow:hidden here resolves the section's
+     automatic min-height to 0, so without this the section gets shrunk to the
+     list height and clips its rows instead of letting the list scroll. */
+  flex-shrink: 0;
 }
 
 .accordionHeader {
@@ -1494,12 +1504,13 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0 0.5rem 0.6rem;
+  min-width: 0;
 }
 
 /* Desktop: height chain is complete — bookShell (position:absolute, definite
-   height) → grid-template-rows:1fr → bookShellMergedLayer fills track →
-   > * {height:100%} gives habitTrackerContainer definite height →
-   1fr row gives checklistContent definite height → accordionList scrolls. */
+   height) → grid-template-rows:1fr → pageMergedOnly (min-height:0) is clamped
+   to the track → habitTrackerContainer height:100% resolves → 1fr row gives
+   checklistContent definite height → accordionList overflow-y:auto scrolls. */
 
 /* Mobile: tab row single scrollable line to save vertical space */
 @media (max-width: 900px) {
@@ -1515,7 +1526,22 @@
   .trackerTab {
     white-space: nowrap;
   }
-  /* No height constraints on checklist — native body/page scroll handles it */
+  /* On mobile, bookShell has auto height so 1fr resolves to 0 — let everything
+     flow naturally and delegate scrolling to the native page scroll. */
+  .habitTrackerContainer {
+    height: auto;
+    overflow: visible;
+    grid-template-rows: auto auto auto;
+  }
+  .checklistContent {
+    overflow: visible;
+    height: auto;
+  }
+  .accordionList {
+    overflow: visible;
+    flex: none;
+    min-height: auto;
+  }
 }
 
 /* Landscape mobile: compress header */
