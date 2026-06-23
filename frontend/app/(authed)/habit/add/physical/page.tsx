@@ -28,6 +28,8 @@ export default async function AddPhysicalPage({ searchParams }: { searchParams: 
   return (
     <BookShellLayout
       tight
+      fitViewport
+      centerMobile
       rail={<IconRail />}
       mergedOnly
       merged={

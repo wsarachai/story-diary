@@ -44,6 +44,8 @@ export default async function SunlightMenuPage({ searchParams }: { searchParams:
   return (
     <BookShellLayout
       tight
+      fitViewport
+      centerMobile
       rail={<IconRail />}
       mergedOnly
       merged={leftPage}

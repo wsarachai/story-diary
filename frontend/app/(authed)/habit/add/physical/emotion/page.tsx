@@ -54,6 +54,8 @@ export default async function EmotionMenuPage({ searchParams }: { searchParams: 
   return (
     <BookShellLayout
       tight
+      fitViewport
+      centerMobile
       rail={<IconRail />}
       mergedOnly
       merged={leftPage}
