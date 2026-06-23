@@ -135,6 +135,14 @@
     min-height: calc(100dvh - 8.5rem);
   }
 
+  /* centerMobile: fill the viewport and vertically center the stacked pages so
+     short content (e.g. the score result) sits in the middle of the screen
+     rather than at the top. */
+  .bookShellCenterMobile {
+    min-height: 100dvh;
+    align-content: center;
+  }
+
   .pageLeft {
     grid-area: left;
   }
