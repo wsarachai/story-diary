@@ -74,6 +74,8 @@ export default function AddActivityPage() {
       merged={content}
       rail={<IconRail />}
       tight
+      fitViewport
+      centerMobile
     />
   );
 }

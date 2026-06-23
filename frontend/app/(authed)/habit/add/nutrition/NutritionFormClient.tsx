@@ -421,6 +421,8 @@ export default function NutritionFormClient({
         }
         rail={<IconRail />}
         tight
+        fitViewport
+        centerMobile
       />
 
       <dialog

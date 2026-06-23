@@ -546,6 +546,8 @@ function MedicineFormInner() {
         }
         rail={<IconRail />}
         tight
+        fitViewport
+        centerMobile
       />
 
       {/* Icon-color dialog */}

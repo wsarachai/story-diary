@@ -45,6 +45,8 @@ export default async function InfectionMenuPage({ searchParams }: { searchParams
   return (
     <BookShellLayout
       tight
+      fitViewport
+      centerMobile
       rail={<IconRail />}
       mergedOnly
       merged={leftPage}

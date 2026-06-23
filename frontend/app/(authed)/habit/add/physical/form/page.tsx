@@ -161,6 +161,8 @@ function PhysicalFormInner() {
   return (
     <BookShellLayout
       tight
+      fitViewport
+      centerMobile
       rail={<IconRail />}
       mergedOnly
       merged={
