@@ -115,8 +115,7 @@ export type AppRoute =
     // Minigame — quiz wizard
     | "/minigame/quiz"
     | "/minigame/quiz/feedback"
-    | "/minigame/quiz/score"
-    | "/minigame/quiz/summary";
+    | "/minigame/quiz/score";
 
 /**
  * View-model for a single rail item. Order in the rendered rail must match

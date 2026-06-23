@@ -113,6 +113,13 @@
     min-height: 50dvh;
   }
 
+  /* fitViewport: let stacked pages shrink to content so the whole screen can
+     fit a single mobile viewport (quiz/feedback) instead of each page forcing
+     50dvh and overflowing. */
+  .bookShellFitViewport .page {
+    min-height: 0;
+  }
+
   .pageLeft {
     grid-area: left;
   }

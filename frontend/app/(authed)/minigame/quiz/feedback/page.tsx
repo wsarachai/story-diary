@@ -128,6 +128,7 @@ function FeedbackInner() {
   return (
     <BookShellLayout
       tight
+      fitViewport
       left={left}
       right={right}
       rail={<IconRail />}

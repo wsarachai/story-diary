@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Home, BookOpen, NotebookPen, Gamepad2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useClientSearchParams } from "@/lib/hooks";
 import { useQuiz } from "../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 import styles from "./Quiz.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
+import IconRail from "@/components/IconRail";
 
 function QuizInner() {
   const router = useRouter();
@@ -46,12 +47,13 @@ function QuizInner() {
     router.push(`/minigame/quiz/feedback?n=${nIndex}`);
   }
 
-  function handleRailNavigate(href: string) {
+  function handleRailNavigate(href: string, e: React.MouseEvent<HTMLAnchorElement>) {
+    // While a quiz is in progress, intercept the link and confirm abandonment
+    // instead of navigating away. Otherwise let the rail's <Link> navigate.
     if (phase === "in-progress") {
+      e.preventDefault();
       dialogRef.current?.showModal();
       (dialogRef.current as HTMLDialogElement & { _pendingHref?: string })._pendingHref = href;
-    } else {
-      router.push(href);
     }
   }
 
@@ -123,40 +125,13 @@ function QuizInner() {
     </div>
   );
 
-  const customRail = (
-    <nav className={styles.iconRail} aria-label="Main navigation">
-      {[
-        { href: "/home", Icon: Home, label: "ไปหน้าแรก", activeAccent: "#ff3131" },
-        { href: "/chapters", Icon: BookOpen, label: "ไปหน้าอ่านเนื้อเรื่อง", activeAccent: "#08c65a" },
-        { href: "/habit", Icon: NotebookPen, label: "ไปหน้า habit tracker", activeAccent: "#6a24f2" },
-        { href: "/minigame", Icon: Gamepad2, label: "ไปหน้ามินิเกม", activeAccent: "#c771e8" },
-      ].map(({ href, Icon, label, activeAccent }) => {
-        const isActive = href === "/minigame" || href.startsWith("/minigame/");
-        return (
-          <button
-            key={href}
-            className={`${styles.iconRailLink}${isActive ? ` ${styles.isActive}` : ""}`}
-            aria-label={label}
-            onClick={() => handleRailNavigate(href)}
-            style={{
-              ["--rail-accent" as string]: activeAccent,
-            }}
-          >
-            <span className={styles.railTile} aria-hidden="true">
-              <Icon className={styles.railIcon} />
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-
   return (
     <BookShellLayout
       tight
+      fitViewport
       left={left}
       right={right}
-      rail={customRail}
+      rail={<IconRail onNavigate={handleRailNavigate} />}
     >
       {/* DS-2 abandon dialog */}
       <dialog ref={dialogRef} className={styles.abandonDialog} aria-modal="true">
