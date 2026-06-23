@@ -120,6 +120,12 @@
     min-height: 0;
   }
 
+  /* hideLeftOnMobile: drop the (decorative) left page on mobile so the right
+     page's content rises to the top instead of sitting below it. */
+  .bookShellHideLeftMobile .pageLeft {
+    display: none;
+  }
+
   .pageLeft {
     grid-area: left;
   }
