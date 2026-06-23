@@ -113,6 +113,28 @@
     min-height: 50dvh;
   }
 
+  /* fitViewport: let stacked pages shrink to content so the whole screen can
+     fit a single mobile viewport (quiz/feedback) instead of each page forcing
+     50dvh and overflowing. */
+  .bookShellFitViewport .page {
+    min-height: 0;
+  }
+
+  /* hideLeftOnMobile: drop the (decorative) left page on mobile so the right
+     page's content rises to the top instead of sitting below it. The visible
+     page fills the space down to the fixed rail and centres its content
+     vertically. */
+  .bookShellHideLeftMobile .pageLeft {
+    display: none;
+  }
+
+  .bookShellHideLeftMobile .pageRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100dvh - 8.5rem);
+  }
+
   .pageLeft {
     grid-area: left;
   }

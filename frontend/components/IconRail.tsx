@@ -25,7 +25,16 @@ const RAIL_ICONS: Record<NavRailKey, React.ComponentType<{ className?: string }>
 
 const ADMIN_ACCENT = "#3b82f6";
 
-export default function IconRail() {
+interface IconRailProps {
+  /**
+   * Optional click interceptor. Called before navigation for every rail link.
+   * Call `e.preventDefault()` to block the navigation (e.g. the quiz uses this
+   * to show its abandon-confirmation dialog while a quiz is in progress).
+   */
+  onNavigate?: (href: string, e: React.MouseEvent<HTMLAnchorElement>) => void;
+}
+
+export default function IconRail({ onNavigate }: IconRailProps) {
   const pathname = usePathname();
   const activeKey = getActiveKey(pathname);
   const { data: user } = useGetMeQuery();
@@ -45,6 +54,7 @@ export default function IconRail() {
             aria-label={item.ariaLabel}
             aria-current={isActive ? "page" : undefined}
             style={{ "--rail-accent": item.activeAccent } as React.CSSProperties}
+            onClick={(e) => onNavigate?.(item.href, e)}
           >
             <span className={styles.railTile} aria-hidden="true">
               <Icon className={styles.railIcon} />
@@ -60,6 +70,7 @@ export default function IconRail() {
           aria-label="ไปหน้าจัดการ Admin"
           aria-current={adminActive ? "page" : undefined}
           style={{ "--rail-accent": ADMIN_ACCENT } as React.CSSProperties}
+          onClick={(e) => onNavigate?.("/admin", e)}
         >
           <span className={styles.railTile} aria-hidden="true">
             <Settings className={styles.railIcon} />

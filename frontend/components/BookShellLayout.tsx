@@ -8,6 +8,18 @@ interface BookShellLayoutProps {
   mergedOnly?: boolean;
   /** When true, applies tight gap (s003/s004). */
   tight?: boolean;
+  /**
+   * When true, drops the mobile `min-height: 50dvh` floor on each page so the
+   * stacked pages shrink to their content and the screen can fit in one mobile
+   * viewport (used by the quiz/feedback screens). No effect on desktop.
+   */
+  fitViewport?: boolean;
+  /**
+   * When true, the left page is hidden on mobile and the right page takes the
+   * full width, so its content rises to the top instead of sitting below a
+   * tall decorative left page. No effect on desktop (both pages still show).
+   */
+  hideLeftOnMobile?: boolean;
   /** Optional persistent right-edge rail (s004+). */
   rail?: React.ReactNode;
   /** Custom aria-label for the main container. */
@@ -26,6 +38,8 @@ export default function BookShellLayout({
   merged,
   mergedOnly = false,
   tight = false,
+  fitViewport = false,
+  hideLeftOnMobile = false,
   rail,
   ariaLabel = "Story Diary",
   children,
@@ -33,7 +47,7 @@ export default function BookShellLayout({
   return (
     <main className={styles.screen} aria-label={ariaLabel}>
       <section
-        className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}`}
+        className={`${styles.bookShell}${tight ? ` ${styles.bookShellTight}` : ""}${fitViewport ? ` ${styles.bookShellFitViewport}` : ""}${hideLeftOnMobile ? ` ${styles.bookShellHideLeftMobile}` : ""}`}
         style={rail ? { gridTemplateColumns: "1fr 1fr auto" } : undefined}
       >
         {mergedOnly && merged ? (

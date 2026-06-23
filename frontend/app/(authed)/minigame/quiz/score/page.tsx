@@ -4,21 +4,27 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BookShellLayout from "@/components/BookShellLayout";
+import BookShellSkeleton from "@/components/BookShellSkeleton";
 import IconRail from "@/components/IconRail";
 import { useQuiz } from "../../QuizProvider";
 import styles from "../Quiz.module.css";
 
 export default function ScorePage() {
   const router = useRouter();
-  const { score, phase } = useQuiz();
+  const { score, phase, isSubmittingScore } = useQuiz();
 
   useEffect(() => {
-    if (phase !== "score") {
+    // The attempt completes with phase "completed"; anything else (idle after a
+    // refresh, or a direct visit) means there is no live attempt to score.
+    if (phase !== "completed") {
       router.replace("/minigame");
     }
   }, [phase, router]);
 
-  if (!score) return null;
+  // The score is fetched from the server on completion. Show the book-shell
+  // skeleton while that request is in flight; on failure the provider falls
+  // back to a client-computed score, so `score` is eventually non-null.
+  if (isSubmittingScore || !score) return <BookShellSkeleton variant="minigame" />;
 
   return (
     <BookShellLayout

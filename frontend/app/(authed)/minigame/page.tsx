@@ -18,6 +18,7 @@ export default function MinigamePage() {
   return (
     <BookShellLayout
       tight
+      hideLeftOnMobile
       rail={<IconRail />}
       left={
         <div className={styles.minigameContainerLeft}>

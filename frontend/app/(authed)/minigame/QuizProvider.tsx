@@ -1,12 +1,14 @@
 "use client";
-import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
-import { useGetQuizQuery } from "@/store/quizApi";
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from "react";
+import { useGetQuizQuery, useSubmitQuizAttemptMutation } from "@/store/quizApi";
 import type { Quiz, QuizAttempt, QuizScore, AnswerLetter, QuizQuestion } from "@/types/minigame";
 
 interface QuizContextValue {
   quiz: Quiz | undefined;
   attempt: QuizAttempt | null;
   score: QuizScore | null;
+  /** True while the completed attempt is being submitted to the server. */
+  isSubmittingScore: boolean;
   isLoading: boolean;
   isError: boolean;
   currentQuestion: QuizQuestion | undefined;
@@ -27,8 +29,13 @@ const QuizContext = createContext<QuizContextValue | undefined>(undefined);
 
 export function QuizProvider({ children }: { children: React.ReactNode }) {
   const { data: quiz, isLoading, isError } = useGetQuizQuery();
+  const [submitAttempt] = useSubmitQuizAttemptMutation();
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [score, setScore] = useState<QuizScore | null>(null);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  // Guards the completion submit so it fires exactly once per attempt, even if
+  // advance() is somehow called twice (double-click, StrictMode remount).
+  const submittedRef = useRef(false);
 
   const currentQuestion = useMemo(() => {
     if (!quiz || !attempt) return undefined;
@@ -69,6 +76,7 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
 
   const start = useCallback(() => {
     if (!quiz) return;
+    submittedRef.current = false;
     setAttempt({
       quizId: quiz.id,
       currentIndex: 0,
@@ -78,6 +86,7 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
       startedAt: new Date().toISOString(),
     });
     setScore(null);
+    setIsSubmittingScore(false);
   }, [quiz]);
 
   const selectOption = useCallback((option: AnswerLetter) => {
@@ -112,22 +121,35 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
     const nextIndex = attempt.currentIndex + 1;
     if (nextIndex >= quiz.questions.length) {
       const completedAt = new Date().toISOString();
-      const answersList = Object.values(attempt.answers);
-      const correctCount = answersList.filter((a) => a.isCorrect).length;
-      
+
       setAttempt({
         ...attempt,
         phase: "completed",
         completedAt,
       });
 
-      setScore({
+      // Points are server-owned (see QuizScore). Submit the attempt and show
+      // the server score; if the request fails, fall back to a client-computed
+      // score so the user still sees a result (persistence is silently missed).
+      if (submittedRef.current) return;
+      submittedRef.current = true;
+
+      const correctCount = Object.values(attempt.answers).filter((a) => a.isCorrect).length;
+      const fallbackScore: QuizScore = {
         quizId: quiz.id,
         total: quiz.questions.length,
         correctCount,
         wrongCount: quiz.questions.length - correctCount,
         points: correctCount * 7,
-      });
+      };
+
+      setScore(null);
+      setIsSubmittingScore(true);
+      submitAttempt({ quizId: quiz.id, answers: attempt.answers })
+        .unwrap()
+        .then((serverScore) => setScore(serverScore))
+        .catch(() => setScore(fallbackScore))
+        .finally(() => setIsSubmittingScore(false));
     } else {
       setAttempt({
         ...attempt,
@@ -136,17 +158,20 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
         pendingSelection: null,
       });
     }
-  }, [attempt, quiz]);
+  }, [attempt, quiz, submitAttempt]);
 
   const abandon = useCallback(() => {
+    submittedRef.current = false;
     setAttempt(null);
     setScore(null);
+    setIsSubmittingScore(false);
   }, []);
 
   const value = useMemo(() => ({
     quiz,
     attempt,
     score,
+    isSubmittingScore,
     isLoading,
     isError,
     currentQuestion,
@@ -161,7 +186,7 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
     submitAnswer,
     advance,
     abandon
-  }), [quiz, attempt, score, isLoading, isError, currentQuestion, counterText, progressPercent, phase, feedbackForCurrent, isLastQuestion, currentIndex, start, selectOption, submitAnswer, advance, abandon]);
+  }), [quiz, attempt, score, isSubmittingScore, isLoading, isError, currentQuestion, counterText, progressPercent, phase, feedbackForCurrent, isLastQuestion, currentIndex, start, selectOption, submitAnswer, advance, abandon]);
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;
 }
