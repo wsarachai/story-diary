@@ -121,9 +121,18 @@
   }
 
   /* hideLeftOnMobile: drop the (decorative) left page on mobile so the right
-     page's content rises to the top instead of sitting below it. */
+     page's content rises to the top instead of sitting below it. The visible
+     page fills the space down to the fixed rail and centres its content
+     vertically. */
   .bookShellHideLeftMobile .pageLeft {
     display: none;
+  }
+
+  .bookShellHideLeftMobile .pageRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100dvh - 8.5rem);
   }
 
   .pageLeft {
