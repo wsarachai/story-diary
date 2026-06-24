@@ -324,15 +324,19 @@ export default function HabitChecklistPage() {
     }
 
     const nextTaken = taken + 1;
-    await saveMedicine({
-      occurrenceId: occurrence.id,
-      activityId: activity.id,
-      medicineName: activity.name,
-      mealRelation: activity.mealRelation ?? ("after" as const),
-      sideEffects: defaultSideEffects(activity),
-      date: todayStr,
-      mealSlots: configSlots.slice(0, nextTaken),
-    });
+    try {
+      await saveMedicine({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        medicineName: activity.name,
+        mealRelation: activity.mealRelation ?? ("after" as const),
+        sideEffects: defaultSideEffects(activity),
+        date: todayStr,
+        mealSlots: configSlots.slice(0, nextTaken),
+      }).unwrap();
+    } catch {
+      return;
+    }
 
     // Final dose taken → open the side-effect form.
     if (nextTaken >= total) {
@@ -373,16 +377,20 @@ export default function HabitChecklistPage() {
     }
 
     const nextTaken = taken + 1;
-    await saveNutrition({
-      occurrenceId: occurrence.id,
-      activityId: activity.id,
-      activityName: activity.name,
-      breakfast: "",
-      lunch: "",
-      dinner: "",
-      mealSlots: NUTRITION_MEAL_SLOTS.slice(0, nextTaken),
-      date: todayStr,
-    });
+    try {
+      await saveNutrition({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        activityName: activity.name,
+        breakfast: "",
+        lunch: "",
+        dinner: "",
+        mealSlots: NUTRITION_MEAL_SLOTS.slice(0, nextTaken),
+        date: todayStr,
+      }).unwrap();
+    } catch {
+      return;
+    }
 
     if (nextTaken >= total && activity.nutritionPreset === "nutrition_5_groups") {
       router.push(

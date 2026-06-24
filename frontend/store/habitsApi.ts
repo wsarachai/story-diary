@@ -223,7 +223,9 @@ export const habitsApi = apiSlice.injectEndpoints({
         body: { ...checkin, date: _date },
       }),
       invalidatesTags: (result, error, { occurrenceId }) => [
-        ...HABIT_AGGREGATES,
+        "HabitWeekly",
+        "HabitMonthly",
+        "HabitMonthlySummary",
         { type: "HabitCheckin", id: occurrenceId },
       ],
       async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
