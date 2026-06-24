@@ -122,6 +122,7 @@ export interface NutritionCheckinDoc {
   breakfast: string;
   lunch: string;
   dinner: string;
+  meal_slots_json: string;  // JSON-serialised MealSlot[]
   created_at: string;
 }
 

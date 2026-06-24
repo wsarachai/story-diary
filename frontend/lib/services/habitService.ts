@@ -279,6 +279,16 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
             occurrence.doseProgress = { taken, total: activity.mealSlots.length };
         }
 
+        // Nutrition activities carry per-meal progress so the checklist can
+        // render the tap counter + background fill without a separate round-trip.
+        if (activity.category === "nutrition") {
+            const checkin = await findNutritionCheckinByOccurrence(occurrence.id);
+            const slots: MealSlot[] = checkin?.meal_slots_json
+                ? JSON.parse(checkin.meal_slots_json)
+                : [];
+            occurrence.doseProgress = { taken: slots.length, total: 3 };
+        }
+
         entries.push({
             activity,
             occurrence,
@@ -455,6 +465,7 @@ export async function getNutritionCheckin(userId: string, occurrenceId: string):
         breakfast: doc.breakfast,
         lunch: doc.lunch,
         dinner: doc.dinner,
+        mealSlots: doc.meal_slots_json ? JSON.parse(doc.meal_slots_json) : [],
     };
 }
 
@@ -525,13 +536,13 @@ export async function saveNutritionCheckin(userId: string, data: NutritionChecki
         breakfast: data.breakfast,
         lunch: data.lunch,
         dinner: data.dinner,
+        meal_slots_json: JSON.stringify(data.mealSlots),
         created_at: now,
     });
 
-    // Nutrition is the one multi-part check-in: all 3 meals → done,
-    // 1–2 meals → partial (กำลังทำ), none → stays pending.
-    const filledMeals = [data.breakfast, data.lunch, data.dinner].filter((meal) => meal.trim() !== "").length;
-    const status: HabitOccurrenceStatus = filledMeals === 3 ? "done" : filledMeals > 0 ? "partial" : "pending";
+    // Status derives from slot count (not text-field content).
+    const status: HabitOccurrenceStatus =
+        data.mealSlots.length === 3 ? "done" : data.mealSlots.length > 0 ? "partial" : "pending";
     await updateOccurrence(data.occurrenceId, {
         status,
         completed_at: status === "done" ? now : null,

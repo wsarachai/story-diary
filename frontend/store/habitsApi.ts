@@ -68,12 +68,11 @@ function medicineStatus(configSlots: MealSlot[] | undefined, checkedSlots: MealS
 }
 
 /**
- * Mirrors habitService.saveNutritionCheckin: all 3 meals filled → done,
- * 1–2 → partial, none → pending.
+ * Mirrors habitService.saveNutritionCheckin: slot count drives status.
+ * 3 slots → done, 1–2 → partial, 0 → pending.
  */
-function nutritionStatus(checkin: NutritionCheckin): HabitOccurrenceStatus {
-  const filledMeals = [checkin.breakfast, checkin.lunch, checkin.dinner].filter((meal) => meal.trim() !== "").length;
-  return filledMeals === 3 ? "done" : filledMeals > 0 ? "partial" : "pending";
+function nutritionMealStatus(mealSlots: MealSlot[]): HabitOccurrenceStatus {
+  return mealSlots.length === 3 ? "done" : mealSlots.length > 0 ? "partial" : "pending";
 }
 
 export const habitsApi = apiSlice.injectEndpoints({
@@ -232,7 +231,8 @@ export const habitsApi = apiSlice.injectEndpoints({
           habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
             const occ = draft.todayByActivity[activityId];
             if (occ) {
-              occ.status = nutritionStatus(checkin);
+              occ.status = nutritionMealStatus(checkin.mealSlots);
+              occ.doseProgress = { taken: checkin.mealSlots.length, total: 3 };
             }
           })
         );

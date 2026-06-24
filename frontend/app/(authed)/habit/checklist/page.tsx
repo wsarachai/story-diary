@@ -19,6 +19,7 @@ import {
   useToggleOccurrenceMutation,
   useDeleteActivityMutation,
   useSaveMedicineCheckinMutation,
+  useSaveNutritionCheckinMutation,
 } from "@/store/habitsApi";
 import { useGetMeQuery } from "@/store/authApi";
 import IconRail from "@/components/IconRail";
@@ -60,8 +61,6 @@ function usesExploreEmotionCheckin(activity: HabitActivity): boolean {
 
 function hasDetailedCheckin(activity: HabitActivity): boolean {
   return (
-    activity.category === "medicine" ||
-    activity.category === "nutrition" ||
     activity.physicalCategory === "symptoms" ||
     usesExploreEmotionCheckin(activity)
   );
@@ -211,6 +210,12 @@ const CANONICAL_MEAL_ORDER: MealSlot[] = [
 const DOSE_FILL = "#bfe2f2";
 const DOSE_BASE = "#edf9fa";
 
+/** Nutrition meal slots (hardcoded order). */
+const NUTRITION_MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "dinner"];
+/** Nutrition accent fill (taken) and the card's resting tint (remaining). */
+const NUTRITION_FILL = "#cdebd6";
+const NUTRITION_BASE = "#eef9f1";
+
 /** Baseline (all-unchecked) side-effect list for a known medicine, else []. */
 function defaultSideEffects(activity: HabitActivity): SymptomCheck[] {
   if (activity.medicineKey && isMedicineKey(activity.medicineKey)) {
@@ -230,6 +235,7 @@ export default function HabitChecklistPage() {
     useGetTodayHabitsQuery(todayStr);
   const [toggle] = useToggleOccurrenceMutation();
   const [saveMedicine] = useSaveMedicineCheckinMutation();
+  const [saveNutrition] = useSaveNutritionCheckinMutation();
   const [deleteActivity, { isLoading: isDeleting }] =
     useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -274,9 +280,7 @@ export default function HabitChecklistPage() {
   function handleEntryTap(activity: HabitActivity, occurrenceId: string) {
     const base = `/habit/checkin`;
     const qs = `occ=${occurrenceId}&actId=${activity.id}`;
-    if (activity.category === "nutrition") {
-      router.push(`${base}/nutrition?${qs}`);
-    } else if (activity.physicalCategory === "symptoms") {
+    if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/physical/symptoms?${qs}`);
     } else if (usesExploreEmotionCheckin(activity)) {
       router.push(`${base}/physical/emotion/explore?${qs}`);
@@ -337,6 +341,57 @@ export default function HabitChecklistPage() {
   }
 
   /**
+   * One tap on a nutrition card's check circle. Each tap records the next meal
+   * slot (breakfast → lunch → dinner). On the third tap, nutrition_5_groups
+   * navigates to the detail form; other presets complete silently. Tapping an
+   * already-done card reopens the form (5_groups) or toggles back to pending
+   * (other presets).
+   */
+  async function handleNutritionMeal(
+    activity: HabitActivity,
+    occurrence: HabitOccurrence,
+  ) {
+    const total = 3;
+    const taken =
+      occurrence.doseProgress?.taken ??
+      (occurrence.status === "done" ? total : 0);
+
+    if (taken >= total) {
+      if (activity.nutritionPreset === "nutrition_5_groups") {
+        router.push(
+          `/habit/checkin/nutrition?occ=${occurrence.id}&actId=${activity.id}`
+        );
+      } else {
+        await toggle({
+          occurrenceId: occurrence.id,
+          activityId: activity.id,
+          status: "pending",
+          date: todayStr,
+        });
+      }
+      return;
+    }
+
+    const nextTaken = taken + 1;
+    await saveNutrition({
+      occurrenceId: occurrence.id,
+      activityId: activity.id,
+      activityName: activity.name,
+      breakfast: "",
+      lunch: "",
+      dinner: "",
+      mealSlots: NUTRITION_MEAL_SLOTS.slice(0, nextTaken),
+      date: todayStr,
+    });
+
+    if (nextTaken >= total && activity.nutritionPreset === "nutrition_5_groups") {
+      router.push(
+        `/habit/checkin/nutrition?occ=${occurrence.id}&actId=${activity.id}`
+      );
+    }
+  }
+
+  /**
    * Trash-button "ย้อนกลับ (วันนี้)": reset today's occurrence to pending.
    * Medicine with configured meals must clear its recorded doses (otherwise the
    * server recomputes the fill from the saved slots); everything else — and
@@ -358,6 +413,19 @@ export default function HabitChecklistPage() {
         sideEffects: defaultSideEffects(activity),
         date: todayStr,
         mealSlots: [],
+      });
+      return;
+    }
+    if (activity.category === "nutrition" && (occurrence.doseProgress?.taken ?? 0) > 0) {
+      await saveNutrition({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        activityName: activity.name,
+        breakfast: "",
+        lunch: "",
+        dinner: "",
+        mealSlots: [],
+        date: todayStr,
       });
       return;
     }
@@ -430,15 +498,19 @@ export default function HabitChecklistPage() {
                       {groupEntries.map((entry) => {
                         const { activity, occurrence } = entry;
                         const isMedicine = activity.category === "medicine";
-                        // Medicine uses the check circle as a per-dose counter,
-                        // so its card body no longer navigates on tap.
+                        const isNutrition = activity.category === "nutrition";
+                        // Medicine and nutrition use the check circle as a
+                        // per-dose/meal counter, so their card body no longer
+                        // navigates on tap.
                         const cardTappable =
-                          hasDetailedCheckin(activity) && !isMedicine;
+                          hasDetailedCheckin(activity) && !isMedicine && !isNutrition;
                         const doseTotal = occurrence.doseProgress?.total ?? 0;
                         const doseTaken =
                           occurrence.doseProgress?.taken ??
-                          (occurrence.status === "done" ? doseTotal : 0);
-                        const showDoseFill = isMedicine && doseTotal > 0;
+                          ((isMedicine || isNutrition) && occurrence.status === "done" ? doseTotal : 0);
+                        const showDoseFill = (isMedicine || isNutrition) && doseTotal > 0;
+                        const fillColor = isNutrition ? NUTRITION_FILL : DOSE_FILL;
+                        const baseColor = isNutrition ? NUTRITION_BASE : DOSE_BASE;
                         const fillPct = showDoseFill
                           ? Math.round((doseTaken / doseTotal) * 100)
                           : 0;
@@ -451,7 +523,7 @@ export default function HabitChecklistPage() {
                             style={
                               showDoseFill
                                 ? {
-                                    background: `linear-gradient(90deg, ${DOSE_FILL} 0 ${fillPct}%, ${DOSE_BASE} ${fillPct}% 100%)`,
+                                    background: `linear-gradient(90deg, ${fillColor} 0 ${fillPct}%, ${baseColor} ${fillPct}% 100%)`,
                                   }
                                 : undefined
                             }
@@ -500,7 +572,7 @@ export default function HabitChecklistPage() {
                                 <ChevronsRight />
                               </button>
                             )}
-                            {isMedicine ? (
+                            {(isMedicine || isNutrition) ? (
                               <button
                                 className={`${styles.habitCheck}${
                                   occurrence.status === "done"
@@ -511,16 +583,17 @@ export default function HabitChecklistPage() {
                                 }`}
                                 aria-label={
                                   occurrence.status === "done"
-                                    ? "กินยาครบแล้ว – แตะเพื่อล้าง"
+                                    ? isMedicine ? "กินยาครบแล้ว – แตะเพื่อล้าง" : "บันทึกครบแล้ว – แตะเพื่อล้าง"
                                     : occurrence.status === "skipped"
                                       ? "ข้ามไปแล้ว"
                                       : doseTotal > 0
-                                        ? `กินยาแล้ว ${doseTaken} จาก ${doseTotal} มื้อ – แตะเพื่อบันทึกมื้อถัดไป`
-                                        : "แตะเพื่อบันทึกการกินยา"
+                                        ? `บันทึกแล้ว ${doseTaken} จาก ${doseTotal} มื้อ – แตะเพื่อบันทึกมื้อถัดไป`
+                                        : isMedicine ? "แตะเพื่อบันทึกการกินยา" : "แตะเพื่อบันทึก"
                                 }
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleMedicineDose(activity, occurrence);
+                                  if (isMedicine) handleMedicineDose(activity, occurrence);
+                                  else handleNutritionMeal(activity, occurrence);
                                 }}
                               >
                                 {occurrence.status === "done" ? (

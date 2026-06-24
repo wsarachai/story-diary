@@ -72,6 +72,7 @@ function NutritionCheckinInner() {
         breakfast: state.breakfast,
         lunch: state.lunch,
         dinner: state.dinner,
+        mealSlots: ["breakfast", "lunch", "dinner"],
         date: today,
       }).unwrap();
       router.replace("/habit/checklist");

@@ -182,6 +182,7 @@ export const NUTRITION_CHECKIN: NutritionCheckin = {
   breakfast: "ข้าวต้มหมู",
   lunch: "ผัดกะเพรา",
   dinner: "ต้มยำกุ้ง",
+  mealSlots: ["breakfast", "lunch", "dinner"],
 };
 
 export const SYMPTOMS_CHECKIN: UnusualSymptomsCheckin = {

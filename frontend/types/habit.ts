@@ -191,9 +191,9 @@ export interface HabitOccurrence {
     /** Optional checked-in moment. Null when status === "pending". */
     completedAt?: string;
     /**
-     * Medicine-only: how many of the activity's configured meal doses have been
-     * taken today. Drives the per-meal tap counter + background fill on the
-     * checklist. Absent for non-medicine or meal-less medicine activities.
+     * Per-meal dose progress for medicine and nutrition activities. Drives the
+     * X/Y tap counter and background fill on the checklist. Absent for
+     * activities with no meal-slot tracking.
      */
     doseProgress?: { taken: number; total: number };
 }
@@ -235,6 +235,8 @@ export interface NutritionCheckin {
     lunch: string;
     /** Free-text note for dinner meal-field. */
     dinner: string;
+    /** Tapped meal slots for this check-in; [] when no meals yet tapped. */
+    mealSlots: MealSlot[];
 }
 
 /** Unusual-symptoms check-in (s027). 5-item checklist. */

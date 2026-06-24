@@ -151,6 +151,7 @@ export const NutritionCheckinSchema = z.object({
   breakfast: z.string().default(""),
   lunch: z.string().default(""),
   dinner: z.string().default(""),
+  mealSlots: z.array(MealSlotEnum).default([]),
 });
 
 export const SymptomsCheckinSchema = z.object({
