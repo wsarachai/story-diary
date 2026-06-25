@@ -345,34 +345,55 @@ export default function HabitChecklistPage() {
   }
 
   /**
-   * One tap on a nutrition card's check circle. Each tap records the next meal
-   * slot (breakfast → lunch → dinner). On the third tap, nutrition_5_groups
-   * navigates to the detail form; other presets complete silently. Tapping an
-   * already-done card reopens the form (5_groups) or toggles back to pending
-   * (other presets).
+   * One tap on a nutrition card's check circle.
+   *
+   * nutrition_5_groups: 3-tap counter (breakfast → lunch → dinner); on the
+   * third tap navigates to the detail form. Re-tap when done re-opens the form.
+   *
+   * Other presets: single tap records all 3 slots (binary done/not-done) and
+   * completes silently. Re-tap when done toggles back to pending.
    */
   async function handleNutritionMeal(
     activity: HabitActivity,
     occurrence: HabitOccurrence,
   ) {
-    const total = 3;
-    const taken =
-      occurrence.doseProgress?.taken ??
-      (occurrence.status === "done" ? total : 0);
-
-    if (taken >= total) {
-      if (activity.nutritionPreset === "nutrition_5_groups") {
-        router.push(
-          `/habit/checkin/nutrition?occ=${occurrence.id}&actId=${activity.id}`
-        );
-      } else {
+    if (activity.nutritionPreset !== "nutrition_5_groups") {
+      if (occurrence.status === "done") {
         await toggle({
           occurrenceId: occurrence.id,
           activityId: activity.id,
           status: "pending",
           date: todayStr,
         });
+      } else {
+        try {
+          await saveNutrition({
+            occurrenceId: occurrence.id,
+            activityId: activity.id,
+            activityName: activity.name,
+            breakfast: "",
+            lunch: "",
+            dinner: "",
+            mealSlots: NUTRITION_MEAL_SLOTS,
+            date: todayStr,
+          }).unwrap();
+        } catch {
+          return;
+        }
       }
+      return;
+    }
+
+    // nutrition_5_groups: 3-tap counter.
+    const total = 3;
+    const taken =
+      occurrence.doseProgress?.taken ??
+      (occurrence.status === "done" ? total : 0);
+
+    if (taken >= total) {
+      router.push(
+        `/habit/checkin/nutrition?occ=${occurrence.id}&actId=${activity.id}`
+      );
       return;
     }
 
@@ -392,7 +413,7 @@ export default function HabitChecklistPage() {
       return;
     }
 
-    if (nextTaken >= total && activity.nutritionPreset === "nutrition_5_groups") {
+    if (nextTaken >= total) {
       router.push(
         `/habit/checkin/nutrition?occ=${occurrence.id}&actId=${activity.id}`
       );
@@ -507,16 +528,19 @@ export default function HabitChecklistPage() {
                         const { activity, occurrence } = entry;
                         const isMedicine = activity.category === "medicine";
                         const isNutrition = activity.category === "nutrition";
-                        // Medicine and nutrition use the check circle as a
-                        // per-dose/meal counter, so their card body no longer
-                        // navigates on tap.
+                        // nutrition_5_groups uses a 3-tap meal counter; other
+                        // nutrition presets are single-tap (simple check circle).
+                        const isNutritionCounter =
+                          isNutrition && activity.nutritionPreset === "nutrition_5_groups";
+                        // Medicine and nutrition card bodies don't navigate on tap
+                        // (the check circle handles interaction instead).
                         const cardTappable =
                           hasDetailedCheckin(activity) && !isMedicine && !isNutrition;
                         const doseTotal = occurrence.doseProgress?.total ?? 0;
                         const doseTaken =
                           occurrence.doseProgress?.taken ??
-                          ((isMedicine || isNutrition) && occurrence.status === "done" ? doseTotal : 0);
-                        const showDoseFill = (isMedicine || isNutrition) && doseTotal > 0;
+                          ((isMedicine || isNutritionCounter) && occurrence.status === "done" ? doseTotal : 0);
+                        const showDoseFill = (isMedicine || isNutritionCounter) && doseTotal > 0;
                         const fillColor = isNutrition ? NUTRITION_FILL : DOSE_FILL;
                         const baseColor = isNutrition ? NUTRITION_BASE : DOSE_BASE;
                         const fillPct = showDoseFill
@@ -580,7 +604,7 @@ export default function HabitChecklistPage() {
                                 <ChevronsRight />
                               </button>
                             )}
-                            {(isMedicine || isNutrition) ? (
+                            {(isMedicine || isNutritionCounter) ? (
                               <button
                                 className={`${styles.habitCheck}${
                                   occurrence.status === "done"
@@ -612,6 +636,33 @@ export default function HabitChecklistPage() {
                                   <span className={styles.habitCheckCount}>
                                     {doseTaken}/{doseTotal}
                                   </span>
+                                ) : null}
+                              </button>
+                            ) : isNutrition ? (
+                              <button
+                                className={`${styles.habitCheck}${
+                                  occurrence.status === "done"
+                                    ? ` ${styles.done}`
+                                    : occurrence.status === "skipped"
+                                      ? ` ${styles.skip}`
+                                      : ""
+                                }`}
+                                aria-label={
+                                  occurrence.status === "done"
+                                    ? "บันทึกครบแล้ว – แตะเพื่อล้าง"
+                                    : occurrence.status === "skipped"
+                                      ? "ข้ามไปแล้ว"
+                                      : "แตะเพื่อบันทึก"
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleNutritionMeal(activity, occurrence);
+                                }}
+                              >
+                                {occurrence.status === "done" ? (
+                                  <Check color="#fff" strokeWidth={3} />
+                                ) : occurrence.status === "skipped" ? (
+                                  <Minus color="#fff" strokeWidth={3} />
                                 ) : null}
                               </button>
                             ) : (
