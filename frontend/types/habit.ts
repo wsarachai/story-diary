@@ -383,8 +383,8 @@ export type PhysicalPresetKey =
   | "doctor_visit"
   | "pregnancy_planning"
   | "explore_emotion"
-  | "positive_emotion"
-  | "mindfulness"
+  | "stress_relief"
+  | "sleep_rest"
   | "morning_sunlight"
   | "daytime_sunlight"
   | "wash_hands"
@@ -398,8 +398,8 @@ export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
   doctor_visit: "ตรวจตามนัดแพทย์",
   pregnancy_planning: "วางแผนการตั้งครรภ์",
   explore_emotion: "สำรวจอารมณ์ตนเอง",
-  positive_emotion: "สร้างอารมณ์เชิงบวก",
-  mindfulness: "ฝึกสติ",
+  stress_relief: "กิจกรรมผ่อนคลายความเครียด",
+  sleep_rest: "นอนหลับพักผ่อน",
   morning_sunlight: "รับแสงแดดยามเช้า",
   daytime_sunlight: "รับแสงแดดช่วงกลางวัน",
   wash_hands: "ล้างมือด้วยสบู่",
@@ -415,8 +415,8 @@ export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, Physic
   doctor_visit: "doctor-visit",
   pregnancy_planning: "pregnancy-planning",
   explore_emotion: "emotion-management",
-  positive_emotion: "emotion-management",
-  mindfulness: "emotion-management",
+  stress_relief: "emotion-management",
+  sleep_rest: "emotion-management",
   morning_sunlight: "sunlight",
   daytime_sunlight: "sunlight",
   wash_hands: "infection",

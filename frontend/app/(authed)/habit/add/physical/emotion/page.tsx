@@ -8,8 +8,8 @@ type EmotionItem = { label: string; base: string; isMenu: boolean };
 
 const EMOTION_ITEMS: EmotionItem[] = [
   { label: "สำรวจอารมณ์ตนเอง",   base: "/habit/add/physical/form?type=explore_emotion",                  isMenu: false },
-  { label: "สร้างอารมณ์เชิงบวก", base: "/habit/add/physical/form?type=positive_emotion",                 isMenu: false },
-  { label: "ฝึกสติ",              base: "/habit/add/physical/form?type=mindfulness",                      isMenu: false },
+  { label: "กิจกรรมผ่อนคลายความเครียด", base: "/habit/add/physical/form?type=stress_relief", isMenu: false },
+  { label: "นอนหลับพักผ่อน",           base: "/habit/add/physical/form?type=sleep_rest",   isMenu: false },
 ];
 
 export default async function EmotionMenuPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
