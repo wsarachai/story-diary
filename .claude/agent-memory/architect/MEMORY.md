@@ -1,0 +1,2 @@
+- [RTK mutation .unwrap() requirement](feedback_rtk-mutation-unwrap.md) — always use .unwrap() before router.push or any post-write action; bare await only waits for dispatch
+- [HabitToday refetch race](project_rtk-invalidation-race.md) — invalidatesTags on nutrition/medicine mutations races router.push; .unwrap() serialization is the fix
