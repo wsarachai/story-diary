@@ -385,8 +385,9 @@ export type PhysicalPresetKey =
   | "explore_emotion"
   | "stress_relief"
   | "sleep_rest"
-  | "morning_sunlight"
-  | "daytime_sunlight"
+  | "sun_protection_clothing"
+  | "sunscreen"
+  | "avoid_midday_sun"
   | "wash_hands"
   | "wear_mask"
   | "social_distancing"
@@ -400,8 +401,9 @@ export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
   explore_emotion: "สำรวจอารมณ์ตนเอง",
   stress_relief: "กิจกรรมผ่อนคลายความเครียด",
   sleep_rest: "นอนหลับพักผ่อน",
-  morning_sunlight: "รับแสงแดดยามเช้า",
-  daytime_sunlight: "รับแสงแดดช่วงกลางวัน",
+  sun_protection_clothing: "เสื้อผ้าแขนขายาว/พกร่ม/หมวกก่อนออกจากบ้าน",
+  sunscreen: "ทาครีมกันแดด",
+  avoid_midday_sun: "เลี่ยงตากแดดตอน 10.00 – 17.00 น.",
   wash_hands: "ล้างมือด้วยสบู่",
   wear_mask: "สวมหน้ากากอนามัย",
   social_distancing: "เว้นระยะห่างทางสังคม",
@@ -417,8 +419,9 @@ export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, Physic
   explore_emotion: "emotion-management",
   stress_relief: "emotion-management",
   sleep_rest: "emotion-management",
-  morning_sunlight: "sunlight",
-  daytime_sunlight: "sunlight",
+  sun_protection_clothing: "sunlight",
+  sunscreen: "sunlight",
+  avoid_midday_sun: "sunlight",
   wash_hands: "infection",
   wear_mask: "infection",
   social_distancing: "infection",

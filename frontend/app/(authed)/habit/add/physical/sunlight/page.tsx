@@ -5,25 +5,25 @@ import BookShellLayout from "@/components/BookShellLayout";
 import styles from "../../HabitAdd.module.css";
 
 const SUNLIGHT_ITEMS = [
-  { label: "รับแสงแดดยามเช้า",      type: "morning_sunlight" },
-  { label: "รับแสงแดดช่วงกลางวัน",  type: "daytime_sunlight" },
-  { label: "อื่นๆ",                   type: "other" },
+  { label: "เสื้อผ้าแขนขายาว/พกร่ม/หมวกก่อนออกจากบ้าน", type: "sun_protection_clothing" },
+  { label: "ทาครีมกันแดด",                                 type: "sunscreen" },
+  { label: "เลี่ยงตากแดดตอน 10.00 – 17.00 น.",            type: "avoid_midday_sun" },
 ];
 
 export default async function SunlightMenuPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const { from = "/habit/checklist" } = await searchParams;
 
   const leftPage = (
-    <div className={styles.authoringPage} aria-label="รับแสงแดด">
+    <div className={styles.authoringPage} aria-label="การป้องกันแสงแดด">
       <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="sunlight-title">
         <header className={styles.createHeader}>
           <Link className={styles.actionBtn} href={`/habit/add/physical?from=${from}`} aria-label="กลับ">
             <ChevronLeft />
           </Link>
-          <h2 className={styles.createTitle} id="sunlight-title">รับแสงแดด</h2>
+          <h2 className={styles.createTitle} id="sunlight-title">การป้องกันแสงแดด</h2>
           <div className={styles.actionBtn} aria-hidden="true" style={{ visibility: "hidden" }} />
         </header>
-        <div className={styles.menuList} role="list" aria-label="ประเภทการรับแสงแดด">
+        <div className={styles.menuList} role="list" aria-label="วิธีป้องกันแสงแดด">
           {SUNLIGHT_ITEMS.map(({ label, type }) => (
             <Link
               key={label}
