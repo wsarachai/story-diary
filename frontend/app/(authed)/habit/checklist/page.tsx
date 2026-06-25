@@ -191,13 +191,6 @@ function EntryActionMenu({
   );
 }
 
-const STATUS_ORDER: Record<string, number> = {
-  pending: 0,
-  partial: 1,
-  skipped: 2,
-  done: 3,
-};
-
 /** Doses are filled in this fixed order so the recorded slots stay meaningful. */
 const CANONICAL_MEAL_ORDER: MealSlot[] = [
   "breakfast",
@@ -245,12 +238,11 @@ export default function HabitChecklistPage() {
   );
 
   const entries = data
-    ? Object.values(data.activities).map((activity, index) => ({
+    ? Object.values(data.activities).map((activity) => ({
         activity,
         occurrence: data.todayByActivity[activity.id],
         subline: getSubline(activity),
         accent: getAccent(activity),
-        index,
       }))
     : [];
 
@@ -258,13 +250,7 @@ export default function HabitChecklistPage() {
     GROUPS.map(({ key }) => [
       key,
       entries
-        .filter((e) => e.activity.schedule.frequency === key)
-        .sort((a, b) => {
-          const orderA = STATUS_ORDER[a.occurrence.status] ?? 0;
-          const orderB = STATUS_ORDER[b.occurrence.status] ?? 0;
-          if (orderA !== orderB) return orderA - orderB;
-          return a.index - b.index;
-        }),
+        .filter((e) => e.activity.schedule.frequency === key),
     ])
   ) as Record<HabitFrequency, typeof entries>;
 
