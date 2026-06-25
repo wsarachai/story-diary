@@ -9,7 +9,6 @@ import {
   SmilePlus,
   Pencil,
   ChevronsRight,
-  ChevronRight,
   ChevronDown,
   Check,
   Minus,
@@ -518,10 +517,7 @@ export default function HabitChecklistPage() {
                         // nutrition presets are single-tap (simple check circle).
                         const isNutritionCounter =
                           isNutrition && activity.nutritionPreset === "nutrition_5_groups";
-                        // Medicine and nutrition card bodies don't navigate on tap
-                        // (the check circle handles interaction instead).
-                        const cardTappable =
-                          hasDetailedCheckin(activity) && !isMedicine && !isNutrition;
+                        // All interaction is on the check circle; card body is never tappable.
                         const doseTotal = occurrence.doseProgress?.total ?? 0;
                         const doseTaken =
                           occurrence.doseProgress?.taken ??
@@ -535,7 +531,7 @@ export default function HabitChecklistPage() {
                         return (
                           <div
                             key={activity.id}
-                            className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}${cardTappable ? ` ${styles.hasLog}` : ""}`}
+                            className={`${styles.habitEntry} ${getCategoryClass(entry.accent)}`}
                             role="article"
                             aria-label={getActivityDisplayName(activity)}
                             style={
@@ -545,10 +541,6 @@ export default function HabitChecklistPage() {
                                   }
                                 : undefined
                             }
-                            onClick={() =>
-                              cardTappable &&
-                              handleEntryTap(activity, occurrence.id)
-                            }
                           >
                             <div className={styles.habitEntryIcon}>
                               <CategoryIcon accent={entry.accent} />
@@ -557,11 +549,6 @@ export default function HabitChecklistPage() {
                               <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
                               <p className={styles.habitEntrySub}>{entry.subline}</p>
                             </div>
-                            {cardTappable && (
-                              <span className={styles.habitEntryLogArrow} aria-hidden="true">
-                                <ChevronRight />
-                              </span>
-                            )}
                             <button
                               className={styles.habitDeleteBtn}
                               aria-label={`จัดการ ${activity.name}`}
@@ -664,23 +651,33 @@ export default function HabitChecklistPage() {
                                 }`}
                                 aria-label={
                                   occurrence.status === "done"
-                                    ? "ทำเสร็จแล้ว"
+                                    ? "ทำเสร็จแล้ว – แตะเพื่อยกเลิก"
                                     : occurrence.status === "skipped"
                                       ? "ข้ามไปแล้ว – แตะเพื่อทำเสร็จ"
                                       : occurrence.status === "partial"
                                         ? "กำลังทำ – แตะเพื่อทำเสร็จ"
-                                        : "ยังไม่ทำ"
+                                        : "ยังไม่ทำ – แตะเพื่อทำเสร็จ"
                                 }
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  const next =
-                                    occurrence.status === "done" ? "pending" : "done";
-                                  toggle({
-                                    occurrenceId: occurrence.id,
-                                    activityId: activity.id,
-                                    status: next,
-                                    date: todayStr,
-                                  });
+                                  if (occurrence.status === "done") {
+                                    toggle({
+                                      occurrenceId: occurrence.id,
+                                      activityId: activity.id,
+                                      status: "pending",
+                                      date: todayStr,
+                                    });
+                                  } else {
+                                    toggle({
+                                      occurrenceId: occurrence.id,
+                                      activityId: activity.id,
+                                      status: "done",
+                                      date: todayStr,
+                                    });
+                                    if (hasDetailedCheckin(activity)) {
+                                      handleEntryTap(activity, occurrence.id);
+                                    }
+                                  }
                                 }}
                               >
                                 {occurrence.status === "done" && (
