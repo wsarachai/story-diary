@@ -236,7 +236,7 @@ export interface NutritionCheckin {
     /** Free-text note for dinner meal-field. */
     dinner: string;
     /** Tapped meal slots for this check-in; [] when no meals yet tapped. */
-    mealSlots: MealSlot[];
+    mealSlots?: MealSlot[];
 }
 
 /** Unusual-symptoms check-in (s027). 5-item checklist. */

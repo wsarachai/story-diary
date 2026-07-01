@@ -537,13 +537,13 @@ export async function saveNutritionCheckin(userId: string, data: NutritionChecki
         breakfast: data.breakfast,
         lunch: data.lunch,
         dinner: data.dinner,
-        meal_slots_json: JSON.stringify(data.mealSlots),
+        meal_slots_json: JSON.stringify(data.mealSlots ?? []),
         created_at: now,
     });
 
-    // Status derives from slot count (not text-field content).
-    const status: HabitOccurrenceStatus =
-        data.mealSlots.length === 3 ? "done" : data.mealSlots.length > 0 ? "partial" : "pending";
+    // Status derives from how many meal text-fields contain non-whitespace content.
+    const filledCount = [data.breakfast, data.lunch, data.dinner].filter((m) => m.trim().length > 0).length;
+    const status: HabitOccurrenceStatus = filledCount === 3 ? "done" : filledCount > 0 ? "partial" : "pending";
     await updateOccurrence(data.occurrenceId, {
         status,
         completed_at: status === "done" ? now : null,

@@ -268,7 +268,7 @@ describe("failure toast middleware", () => {
 
     const store = createStore();
     await store
-      .dispatch(authApi.endpoints.login.initiate({ tel: "0812345678", password: "x" }))
+      .dispatch(authApi.endpoints.login.initiate({ username: "0812345678", password: "x" }))
       .unwrap()
       .catch(() => undefined);
     await store

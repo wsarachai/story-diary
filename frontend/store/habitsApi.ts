@@ -233,8 +233,9 @@ export const habitsApi = apiSlice.injectEndpoints({
           habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
             const occ = draft.todayByActivity[activityId];
             if (occ) {
-              occ.status = nutritionMealStatus(checkin.mealSlots);
-              occ.doseProgress = { taken: checkin.mealSlots.length, total: 3 };
+              const slots = checkin.mealSlots ?? [];
+              occ.status = nutritionMealStatus(slots);
+              occ.doseProgress = { taken: slots.length, total: 3 };
             }
           })
         );
