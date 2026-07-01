@@ -741,6 +741,45 @@ describe("getMoodCheckin", () => {
   });
 });
 
+describe("saveMoodCheckin with note", () => {
+  it("saves note with null mood/sliderValue and marks occurrence done", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: null, sliderValue: null, note: "went for a walk" });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+  });
+
+  it("returns saved note after saveMoodCheckin with note", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: null, sliderValue: null, note: "went for a walk" });
+
+    const loaded = await getMoodCheckin(USER, occ.id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.mood).toBeNull();
+    expect(loaded!.sliderValue).toBeNull();
+    expect(loaded!.note).toBe("went for a walk");
+  });
+
+  it("overwrites previous note on second save", async () => {
+    await createActivity(USER, PHYSICAL_EMOTION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: null, sliderValue: null, note: "first" });
+    await saveMoodCheckin(USER, { occurrenceId: occ.id, mood: null, sliderValue: null, note: "second" });
+
+    const loaded = await getMoodCheckin(USER, occ.id);
+    expect(loaded!.note).toBe("second");
+  });
+});
+
 // ────────────────────────────────────────────────────────────────────
 // getWeeklyView
 // ────────────────────────────────────────────────────────────────────
