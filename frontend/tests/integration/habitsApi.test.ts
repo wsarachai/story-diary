@@ -46,6 +46,8 @@ import {
   NUTRITION_CHECKIN,
   SYMPTOMS_CHECKIN,
   MOOD_CHECKIN,
+  OCC_EXERCISE,
+  EXERCISE_CHECKIN,
   TODAY_ENTRIES_RESPONSE,
   WEEKLY_RESPONSE,
   MONTHLY_RESPONSE,
@@ -880,6 +882,120 @@ describe("saveMoodCheckin with note", () => {
     expect((capturedBody as any).mood).toBeNull();
     expect((capturedBody as any).sliderValue).toBeNull();
     expect((capturedBody as any).note).toBe("went for a walk");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getExerciseCheckin
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("getExerciseCheckin", () => {
+  it("returns activityName and durationMinutes for a known occurrence", async () => {
+    server.use(
+      http.get("/api/habits/checkins/exercise/:occurrenceId", () =>
+        HttpResponse.json({ checkin: EXERCISE_CHECKIN })
+      )
+    );
+
+    const store = createStore();
+    const result = await store
+      .dispatch(habitsApi.endpoints.getExerciseCheckin.initiate(OCC_EXERCISE.id))
+      .unwrap();
+
+    expect(result).not.toBeNull();
+    expect(result!.activityName).toBe(EXERCISE_CHECKIN.activityName);
+    expect(result!.durationMinutes).toBe(EXERCISE_CHECKIN.durationMinutes);
+  });
+
+  it("returns null for unknown occurrence", async () => {
+    server.use(
+      http.get("/api/habits/checkins/exercise/:occurrenceId", () =>
+        HttpResponse.json({ checkin: null })
+      )
+    );
+
+    const store = createStore();
+    const result = await store
+      .dispatch(habitsApi.endpoints.getExerciseCheckin.initiate("unknown"))
+      .unwrap();
+
+    expect(result).toBeNull();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// saveExerciseCheckin
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("saveExerciseCheckin", () => {
+  it("sends PUT /habits/checkins/exercise/:occurrenceId", async () => {
+    let capturedMethod = "";
+    let capturedUrl = "";
+    server.use(
+      http.put("/api/habits/checkins/exercise/:occurrenceId", ({ request }) => {
+        capturedMethod = request.method;
+        capturedUrl = request.url;
+        return HttpResponse.json({ ok: true });
+      })
+    );
+
+    const store = createStore();
+    await store
+      .dispatch(habitsApi.endpoints.saveExerciseCheckin.initiate({
+        ...EXERCISE_CHECKIN,
+        activityId: OCC_EXERCISE.activityId,
+        date: TODAY,
+      }))
+      .unwrap();
+
+    expect(capturedMethod).toBe("PUT");
+    expect(capturedUrl).toContain(OCC_EXERCISE.id);
+  });
+
+  it("sends activityName and durationMinutes in the body", async () => {
+    let capturedBody: unknown;
+    server.use(
+      http.put("/api/habits/checkins/exercise/:occurrenceId", async ({ request }) => {
+        capturedBody = await request.json();
+        return HttpResponse.json({ ok: true });
+      })
+    );
+
+    const store = createStore();
+    await store
+      .dispatch(habitsApi.endpoints.saveExerciseCheckin.initiate({
+        ...EXERCISE_CHECKIN,
+        activityId: OCC_EXERCISE.activityId,
+        date: TODAY,
+      }))
+      .unwrap();
+
+    expect((capturedBody as any).activityName).toBe(EXERCISE_CHECKIN.activityName);
+    expect((capturedBody as any).durationMinutes).toBe(EXERCISE_CHECKIN.durationMinutes);
+  });
+
+  it("sends null activityName and null durationMinutes", async () => {
+    let capturedBody: unknown;
+    server.use(
+      http.put("/api/habits/checkins/exercise/:occurrenceId", async ({ request }) => {
+        capturedBody = await request.json();
+        return HttpResponse.json({ ok: true });
+      })
+    );
+
+    const store = createStore();
+    await store
+      .dispatch(habitsApi.endpoints.saveExerciseCheckin.initiate({
+        occurrenceId: OCC_EXERCISE.id,
+        activityName: null,
+        durationMinutes: null,
+        activityId: OCC_EXERCISE.activityId,
+        date: TODAY,
+      }))
+      .unwrap();
+
+    expect((capturedBody as any).activityName).toBeNull();
+    expect((capturedBody as any).durationMinutes).toBeNull();
   });
 });
 

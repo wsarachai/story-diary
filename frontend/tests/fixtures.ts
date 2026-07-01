@@ -25,6 +25,7 @@ import type {
   NutritionCheckin,
   UnusualSymptomsCheckin,
   MoodCheckin,
+  ExerciseCheckin,
   TodayHabitEntry,
 } from "@/types/habit";
 
@@ -154,6 +155,13 @@ export const OCC_EMOTION: HabitOccurrence = {
   status: "pending",
 };
 
+export const OCC_EXERCISE: HabitOccurrence = {
+  id: "occ-exe-001",
+  activityId: ACTIVITY_EXERCISE.id,
+  date: TODAY,
+  status: "pending",
+};
+
 export const OCC_DONE: HabitOccurrence = {
   id: "occ-done-001",
   activityId: ACTIVITY_MEDICINE.id,
@@ -201,6 +209,12 @@ export const MOOD_CHECKIN: MoodCheckin = {
   mood: "good",
   sliderValue: 40,
   note: null,
+};
+
+export const EXERCISE_CHECKIN: ExerciseCheckin = {
+  occurrenceId: OCC_EXERCISE.id,
+  activityName: "วิ่ง",
+  durationMinutes: 30,
 };
 
 // ─── TODAY ENTRIES (raw API payload) ─────────────────────────────────────────

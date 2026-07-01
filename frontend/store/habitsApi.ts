@@ -13,6 +13,7 @@ import type {
   NutritionCheckin,
   UnusualSymptomsCheckin,
   MoodCheckin,
+  ExerciseCheckin,
   MealSlot,
 } from "@/types/habit";
 
@@ -330,6 +331,41 @@ export const habitsApi = apiSlice.injectEndpoints({
       transformResponse: (response: { checkin: MoodCheckin | null }) => response.checkin,
       providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
     }),
+    saveExerciseCheckin: builder.mutation<void, ExerciseCheckin & { date: string; activityId: string }>({
+      query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
+        url: `/habits/checkins/exercise/${checkin.occurrenceId}`,
+        method: "PUT",
+        body: checkin,
+      }),
+      invalidatesTags: (result, error, { occurrenceId }) => [
+        ...HABIT_AGGREGATES,
+        { type: "HabitCheckin", id: occurrenceId },
+      ],
+      async onQueryStarted({ date, activityId, ...checkin }, { dispatch, queryFulfilled }) {
+        const todayPatch = dispatch(
+          habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
+            const occ = draft.todayByActivity[activityId];
+            if (occ) {
+              occ.status = "done";
+            }
+          })
+        );
+        const detailPatch = dispatch(
+          habitsApi.util.updateQueryData("getExerciseCheckin", checkin.occurrenceId, () => checkin)
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          todayPatch.undo();
+          detailPatch.undo();
+        }
+      },
+    }),
+    getExerciseCheckin: builder.query<ExerciseCheckin | null, string>({
+      query: (occurrenceId) => `/habits/checkins/exercise/${occurrenceId}`,
+      transformResponse: (response: { checkin: ExerciseCheckin | null }) => response.checkin,
+      providesTags: (result, error, occurrenceId) => [{ type: "HabitCheckin", id: occurrenceId }],
+    }),
   }),
 });
 
@@ -349,4 +385,6 @@ export const {
   useGetNutritionCheckinQuery,
   useGetSymptomsCheckinQuery,
   useGetMoodCheckinQuery,
+  useSaveExerciseCheckinMutation,
+  useGetExerciseCheckinQuery,
 } = habitsApi;
