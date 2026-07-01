@@ -142,6 +142,14 @@ export interface MoodCheckinDoc {
   created_at: string;
 }
 
+export interface ExerciseCheckinDoc {
+  id: string;
+  occurrence_id: string;
+  activity_name: string | null;
+  duration_minutes: number | null;
+  created_at: string;
+}
+
 export interface EBookDoc {
   id: string;
   title: string;
@@ -170,6 +178,7 @@ interface MemoryStore {
   nutritionCheckins: NutritionCheckinDoc[];
   symptomsCheckins: SymptomsCheckinDoc[];
   moodCheckins: MoodCheckinDoc[];
+  exerciseCheckins: ExerciseCheckinDoc[];
   eBooks: EBookDoc[];
   videoClips: VideoClipDoc[];
 }
@@ -261,6 +270,7 @@ function createSeededMemoryStore(): MemoryStore {
     nutritionCheckins: [],
     symptomsCheckins: [],
     moodCheckins: [],
+    exerciseCheckins: [],
     eBooks: E_BOOKS.map((ebook) => ({ ...ebook })),
     videoClips: VIDEO_CLIPS.map((clip) => ({ ...clip })),
   };
@@ -348,6 +358,10 @@ function moodCheckinsCollection() {
   return requireMongoDb().collection<MoodCheckinDoc>("mood_checkins");
 }
 
+function exerciseCheckinsCollection() {
+  return requireMongoDb().collection<ExerciseCheckinDoc>("exercise_checkins");
+}
+
 function eBooksCollection() {
   return requireMongoDb().collection<EBookDoc>("e_books");
 }
@@ -393,6 +407,7 @@ async function ensureMongoIndexes(): Promise<void> {
     nutritionCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     symptomsCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     moodCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
+    exerciseCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     eBooksCollection().createIndex({ id: 1 }, { unique: true }),
     eBooksCollection().createIndex({ sort_order: 1 }),
     videoClipsCollection().createIndex({ id: 1 }, { unique: true }),
@@ -502,6 +517,7 @@ export async function clearUserDataForTesting(): Promise<void> {
     memoryStore.nutritionCheckins = [];
     memoryStore.symptomsCheckins = [];
     memoryStore.moodCheckins = [];
+    memoryStore.exerciseCheckins = [];
     return;
   }
   const db = requireMongoDb();
@@ -515,6 +531,7 @@ export async function clearUserDataForTesting(): Promise<void> {
     db.collection("nutrition_checkins").deleteMany({}),
     db.collection("symptoms_checkins").deleteMany({}),
     db.collection("mood_checkins").deleteMany({}),
+    db.collection("exercise_checkins").deleteMany({}),
   ]);
 }
 
@@ -831,6 +848,14 @@ export async function findMoodCheckinByOccurrence(occurrenceId: string): Promise
   return moodCheckinsCollection().findOne({ occurrence_id: occurrenceId });
 }
 
+export async function findExerciseCheckinByOccurrence(occurrenceId: string): Promise<ExerciseCheckinDoc | null> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.exerciseCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
+  }
+  return exerciseCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
 export async function replaceMedicineCheckin(doc: MedicineCheckinDoc): Promise<void> {
   await initializeDatabase();
   if (mode === "memory") {
@@ -885,6 +910,20 @@ export async function replaceMoodCheckin(doc: MoodCheckinDoc): Promise<void> {
     return;
   }
   await moodCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
+}
+
+export async function replaceExerciseCheckin(doc: ExerciseCheckinDoc): Promise<void> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    const index = memoryStore.exerciseCheckins.findIndex((c) => c.occurrence_id === doc.occurrence_id);
+    if (index === -1) {
+      memoryStore.exerciseCheckins.push({ ...doc });
+    } else {
+      memoryStore.exerciseCheckins[index] = { ...doc };
+    }
+    return;
+  }
+  await exerciseCheckinsCollection().replaceOne({ occurrence_id: doc.occurrence_id }, doc, { upsert: true });
 }
 
 export async function listQuizQuestionsDocs(): Promise<QuizQuestionDoc[]> {
