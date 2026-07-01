@@ -267,6 +267,8 @@ export default function HabitChecklistPage() {
     const qs = `occ=${occurrenceId}&actId=${activity.id}`;
     if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/physical/symptoms?${qs}`);
+    } else if (activity.physicalCategory === "exercise") {
+      router.push(`${base}/physical/exercise?${qs}`);
     } else if (usesExploreEmotionCheckin(activity)) {
       const preset = activity.physicalPreset ?? "";
       router.push(`${base}/physical/emotion/explore?${qs}&preset=${preset}`);
@@ -661,7 +663,9 @@ export default function HabitChecklistPage() {
                                 }
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (occurrence.status === "done") {
+                                  if (activity.physicalCategory === "exercise") {
+                                    handleEntryTap(activity, occurrence.id);
+                                  } else if (occurrence.status === "done") {
                                     toggle({
                                       occurrenceId: occurrence.id,
                                       activityId: activity.id,
