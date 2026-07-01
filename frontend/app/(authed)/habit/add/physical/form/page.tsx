@@ -1,11 +1,12 @@
 "use client";
 import { Check, LoaderCircle, Sun, X } from "lucide-react";
-import { useReducer, useRef, useEffect } from "react";
+import { useReducer, useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useClientSearchParams } from "@/lib/hooks";
 import { useCreateActivityMutation } from "@/store/habitsApi";
+import { isApiError } from "@/types/error";
 import styles from "../../HabitAdd.module.css";
 import type {
   HabitFrequency,
@@ -86,7 +87,7 @@ function PhysicalFormInner() {
   const typeKey = searchParams.get("type") as PhysicalPresetKey | null;
   const rawName = searchParams.get("name") ?? "";
   const from = searchParams.get("from") ?? "/habit/checklist";
-  
+
   let prefillName = "";
   if (typeKey && typeKey !== "other") {
     prefillName = PHYSICAL_PRESETS[typeKey] ?? "";
@@ -95,6 +96,7 @@ function PhysicalFormInner() {
   }
 
   const isOther = typeKey === "other" || rawName === "other" || (!typeKey && !rawName);
+  const [nameEditable, setNameEditable] = useState<boolean>(isOther);
 
   const [form, dispatchForm] = useReducer(formReducer, {
     name: prefillName,
@@ -120,8 +122,15 @@ function PhysicalFormInner() {
   function validate(): boolean {
     const errors: Record<string, string | undefined> = {};
     if (!form.name.trim()) errors.name = "กรุณาระบุชื่อ";
+    else if (form.name.trim().length > 120) errors.name = "ชื่อยาวเกินไป";
     if (form.frequency === "daily" && form.weekdays.length === 0) {
       errors.weekdays = "กรุณาเลือกอย่างน้อย 1 วัน";
+    }
+    if (form.frequency === "weekly" && (!Number.isInteger(form.daysPerWeek) || form.daysPerWeek < 1 || form.daysPerWeek > 7)) {
+      errors.daysPerWeek = "กรุณาระบุ 1-7 วัน/สัปดาห์";
+    }
+    if (form.frequency === "monthly" && (!Number.isInteger(form.daysPerMonth) || form.daysPerMonth < 1 || form.daysPerMonth > 31)) {
+      errors.daysPerMonth = "กรุณาระบุ 1-31 วัน/เดือน";
     }
     dispatchForm({ type: "SET_ERRORS", errors });
     return Object.keys(errors).length === 0;
@@ -148,8 +157,27 @@ function PhysicalFormInner() {
         schedule,
       }).unwrap();
       router.replace(from);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      const apiData = (err as { data?: unknown })?.data;
+      if (isApiError(apiData) && apiData.error.code === "ACTIVITY_NAME_TAKEN") {
+        setNameEditable(true);
+        dispatchForm({
+          type: "SET_ERRORS",
+          errors: {
+            ...form.errors,
+            name: "ชื่อนี้ถูกใช้งานแล้ว กรุณาเปลี่ยนชื่อกิจกรรม",
+          },
+        });
+        return;
+      }
+
+      dispatchForm({
+        type: "SET_ERRORS",
+        errors: {
+          ...form.errors,
+          name: "ไม่สามารถบันทึกได้ กรุณาลองใหม่",
+        },
+      });
     }
   }
 
@@ -190,7 +218,7 @@ function PhysicalFormInner() {
             <div className={styles.formPanel}>
               {/* Activity name */}
               <div className={styles.nameRow}>
-                {isOther ? (
+                {nameEditable ? (
                   <input
                     className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
                     type="text"
@@ -295,6 +323,7 @@ function PhysicalFormInner() {
                   <div className={styles.countUnit}>วัน/สัปดาห์</div>
                 </div>
               )}
+              {form.errors.daysPerWeek && <p className={styles.fieldError} role="alert">{form.errors.daysPerWeek}</p>}
               {form.frequency === "monthly" && (
                 <div className={styles.countRow}>
                   <input
@@ -309,6 +338,7 @@ function PhysicalFormInner() {
                   <div className={styles.countUnit}>วัน/เดือน</div>
                 </div>
               )}
+              {form.errors.daysPerMonth && <p className={styles.fieldError} role="alert">{form.errors.daysPerMonth}</p>}
               {form.frequency === "todo" && (
                 <div className={styles.chipLine}>
                   <div className={styles.chipLabel}>ความสำคัญ</div>
