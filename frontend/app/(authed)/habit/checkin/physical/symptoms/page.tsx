@@ -10,11 +10,19 @@ import styles from "../../../add/HabitAdd.module.css";
 import checkinStyles from "../../HabitCheckin.module.css";
 
 const INITIAL_SYMPTOMS: SymptomCheck[] = [
-  { id: "sym1", label: "อาการ 1 : ปวดศีรษะ", checked: false },
-  { id: "sym2", label: "อาการ 2 : คลื่นไส้", checked: false },
-  { id: "sym3", label: "อาการ 3 : ใจสั่น", checked: false },
-  { id: "sym4", label: "อาการ 4 : เวียนหัว", checked: false },
-  { id: "sym5", label: "อาการ 5 : อ่อนเพลีย", checked: false },
+  { id: "sym1",  label: "ไข้ หนาวสั่น",                      checked: false },
+  { id: "sym2",  label: "อ่อนเพลีย",                          checked: false },
+  { id: "sym3",  label: "ผื่นบนหน้า",                         checked: false },
+  { id: "sym4",  label: "ปวดศีรษะตลอดเวลา",                  checked: false },
+  { id: "sym5",  label: "ไอเป็นเลือด",                        checked: false },
+  { id: "sym6",  label: "เจ็บทรวงอก",                         checked: false },
+  { id: "sym7",  label: "ปวดกล้ามเนื้อ",                      checked: false },
+  { id: "sym8",  label: "ปวดข้อ",                             checked: false },
+  { id: "sym9",  label: "ข้อบวม",                             checked: false },
+  { id: "sym10", label: "เลือดกำเดาไหล",                      checked: false },
+  { id: "sym11", label: "น้ำหนักลด",                          checked: false },
+  { id: "sym12", label: "ปัสสาวะเป็นฟอง",                    checked: false },
+  { id: "sym13", label: "ปัสสาวะออกน้อยหรือเป็นสีแดง",      checked: false },
 ];
 
 interface State {
