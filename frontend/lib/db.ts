@@ -136,8 +136,9 @@ export interface SymptomsCheckinDoc {
 export interface MoodCheckinDoc {
   id: string;
   occurrence_id: string;
-  mood: string;
-  slider_value: number;
+  mood: string | null;
+  slider_value: number | null;
+  note?: string | null;
   created_at: string;
 }
 

@@ -485,8 +485,9 @@ export async function getMoodCheckin(userId: string, occurrenceId: string): Prom
     if (!doc) return null;
     return {
         occurrenceId: doc.occurrence_id,
-        mood: doc.mood as MoodLevel,
-        sliderValue: doc.slider_value,
+        mood: (doc.mood ?? null) as MoodLevel | null,
+        sliderValue: doc.slider_value ?? null,
+        note: doc.note ?? null,
     };
 }
 
@@ -570,8 +571,9 @@ export async function saveMoodCheckin(userId: string, data: MoodCheckin): Promis
     await replaceMoodCheckin({
         id: uuidv4(),
         occurrence_id: data.occurrenceId,
-        mood: data.mood,
-        slider_value: data.sliderValue,
+        mood: data.mood ?? null,
+        slider_value: data.sliderValue ?? null,
+        note: data.note ?? null,
         created_at: now,
     });
 
