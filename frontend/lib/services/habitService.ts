@@ -10,8 +10,10 @@ import {
     findNutritionCheckinByOccurrence,
     findSymptomsCheckinByOccurrence,
     findMoodCheckinByOccurrence,
+    findExerciseCheckinByOccurrence,
     replaceMedicineCheckin,
     replaceMoodCheckin,
+    replaceExerciseCheckin,
     replaceNutritionCheckin,
     replaceSymptomsCheckin,
     updateHabitActivity as updateHabitActivityDoc,
@@ -35,6 +37,7 @@ import type {
     NutritionCheckin,
     UnusualSymptomsCheckin,
     MoodCheckin,
+    ExerciseCheckin,
     MoodLevel,
     SymptomCheck,
     MonthlyGoal,
@@ -574,6 +577,32 @@ export async function saveMoodCheckin(userId: string, data: MoodCheckin): Promis
         mood: data.mood ?? null,
         slider_value: data.sliderValue ?? null,
         note: data.note ?? null,
+        created_at: now,
+    });
+
+    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+}
+
+export async function getExerciseCheckin(userId: string, occurrenceId: string): Promise<ExerciseCheckin | null> {
+    await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const doc = await findExerciseCheckinByOccurrence(occurrenceId);
+    if (!doc) return null;
+    return {
+        occurrenceId: doc.occurrence_id,
+        activityName: doc.activity_name,
+        durationMinutes: doc.duration_minutes,
+    };
+}
+
+export async function saveExerciseCheckin(userId: string, data: ExerciseCheckin): Promise<void> {
+    await getOwnedOccurrenceDoc(userId, data.occurrenceId);
+    const now = new Date().toISOString();
+
+    await replaceExerciseCheckin({
+        id: uuidv4(),
+        occurrence_id: data.occurrenceId,
+        activity_name: data.activityName ?? null,
+        duration_minutes: data.durationMinutes ?? null,
         created_at: now,
     });
 

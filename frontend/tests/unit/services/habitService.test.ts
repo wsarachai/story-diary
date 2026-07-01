@@ -17,6 +17,8 @@ import {
   getSymptomsCheckin,
   saveMoodCheckin,
   getMoodCheckin,
+  saveExerciseCheckin,
+  getExerciseCheckin,
   getWeeklyView,
   getMonthlyView,
   getMonthlySummary,
@@ -777,6 +779,87 @@ describe("saveMoodCheckin with note", () => {
 
     const loaded = await getMoodCheckin(USER, occ.id);
     expect(loaded!.note).toBe("second");
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// saveExerciseCheckin + getExerciseCheckin
+// ────────────────────────────────────────────────────────────────────
+const PHYSICAL_EXERCISE = {
+  category: "physical" as const,
+  physicalCategory: "exercise" as const,
+  physicalPreset: "exercise" as const,
+  name: "ออกกำลังกาย",
+  schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+  archived: false,
+};
+
+describe("saveExerciseCheckin", () => {
+  it("saves the checkin and marks occurrence as done", async () => {
+    await createActivity(USER, PHYSICAL_EXERCISE);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveExerciseCheckin(USER, { occurrenceId: occ.id, activityName: "วิ่ง", durationMinutes: 30 });
+
+    const after = await getTodayEntries(USER, TODAY);
+    expect(after[0].occurrence.status).toBe("done");
+  });
+
+  it("saves null activityName and null durationMinutes", async () => {
+    await createActivity(USER, PHYSICAL_EXERCISE);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveExerciseCheckin(USER, { occurrenceId: occ.id, activityName: null, durationMinutes: null });
+
+    const loaded = await getExerciseCheckin(USER, occ.id);
+    expect(loaded!.activityName).toBeNull();
+    expect(loaded!.durationMinutes).toBeNull();
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(
+      saveExerciseCheckin(USER, { occurrenceId: "bad-id", activityName: null, durationMinutes: null })
+    ).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("getExerciseCheckin", () => {
+  it("returns null before any checkin is saved", async () => {
+    await createActivity(USER, PHYSICAL_EXERCISE);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const result = await getExerciseCheckin(USER, entry.occurrence.id);
+    expect(result).toBeNull();
+  });
+
+  it("returns saved activityName and durationMinutes", async () => {
+    await createActivity(USER, PHYSICAL_EXERCISE);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveExerciseCheckin(USER, { occurrenceId: occ.id, activityName: "ปั่นจักรยาน", durationMinutes: 45 });
+
+    const loaded = await getExerciseCheckin(USER, occ.id);
+    expect(loaded!.activityName).toBe("ปั่นจักรยาน");
+    expect(loaded!.durationMinutes).toBe(45);
+  });
+
+  it("returns latest values when overwritten", async () => {
+    await createActivity(USER, PHYSICAL_EXERCISE);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    const occ = entry.occurrence;
+
+    await saveExerciseCheckin(USER, { occurrenceId: occ.id, activityName: "วิ่ง", durationMinutes: 20 });
+    await saveExerciseCheckin(USER, { occurrenceId: occ.id, activityName: "ว่ายน้ำ", durationMinutes: 60 });
+
+    const loaded = await getExerciseCheckin(USER, occ.id);
+    expect(loaded!.activityName).toBe("ว่ายน้ำ");
+    expect(loaded!.durationMinutes).toBe(60);
+  });
+
+  it("throws for an unknown occurrence id", async () => {
+    await expect(getExerciseCheckin(USER, "no-such-id")).rejects.toBeInstanceOf(AppError);
   });
 });
 
