@@ -268,7 +268,8 @@ export default function HabitChecklistPage() {
     if (activity.physicalCategory === "symptoms") {
       router.push(`${base}/physical/symptoms?${qs}`);
     } else if (usesExploreEmotionCheckin(activity)) {
-      router.push(`${base}/physical/emotion/explore?${qs}`);
+      const preset = activity.physicalPreset ?? "";
+      router.push(`${base}/physical/emotion/explore?${qs}&preset=${preset}`);
     }
   }
 
