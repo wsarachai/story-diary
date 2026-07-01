@@ -254,12 +254,14 @@ export type MoodLevel = "very-bad" | "bad" | "neutral" | "good" | "very-good";
 export interface MoodCheckin {
     occurrenceId: string;
     /** Selected mood emoji (`.mood-emoji` aria-label). */
-    mood: MoodLevel;
+    mood: MoodLevel | null;
     /**
      * Slider value, clamped to -100..+100. UI maps to a colour gradient from
      * #d63a3a (-) to #3aab3a (+). Slider sign labels: "−" (left) / "+" (right).
      */
-    sliderValue: number;
+    sliderValue: number | null;
+    /** Optional free-text note; used instead of mood/sliderValue for text-based questions. */
+    note?: string | null;
 }
 
 /* ────────────────────────────────────────────────────────────────────────

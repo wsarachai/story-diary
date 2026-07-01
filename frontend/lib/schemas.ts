@@ -169,8 +169,9 @@ export const SymptomsCheckinSchema = z.object({
 
 export const MoodCheckinSchema = z.object({
   occurrenceId: z.string().min(1),
-  mood: z.enum(["very-bad", "bad", "neutral", "good", "very-good"]),
-  sliderValue: z.number().int().min(-100).max(100),
+  mood: z.enum(["very-bad", "bad", "neutral", "good", "very-good"]).nullable(),
+  sliderValue: z.number().int().min(-100).max(100).nullable(),
+  note: z.string().nullable().optional(),
 });
 
 // ──────────────────────────────────────────────────────────────────────────
