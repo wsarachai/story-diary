@@ -176,8 +176,8 @@ export const MoodCheckinSchema = z.object({
 
 export const ExerciseCheckinSchema = z.object({
   occurrenceId: z.string().min(1),
-  activityName: z.string().nullable(),
-  durationMinutes: z.number().nullable(),
+  activityName: z.string().min(1).nullable(),
+  durationMinutes: z.number().int().min(0).max(1440).nullable(),
 });
 
 // ──────────────────────────────────────────────────────────────────────────
