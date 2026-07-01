@@ -335,7 +335,7 @@ export const habitsApi = apiSlice.injectEndpoints({
       query: ({ date: _date, activityId: _activityId, ...checkin }) => ({
         url: `/habits/checkins/exercise/${checkin.occurrenceId}`,
         method: "PUT",
-        body: checkin,
+        body: { ...checkin, date: _date },
       }),
       invalidatesTags: (result, error, { occurrenceId }) => [
         ...HABIT_AGGREGATES,
