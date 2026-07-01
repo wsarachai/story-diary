@@ -851,6 +851,35 @@ describe("saveMoodCheckin", () => {
 
     expect((capturedBody as any).mood).toBe(MOOD_CHECKIN.mood);
     expect((capturedBody as any).sliderValue).toBe(MOOD_CHECKIN.sliderValue);
+    expect((capturedBody as any).note).toBeNull();
+  });
+});
+
+describe("saveMoodCheckin with note", () => {
+  it("sends note in the body with null mood and sliderValue", async () => {
+    let capturedBody: unknown;
+    server.use(
+      http.put("/api/habits/checkins/mood/:occurrenceId", async ({ request }) => {
+        capturedBody = await request.json();
+        return HttpResponse.json({ ok: true });
+      })
+    );
+
+    const store = createStore();
+    await store
+      .dispatch(habitsApi.endpoints.saveMoodCheckin.initiate({
+        occurrenceId: OCC_EMOTION.id,
+        mood: null,
+        sliderValue: null,
+        note: "went for a walk",
+        activityId: OCC_EMOTION.activityId,
+        date: TODAY,
+      }))
+      .unwrap();
+
+    expect((capturedBody as any).mood).toBeNull();
+    expect((capturedBody as any).sliderValue).toBeNull();
+    expect((capturedBody as any).note).toBe("went for a walk");
   });
 });
 

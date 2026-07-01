@@ -200,6 +200,7 @@ export const MOOD_CHECKIN: MoodCheckin = {
   occurrenceId: OCC_EMOTION.id,
   mood: "good",
   sliderValue: 40,
+  note: null,
 };
 
 // ─── TODAY ENTRIES (raw API payload) ─────────────────────────────────────────
