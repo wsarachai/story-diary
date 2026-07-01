@@ -80,6 +80,7 @@ function ExploreEmotionInner() {
     if (saving || !occId) return;
     try {
       if (notePreset) {
+        if (!state.note.trim()) return;
         await saveMood({
           occurrenceId: occId,
           activityId,
@@ -149,7 +150,11 @@ function ExploreEmotionInner() {
                   step={0.5}
                   value={state.note}
                   aria-label={notePreset.question}
-                  onChange={(e) => dispatchLocal({ type: "SET_NOTE", note: e.target.value })}
+                  onChange={(e) => {
+                    const raw = parseFloat(e.target.value);
+                    const clamped = isNaN(raw) ? "" : String(Math.min(24, Math.max(0, raw)));
+                    dispatchLocal({ type: "SET_NOTE", note: clamped });
+                  }}
                   style={{
                     fontSize: "2em",
                     textAlign: "center",
