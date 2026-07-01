@@ -111,24 +111,24 @@ export type MealRelation = "before" | "after";
  */
 export type HabitSchedule =
     | {
-          frequency: "daily";
-          /** Selected weekdays (s020 `.weekday-row` is-selected items). */
-          weekdays: WeekdayIndex[];
-      }
+        frequency: "daily";
+        /** Selected weekdays (s020 `.weekday-row` is-selected items). */
+        weekdays: WeekdayIndex[];
+    }
     | {
-          frequency: "weekly";
-          /** Target days per week (s020 weekly count input). */
-          daysPerWeek: number;
-      }
+        frequency: "weekly";
+        /** Target days per week (s020 weekly count input). */
+        daysPerWeek: number;
+    }
     | {
-          frequency: "monthly";
-          /** Target days per month (s020 monthly count input). */
-          daysPerMonth: number;
-      }
+        frequency: "monthly";
+        /** Target days per month (s020 monthly count input). */
+        daysPerMonth: number;
+    }
     | {
-          frequency: "todo";
-          importance: HabitImportance;
-      };
+        frequency: "todo";
+        importance: HabitImportance;
+    };
 
 /**
  * Definition of a habit activity. Created on s020 (medicine), s021→s020
@@ -379,52 +379,55 @@ export const NUTRITION_PRESETS: Readonly<Record<NutritionPresetKey, string>> = {
 };
 
 export type PhysicalPresetKey =
-  | "exercise"
-  | "doctor_visit"
-  | "pregnancy_planning"
-  | "explore_emotion"
-  | "stress_relief"
-  | "sleep_rest"
-  | "sun_protection_clothing"
-  | "sunscreen"
-  | "avoid_midday_sun"
-  | "wash_hands"
-  | "wear_mask"
-  | "social_distancing"
-  | "symptoms"
-  | "other";
+    | "exercise"
+    | "doctor_visit"
+    | "pregnancy_planning"
+    | "explore_emotion"
+    | "stress_relief"
+    | "sleep_rest"
+    | "sun_protection_clothing"
+    | "sunscreen"
+    | "avoid_midday_sun"
+    | "wash_hands"
+    | "wear_mask"
+    | "social_distancing"
+    | "avoid_sick_people"
+    | "symptoms"
+    | "other";
 
 export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
-  exercise: "การออกกำลังกาย",
-  doctor_visit: "ตรวจตามนัดแพทย์",
-  pregnancy_planning: "วางแผนการตั้งครรภ์",
-  explore_emotion: "สำรวจอารมณ์ตนเอง",
-  stress_relief: "กิจกรรมผ่อนคลายความเครียด",
-  sleep_rest: "นอนหลับพักผ่อน",
-  sun_protection_clothing: "เสื้อผ้าแขนขายาว/พกร่ม/หมวกก่อนออกจากบ้าน",
-  sunscreen: "ทาครีมกันแดด",
-  avoid_midday_sun: "เลี่ยงตากแดดตอน 10.00 – 17.00 น.",
-  wash_hands: "ล้างมือด้วยสบู่",
-  wear_mask: "สวมหน้ากากอนามัย",
-  social_distancing: "เว้นระยะห่างทางสังคม",
-  symptoms: "อาการผิดปกติ",
-  other: "อื่นๆ",
+    exercise: "การออกกำลังกาย",
+    doctor_visit: "ตรวจตามนัดแพทย์",
+    pregnancy_planning: "การวางแผนการตั้งครรภ์/การคุมกำเนิด",
+    explore_emotion: "สำรวจอารมณ์ตนเอง",
+    stress_relief: "กิจกรรมผ่อนคลายความเครียด",
+    sleep_rest: "นอนหลับพักผ่อน",
+    sun_protection_clothing: "เสื้อผ้าแขนขายาว/พกร่ม/หมวกก่อนออกจากบ้าน",
+    sunscreen: "ทาครีมกันแดด",
+    avoid_midday_sun: "เลี่ยงตากแดดตอน 10.00 – 17.00 น.",
+    wash_hands: "ล้างมือบ่อย ๆ",
+    wear_mask: "สวมหน้ากากอนามัยตอนออกไปข้างนอก",
+    social_distancing: "เลี่ยงพื้นที่แออัด",
+    avoid_sick_people: "เลี่ยงการอยู่ใกล้คนป่วย",
+    symptoms: "สังเกตอาการผิดปกติ/อาการกำเริบ",
+    other: "อื่นๆ",
 };
 
 /** Maps each form preset to the s024 physical sub-category it belongs to. */
 export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, PhysicalCategory>> = {
-  exercise: "exercise",
-  doctor_visit: "doctor-visit",
-  pregnancy_planning: "pregnancy-planning",
-  explore_emotion: "emotion-management",
-  stress_relief: "emotion-management",
-  sleep_rest: "emotion-management",
-  sun_protection_clothing: "sunlight",
-  sunscreen: "sunlight",
-  avoid_midday_sun: "sunlight",
-  wash_hands: "infection",
-  wear_mask: "infection",
-  social_distancing: "infection",
-  symptoms: "symptoms",
-  other: "other",
+    exercise: "exercise",
+    doctor_visit: "doctor-visit",
+    pregnancy_planning: "pregnancy-planning",
+    explore_emotion: "emotion-management",
+    stress_relief: "emotion-management",
+    sleep_rest: "emotion-management",
+    sun_protection_clothing: "sunlight",
+    sunscreen: "sunlight",
+    avoid_midday_sun: "sunlight",
+    wash_hands: "infection",
+    wear_mask: "infection",
+    social_distancing: "infection",
+    avoid_sick_people: "infection",
+    symptoms: "symptoms",
+    other: "other",
 };

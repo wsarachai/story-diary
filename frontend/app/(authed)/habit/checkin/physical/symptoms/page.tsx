@@ -88,13 +88,13 @@ function SymptomsCheckinInner() {
   }
 
   const leftPage = (
-    <div className={styles.authoringPage} aria-label="อาการผิดปกติ">
+    <div className={styles.authoringPage} aria-label="สังเกตอาการผิดปกติ/อาการกำเริบ">
       <div className={styles.createCard} role="dialog" aria-modal="true" aria-labelledby="symptoms-title">
         <header className={styles.createHeader}>
           <button className={styles.actionBtn} aria-label="ยกเลิก" onClick={handleCancel}>
             <X />
           </button>
-          <h2 className={styles.createTitle} id="symptoms-title">อาการผิดปกติ</h2>
+          <h2 className={styles.createTitle} id="symptoms-title">สังเกตอาการผิดปกติ/อาการกำเริบ</h2>
           <button
             className={`${styles.actionBtn} ${saving ? styles.saving : ""}`}
             aria-label="บันทึก"

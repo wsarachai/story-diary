@@ -7,14 +7,14 @@ import styles from "../HabitAdd.module.css";
 type PhysicalItem = { label: string; base: string; isMenu: boolean };
 
 const PHYSICAL_ITEMS: PhysicalItem[] = [
-  { label: "จัดการอารมณ์",          base: "/habit/add/physical/emotion",                                    isMenu: true  },
-  { label: "การออกกำลังกาย",        base: "/habit/add/physical/form?type=exercise",                         isMenu: false },
-  { label: "การป้องกันแสงแดด",       base: "/habit/add/physical/sunlight",                                   isMenu: true  },
-  { label: "ป้องกันเชื้อโรค",       base: "/habit/add/physical/infection",                                  isMenu: true  },
-  { label: "อาการผิดปกติ",          base: "/habit/add/physical/form?type=symptoms",                         isMenu: false },
-  { label: "ตรวจตามนัดแพทย์",      base: "/habit/add/physical/form?type=doctor_visit",                     isMenu: false },
-  { label: "วางแผนการตั้งครรภ์",    base: "/habit/add/physical/form?type=pregnancy_planning",               isMenu: false },
-  { label: "อื่นๆ",                  base: "/habit/add/physical/form?type=other",                            isMenu: false },
+  { label: "จัดการอารมณ์", base: "/habit/add/physical/emotion", isMenu: true },
+  { label: "การออกกำลังกาย", base: "/habit/add/physical/form?type=exercise", isMenu: false },
+  { label: "การป้องกันแสงแดด", base: "/habit/add/physical/sunlight", isMenu: true },
+  { label: "ป้องกันการติดเชื้อ", base: "/habit/add/physical/infection", isMenu: true },
+  { label: "สังเกตอาการผิดปกติ/อาการกำเริบ", base: "/habit/add/physical/form?type=symptoms", isMenu: false },
+  { label: "ตรวจตามนัดแพทย์", base: "/habit/add/physical/form?type=doctor_visit", isMenu: false },
+  { label: "การวางแผนการตั้งครรภ์/การคุมกำเนิด", base: "/habit/add/physical/form?type=pregnancy_planning", isMenu: false },
+  { label: "อื่นๆ", base: "/habit/add/physical/form?type=other", isMenu: false },
 ];
 
 export default async function AddPhysicalPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {

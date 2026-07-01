@@ -91,7 +91,7 @@ function SymptomCheckinInner() {
           <Activity />
         </div>
         <span className={`${styles.ciNamePill} ${styles.ciNamePillSymptom}`}>
-          {activity?.name ?? "อาการผิดปกติ"}
+          {activity?.name ?? "สังเกตอาการผิดปกติ/อาการกำเริบ"}
         </span>
       </div>
 
