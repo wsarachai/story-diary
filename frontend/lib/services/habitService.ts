@@ -44,8 +44,9 @@ import type {
     MonthlyResults,
     MealSlot,
     NutritionPresetKey,
+    PhysicalPresetKey,
 } from "@/types/habit";
-import { NUTRITION_PRESETS } from "@/types/habit";
+import { NUTRITION_PRESETS, PHYSICAL_PRESET_CATEGORY } from "@/types/habit";
 
 function isNutritionPresetKey(value: unknown): value is NutritionPresetKey {
     return typeof value === "string" && value in NUTRITION_PRESETS;
@@ -72,7 +73,11 @@ function rowToActivity(row: HabitActivityDoc): HabitActivity {
         archived: row.archived,
     };
     if (nutritionPreset) activity.nutritionPreset = nutritionPreset;
-    if (row.physical_category) activity.physicalCategory = row.physical_category as HabitActivity["physicalCategory"];
+    if (row.physical_category) {
+        activity.physicalCategory = row.physical_category as HabitActivity["physicalCategory"];
+    } else if (row.physical_preset && row.physical_preset in PHYSICAL_PRESET_CATEGORY) {
+        activity.physicalCategory = PHYSICAL_PRESET_CATEGORY[row.physical_preset as PhysicalPresetKey];
+    }
     if (row.physical_preset) activity.physicalPreset = row.physical_preset as HabitActivity["physicalPreset"];
     if (row.icon_color) activity.iconColor = row.icon_color as `#${string}`;
     if (row.meal_relation) activity.mealRelation = row.meal_relation;
