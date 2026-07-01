@@ -390,6 +390,8 @@ export type PhysicalPresetKey =
     | "exercise"
     | "doctor_visit"
     | "pregnancy_planning"
+    | "oral_contraceptive"
+    | "condom"
     | "explore_emotion"
     | "stress_relief"
     | "sleep_rest"
@@ -407,6 +409,8 @@ export const PHYSICAL_PRESETS: Readonly<Record<PhysicalPresetKey, string>> = {
     exercise: "การออกกำลังกาย",
     doctor_visit: "ตรวจตามนัดแพทย์",
     pregnancy_planning: "การวางแผนการตั้งครรภ์/การคุมกำเนิด",
+    oral_contraceptive: "ใช้ยาคุมกำเนิด",
+    condom: "ใช้ถุงยางอนามัย",
     explore_emotion: "สำรวจอารมณ์ตนเอง",
     stress_relief: "กิจกรรมผ่อนคลายความเครียด",
     sleep_rest: "นอนหลับพักผ่อน",
@@ -426,6 +430,8 @@ export const PHYSICAL_PRESET_CATEGORY: Readonly<Record<PhysicalPresetKey, Physic
     exercise: "exercise",
     doctor_visit: "doctor-visit",
     pregnancy_planning: "pregnancy-planning",
+    oral_contraceptive: "pregnancy-planning",
+    condom: "pregnancy-planning",
     explore_emotion: "emotion-management",
     stress_relief: "emotion-management",
     sleep_rest: "emotion-management",

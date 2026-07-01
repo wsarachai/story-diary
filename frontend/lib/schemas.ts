@@ -100,6 +100,8 @@ export const CreateActivitySchema = z.object({
       "exercise",
       "doctor_visit",
       "pregnancy_planning",
+      "oral_contraceptive",
+      "condom",
       "explore_emotion",
       "stress_relief",
       "sleep_rest",
