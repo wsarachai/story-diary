@@ -75,6 +75,7 @@ export default function HabitMonthlyPage() {
                     key={row.activityName}
                     className={styles.monthlyRow}
                     role="row"
+                    style={{ borderLeft: `3px solid ${row.accent}` }}
                   >
                     <span className={styles.monthlyRowLabel}>
                       {row.activityName}

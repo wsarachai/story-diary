@@ -329,6 +329,7 @@ export interface HabitGridRow {
     activityId: string;
     activityName: string;
     category: HabitCategory;
+    physicalCategory?: PhysicalCategory;
     cells: HabitGridCell[];
     /** Occurrences marked done within the period. */
     done: number;

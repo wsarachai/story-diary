@@ -20,6 +20,7 @@ import type {
 /** Grid row keyed for the tracker pages. */
 export interface GridRowView {
   activityName: string;
+  accent: string;
   cells: HabitGridCell[];
   done: number;
   target: number;
@@ -30,11 +31,20 @@ interface TodayHabitsView {
   todayByActivity: Record<string, HabitOccurrence>;
 }
 
+function rowAccent(row: HabitGridRow): string {
+  if (row.category === "medicine") return "#57a8db";
+  if (row.category === "nutrition") return "#2eb563";
+  const pc = row.physicalCategory;
+  if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
+  return "#ee8a4a";
+}
+
 function keyRowsByActivity(rows: HabitGridRow[]): Record<string, GridRowView> {
   const rowsByActivity: Record<string, GridRowView> = {};
   for (const row of rows) {
     rowsByActivity[row.activityId] = {
       activityName: row.activityName,
+      accent: rowAccent(row),
       cells: row.cells,
       done: row.done,
       target: row.target,

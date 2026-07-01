@@ -79,6 +79,7 @@ export default function HabitWeeklyPage() {
                     key={row.activityName}
                     className={styles.weeklyRow}
                     role="row"
+                    style={{ borderLeft: `3px solid ${row.accent}` }}
                   >
                     <span className={styles.weeklyRowLabel}>
                       {row.activityName}

@@ -258,6 +258,7 @@ async function buildGridRows(
             activityId: activity.id,
             activityName: activity.name,
             category: activity.category,
+            physicalCategory: activity.physicalCategory,
             cells,
             done,
             target,
