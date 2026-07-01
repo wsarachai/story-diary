@@ -264,6 +264,12 @@ export interface MoodCheckin {
     note?: string | null;
 }
 
+export interface ExerciseCheckin {
+    occurrenceId: string;
+    activityName: string | null;
+    durationMinutes: number | null;
+}
+
 /* ────────────────────────────────────────────────────────────────────────
  * Aggregations & summaries
  * ──────────────────────────────────────────────────────────────────────── */

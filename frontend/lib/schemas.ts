@@ -174,6 +174,12 @@ export const MoodCheckinSchema = z.object({
   note: z.string().nullable().optional(),
 });
 
+export const ExerciseCheckinSchema = z.object({
+  occurrenceId: z.string().min(1),
+  activityName: z.string().nullable(),
+  durationMinutes: z.number().nullable(),
+});
+
 // ──────────────────────────────────────────────────────────────────────────
 // Minigame schemas
 // ──────────────────────────────────────────────────────────────────────────
