@@ -126,20 +126,23 @@
   gap: 1rem;
   text-decoration: none;
   cursor: pointer;
-  transition: filter 0.18s ease, transform 0.18s ease;
+  transition:
+    filter 0.18s ease,
+    transform 0.18s ease;
+  color: #6f7a88;
+}
+
+.genderOptionSelected {
+  color: #0e98af;
+}
+
+.genderOptionUnselected {
+  color: #6f7a88;
 }
 
 .genderOptionLabel {
   font-size: 2em;
   line-height: 1;
-}
-
-.maleOption {
-  color: #9dc6f2;
-}
-
-.femaleOption {
-  color: #050505;
 }
 
 .registerSubmit {
@@ -166,7 +169,9 @@
 .figureWrap {
   aspect-ratio: 0.55 / 1;
   position: relative;
-  transition: filter 0.18s ease, transform 0.18s ease;
+  transition:
+    filter 0.18s ease,
+    transform 0.18s ease;
 }
 
 .figureWrapSelected {
@@ -206,7 +211,9 @@
   place-items: center;
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .eyeToggle:hover {
