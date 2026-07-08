@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleAlert, Eye, EyeOff, KeyRound, LoaderCircle, Phone } from "lucide-react";
+import {
+  CircleAlert,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LoaderCircle,
+  Phone,
+} from "lucide-react";
 import { useGetMeQuery, useLoginMutation } from "@/store/authApi";
 import type { ApiErrorCode } from "@/types/error";
 import { useClientSearchParams } from "@/lib/hooks";
@@ -26,7 +33,9 @@ function readApiErrorCode(error: unknown): ApiErrorCode | null {
     return null;
   }
 
-  return typeof apiError.code === "string" ? (apiError.code as ApiErrorCode) : null;
+  return typeof apiError.code === "string"
+    ? (apiError.code as ApiErrorCode)
+    : null;
 }
 
 function errorCopy(code: ApiErrorCode | null): string | null {
@@ -80,19 +89,11 @@ function LoginForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={styles.loginForm}
-    >
-      <h1 className={styles.loginTitle}>
-        เข้าสู่ระบบ
-      </h1>
+    <form onSubmit={handleSubmit} className={styles.loginForm}>
+      <h1 className={styles.loginTitle}>เข้าสู่ระบบ</h1>
 
       {/* Phone number field */}
-      <label
-        htmlFor="username"
-        className={styles.loginField}
-      >
+      <label htmlFor="username" className={styles.loginField}>
         <span className={styles.loginFieldLabel}>
           <Phone className={styles.fieldIcon} aria-hidden="true" />
           เบอร์โทร
@@ -116,10 +117,7 @@ function LoginForm() {
       </label>
 
       {/* Password field */}
-      <label
-        htmlFor="password"
-        className={styles.loginField}
-      >
+      <label htmlFor="password" className={styles.loginField}>
         <span className={styles.loginFieldLabel}>
           <KeyRound className={styles.fieldIcon} aria-hidden="true" />
           รหัสผ่าน
@@ -146,7 +144,11 @@ function LoginForm() {
             aria-pressed={showPassword}
             onClick={() => setShowPassword((v) => !v)}
           >
-            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+            {showPassword ? (
+              <EyeOff aria-hidden="true" />
+            ) : (
+              <Eye aria-hidden="true" />
+            )}
           </button>
         </span>
       </label>
@@ -157,7 +159,9 @@ function LoginForm() {
         disabled={isSubmitting}
         className={`${sharedStyles.roundedPillButton} ${styles.loginSubmit}`}
       >
-        {isSubmitting && <LoaderCircle className={styles.submitSpinner} aria-hidden="true" />}
+        {isSubmitting && (
+          <LoaderCircle className={styles.submitSpinner} aria-hidden="true" />
+        )}
         {isSubmitting ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
       </button>
 
@@ -190,32 +194,17 @@ function LoginForm() {
  */
 export default function LoginPage() {
   return (
-    <main className={layoutStyles.screen} aria-label="Story Diary Login Layout">
-      <section className={layoutStyles.bookShell}>
-        {/* Left page — compass art */}
-        <section className={`${layoutStyles.page} ${layoutStyles.pageLeft} ${layoutStyles.pageSeamRight}`} aria-hidden="true">
-          <div className={styles.compassBg} />
-          <div className={styles.compassContainer}>
-            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style={{ width: "100%", height: "100%", display: "block" }}>
-              <circle cx="100" cy="100" r="63" stroke="currentColor" strokeWidth="5" opacity="0.95" />
-              <path d="M100 27L113 82L100 100L87 82L100 27Z" fill="currentColor" />
-              <path d="M100 173L87 118L100 100L113 118L100 173Z" fill="currentColor" />
-              <path d="M27 100L82 87L100 100L82 113L27 100Z" fill="currentColor" />
-              <path d="M173 100L118 113L100 100L118 87L173 100Z" fill="currentColor" />
-              <path d="M100 62L109 91L100 100L91 91L100 62Z" fill="#58d8de" />
-              <path d="M100 138L91 109L100 100L109 109L100 138Z" fill="#58d8de" />
-              <path d="M62 100L91 91L100 100L91 109L62 100Z" fill="#58d8de" />
-              <path d="M138 100L109 109L100 100L109 91L138 100Z" fill="#58d8de" />
-              <text x="100" y="20" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">N</text>
-              <text x="100" y="193" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">S</text>
-              <text x="15" y="107" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">W</text>
-              <text x="185" y="107" textAnchor="middle" fill="currentColor" fontSize="18" fontFamily="Noto Sans Thai, sans-serif" fontWeight="700">E</text>
-            </svg>
-          </div>
-        </section>
-
-        {/* Right page — login form */}
-        <section className={`${layoutStyles.page} ${layoutStyles.pageRight} ${styles.loginFormPage}`}>
+    <main
+      className={`${layoutStyles.screen} ${styles.loginScreen}`}
+      aria-label="Story Diary Login Layout"
+    >
+      <section
+        className={`${layoutStyles.bookShell} ${layoutStyles.bookShellFitViewport} ${styles.loginBookShell}`}
+      >
+        {/* Login form only */}
+        <section
+          className={`${layoutStyles.page} ${layoutStyles.pageMergedOnly} ${styles.loginFormPage}`}
+        >
           <LoginForm />
         </section>
       </section>
