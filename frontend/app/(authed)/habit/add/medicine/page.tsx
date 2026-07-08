@@ -1,5 +1,5 @@
 "use client";
-import { Check, LoaderCircle, Sun, X } from "lucide-react";
+import { Check, ChevronDown, LoaderCircle, Sun, X } from "lucide-react";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import IconRail from "@/components/IconRail";
@@ -158,6 +158,7 @@ function MedicineFormInner() {
   const [createActivity, { isLoading: saving }] = useCreateActivityMutation();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const discardRef = useRef<HTMLDialogElement>(null);
+  const medicineDialogRef = useRef<HTMLDialogElement>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const source = searchParams.get("source");
@@ -363,29 +364,28 @@ function MedicineFormInner() {
                       />
                     )
                   ) : (
-                    <select
-                      className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
+                    <button
+                      type="button"
+                      className={`${styles.nameField} ${styles.nameSelect}${form.errors.name ? ` ${styles.error}` : ""}`}
                       aria-label="ชื่อยา"
-                      value={
-                        form.medicineMode === "other"
-                          ? "other"
-                          : (form.medicineKey ?? "")
-                      }
-                      onChange={(e) =>
-                        dispatchForm({
-                          type: "SELECT_MEDICINE",
-                          value: e.target.value as MedicineKey | "other" | "",
-                        })
-                      }
+                      aria-haspopup="listbox"
+                      onClick={() => medicineDialogRef.current?.showModal()}
                     >
-                      <option value="">เลือกชื่อยา :</option>
-                      {MEDICINE_KEYS.map((key) => (
-                        <option key={key} value={key}>
-                          {MEDICINES[key].label}
-                        </option>
-                      ))}
-                      <option value="other">อื่นๆ</option>
-                    </select>
+                      <span
+                        className={
+                          form.medicineMode === ""
+                            ? styles.nameSelectPlaceholder
+                            : undefined
+                        }
+                      >
+                        {form.medicineMode === "other"
+                          ? "อื่นๆ"
+                          : form.medicineKey
+                            ? MEDICINES[form.medicineKey].label
+                            : "เลือกชื่อยา :"}
+                      </span>
+                      <ChevronDown aria-hidden="true" />
+                    </button>
                   )}
                   <button
                     className={styles.nameIcon}
@@ -632,6 +632,61 @@ function MedicineFormInner() {
         fitViewport
         centerMobile
       />
+
+      {/* Medicine name picker (in-page dialog — native <select> popups
+          overflow the screen on short viewports e.g. iPad landscape) */}
+      <dialog
+        ref={medicineDialogRef}
+        className={`${styles.colorDialog} ${styles.pickerDialog}`}
+        aria-label="เลือกชื่อยา"
+      >
+        <p className={styles.colorDialogTitle}>เลือกชื่อยา</p>
+        <ul className={styles.menuList} role="listbox" aria-label="รายชื่อยา">
+          {MEDICINE_KEYS.map((key) => (
+            <li key={key}>
+              <button
+                type="button"
+                className={styles.menuItem}
+                role="option"
+                aria-selected={form.medicineKey === key}
+                onClick={() => {
+                  dispatchForm({ type: "SELECT_MEDICINE", value: key });
+                  medicineDialogRef.current?.close();
+                }}
+              >
+                <span className={styles.menuItemDot} aria-hidden="true" />
+                <span className={styles.menuItemLabel}>
+                  {MEDICINES[key].label}
+                </span>
+              </button>
+            </li>
+          ))}
+          <li>
+            <button
+              type="button"
+              className={styles.menuItem}
+              role="option"
+              aria-selected={form.medicineMode === "other"}
+              onClick={() => {
+                dispatchForm({ type: "SELECT_MEDICINE", value: "other" });
+                medicineDialogRef.current?.close();
+              }}
+            >
+              <span className={styles.menuItemDot} aria-hidden="true" />
+              <span className={styles.menuItemLabel}>อื่นๆ</span>
+            </button>
+          </li>
+        </ul>
+        <div className={styles.colorActions}>
+          <button
+            className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`}
+            type="button"
+            onClick={() => medicineDialogRef.current?.close()}
+          >
+            ปิด
+          </button>
+        </div>
+      </dialog>
 
       {/* Icon-color dialog */}
       <dialog
