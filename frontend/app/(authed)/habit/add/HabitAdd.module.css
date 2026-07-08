@@ -76,6 +76,10 @@
   fill: none;
 }
 
+.formCardBackText {
+  display: inline;
+}
+
 .formCardHint {
   margin: 0;
   padding: 0.4em 1.8em 0;
@@ -860,20 +864,44 @@
     height: auto;
   }
 
+  .formCard {
+    border-width: 2px;
+    border-radius: 24px;
+    box-shadow: 0 10px 28px -14px rgba(13, 18, 35, 0.2);
+  }
+
+  .formCardHeader {
+    padding: 0.85rem 1rem 0.5rem;
+    gap: 0.7rem;
+  }
+
   .formCardTitle {
-    font-size: 1.6em;
-    border-bottom-width: 4px;
+    font-size: 1.25em;
+    border-bottom-width: 0;
+    padding-bottom: 0;
+  }
+
+  .formCardBack {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .formCardBackText {
+    display: none;
   }
 
   .formCardHint {
-    font-size: 1em;
+    display: none;
   }
 
   .categoryTabs {
     grid-template-columns: 1fr;
     grid-template-rows: none;
-    gap: 0.8rem;
-    padding: 1rem 1.1rem 1.4rem;
+    gap: 0.65rem;
+    padding: 1rem 1.1rem 1rem;
   }
 
   .catTab {
@@ -885,26 +913,42 @@
     align-items: center;
     justify-content: start;
     text-align: left;
-    padding: 0.9rem 1.1rem;
+    padding: 0.8rem 1rem;
+    min-height: 5.4rem;
     margin-bottom: 0;
-    border-radius: 20px;
+    border-radius: 16px;
+  }
+
+  .catTab:hover {
+    transform: none;
+    box-shadow: 0 10px 24px -12px rgba(13, 18, 35, 0.45);
+    filter: none;
+  }
+
+  .catTab:active {
+    transform: scale(0.992);
+  }
+
+  .catTab:focus-visible {
+    outline: 3px solid #0d1217;
+    outline-offset: 2px;
   }
 
   .catTabIcon {
-    width: 3.4rem;
-    height: 3.4rem;
+    width: 3.2rem;
+    height: 3.2rem;
     grid-row: 1 / 3;
     box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.28);
   }
 
   .catTabIcon svg {
-    width: 2rem;
-    height: 2rem;
+    width: 1.9rem;
+    height: 1.9rem;
   }
 
   .catTabLabel {
     grid-column: 2;
-    font-size: 1.25em;
+    font-size: 1.2em;
     text-align: left;
   }
 
@@ -912,6 +956,22 @@
     grid-column: 2;
     font-size: 0.9em;
     text-align: left;
+    line-height: 1.2;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .catBody .catTabLabel {
+    font-size: 1.2em;
+  }
+
+  .catBody .catTabHint {
+    font-size: 0.9em;
   }
 
   /* ── Create/edit form (medicine, nutrition, physical) ──

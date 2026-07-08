@@ -13,7 +13,12 @@ export default function AddActivityPage() {
   const from = searchParams.get("from") ?? "/habit/checklist";
   const content = (
     <div className={styles.authoringPage} aria-label="เพิ่มกิจกรรม">
-      <div className={styles.formCard} role="dialog" aria-modal="true" aria-labelledby="form-title">
+      <div
+        className={styles.formCard}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="form-title"
+      >
         <header className={styles.formCardHeader}>
           <button
             className={styles.formCardBack}
@@ -21,12 +26,18 @@ export default function AddActivityPage() {
             onClick={() => router.push(from)}
           >
             <ChevronLeft aria-hidden="true" />
-            ย้อนกลับ
+            <span className={styles.formCardBackText}>ย้อนกลับ</span>
           </button>
-          <h2 className={styles.formCardTitle} id="form-title">เพิ่มกิจกรรม</h2>
+          <h2 className={styles.formCardTitle} id="form-title">
+            เพิ่มกิจกรรม
+          </h2>
         </header>
         <p className={styles.formCardHint}>เลือกประเภทกิจกรรมที่ต้องการเพิ่ม</p>
-        <div className={styles.categoryTabs} role="tablist" aria-label="ประเภทกิจกรรม">
+        <div
+          className={styles.categoryTabs}
+          role="tablist"
+          aria-label="ประเภทกิจกรรม"
+        >
           <Link
             className={`${styles.catTab} ${styles.catMed}`}
             role="tab"
@@ -61,7 +72,9 @@ export default function AddActivityPage() {
               <PersonStanding />
             </div>
             <span className={styles.catTabLabel}>กิจกรรมทางกาย</span>
-            <span className={styles.catTabHint}>บันทึกการเคลื่อนไหวร่างกาย</span>
+            <span className={styles.catTabHint}>
+              บันทึกการเคลื่อนไหวร่างกาย
+            </span>
           </Link>
         </div>
       </div>
