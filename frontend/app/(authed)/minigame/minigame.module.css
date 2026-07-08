@@ -70,10 +70,18 @@
   font-weight: 700;
   line-height: 1;
   padding: 0.7rem 2rem;
+  min-height: 2.75rem;
   cursor: pointer;
   color: #fff;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.readyBtn:focus-visible {
+  outline: 3px solid #0d1217;
+  outline-offset: 3px;
 }
 
 .readyBtnYes {
@@ -92,18 +100,58 @@
   background: #b83232;
 }
 
+@media (max-width: 1240px) and (min-width: 901px) {
+  .doodleWrap {
+    width: 70%;
+  }
+
+  .minigameContainerRight {
+    padding: 5% 6% 6%;
+    gap: 1.35rem;
+  }
+
+  .introText {
+    font-size: 3.05em;
+    line-height: 1.3;
+  }
+
+  .ornament svg {
+    width: 12rem;
+  }
+
+  .readyText {
+    font-size: 2.55em;
+    line-height: 1.32;
+  }
+
+  .readyBtns {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .readyBtn {
+    flex: 1 1 13rem;
+    max-width: 16rem;
+    text-align: center;
+    font-size: 1.55em;
+    padding: 0.62rem 1.5rem;
+  }
+}
+
 /* Mobile: the decorative left page is hidden (hideLeftOnMobile), so shrink the
    intro copy + buttons enough that the whole prompt fits one screen without
    scrolling. Screen font-size is a fixed 1rem on mobile. */
 @media (max-width: 900px) {
   .minigameContainerRight {
-    padding: 6% 7%;
-    gap: 1.1rem;
+    min-height: 100%;
+    justify-content: space-between;
+    padding: 4% 6% 5%;
+    gap: 0.8rem;
   }
 
   .introText {
-    font-size: 2em;
-    line-height: 1.3;
+    font-size: 1.85em;
+    line-height: 1.25;
   }
 
   .ornament svg {
@@ -111,7 +159,37 @@
   }
 
   .readyText {
-    font-size: 1.7em;
+    font-size: 1.55em;
+    line-height: 1.3;
+  }
+
+  .readyBtns {
+    gap: 0.85rem;
+  }
+
+  .readyBtn {
+    font-size: 1.2em;
+    padding: 0.55rem 1.3rem;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 768px) {
+  .minigameContainerRight {
+    padding: 5% 7% 6%;
+    gap: 1.35rem;
+  }
+
+  .introText {
+    font-size: 2.35em;
+    line-height: 1.3;
+  }
+
+  .ornament svg {
+    width: 11rem;
+  }
+
+  .readyText {
+    font-size: 1.95em;
     line-height: 1.35;
   }
 
@@ -120,7 +198,19 @@
   }
 
   .readyBtn {
-    font-size: 1.35em;
-    padding: 0.6rem 1.6rem;
+    font-size: 1.4em;
+    padding: 0.65rem 1.55rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .readyBtns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .readyBtn {
+    width: 100%;
+    text-align: center;
   }
 }
