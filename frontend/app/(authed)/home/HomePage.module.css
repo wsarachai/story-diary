@@ -2,18 +2,21 @@
   display: grid;
   place-items: center;
   height: 100%;
+  padding: 0.8rem;
 }
 
 .storyCardLink {
-  width: 72%;
-  height: 86%;
+  display: block;
+  width: min(74%, 420px);
+  max-height: 92%;
+  aspect-ratio: 432 / 562;
 }
 
 .storyArticle {
   width: 100%;
   height: 100%;
   border-radius: 38% 38% 9% 9% / 20% 20% 9% 9%;
-  background: #55d0d7;
+  background: url("/images/story-card-stars.png") center / cover no-repeat;
   position: relative;
   overflow: hidden;
 }
@@ -87,7 +90,7 @@
 .habitCard {
   position: relative;
   border-radius: 48px;
-  background: #59d6dc;
+  background: #51ecec;
   padding: 1.6rem 1.8rem;
   min-height: 210px;
   text-decoration: none;
@@ -105,7 +108,7 @@
 .minigameCard {
   position: relative;
   border-radius: 48px;
-  background: #59d6dc;
+  background: #51ecec;
   padding: 2.3rem 1.8rem 1.6rem;
   min-height: 200px;
   text-decoration: none;
@@ -131,6 +134,16 @@
 }
 
 @media (max-width: 900px) {
+  .storyCardLink {
+    width: min(66vw, 360px);
+    max-height: none;
+  }
+
+  .storyArticle {
+    background-size: contain;
+    background-position: center top;
+  }
+
   .mobileTopBar {
     display: flex;
     align-items: center;
@@ -155,5 +168,11 @@
     flex-direction: column;
     gap: 1.2rem;
     height: auto;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .storyCardLink {
+    width: min(40vw, 300px);
   }
 }
