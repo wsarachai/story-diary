@@ -128,7 +128,7 @@ function DashboardPanel() {
             />
           ))}
         </div>
-        <h2 className={styles.cardTitle}>
+        <h2 className={`${styles.cardTitle} ${styles.minigameTitle}`}>
           Minigame
         </h2>
       </Link>
