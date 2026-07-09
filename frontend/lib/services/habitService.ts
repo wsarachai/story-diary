@@ -323,6 +323,36 @@ async function buildGridRows(
     return { rowsByActivity, summary: { done: totalDone, target: totalTarget } };
 }
 
+/** Physical/plain weekly & monthly activities track progress by days-per-period. */
+function isPeriodCounterActivity(activity: HabitActivity): boolean {
+    const freq = activity.schedule.frequency;
+    return (freq === "weekly" || freq === "monthly")
+        && activity.category !== "medicine"
+        && activity.category !== "nutrition";
+}
+
+function localYMD(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Monday–Sunday range (inclusive) of the week containing `date`. */
+function weekRangeFor(date: string): [string, string] {
+    const [y, m, d] = date.split("-").map(Number);
+    const start = new Date(y, m - 1, d);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return [localYMD(start), localYMD(end)];
+}
+
+/** First–last day range (inclusive) of the calendar month containing `date`. */
+function monthRangeFor(date: string): [string, string] {
+    const month = date.slice(0, 7);
+    const [y, m] = month.split("-").map(Number);
+    const lastDay = new Date(y, m, 0).getDate();
+    return [`${month}-01`, `${month}-${String(lastDay).padStart(2, "0")}`];
+}
+
 export async function getTodayEntries(userId: string, date: string): Promise<TodayHabitEntry[]> {
     const rows = await listHabitActivitiesByUser(userId);
     const entries: TodayHabitEntry[] = [];
@@ -369,6 +399,23 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
                 ? JSON.parse(checkin.meal_slots_json)
                 : [];
             occurrence.doseProgress = { taken: slots.length, total: 3 };
+        }
+
+        // Weekly/monthly physical activities track progress by the number of
+        // distinct days done in the current period (vs the days-per-period
+        // target), so the checklist icon reads "in progress" until the target
+        // is met instead of "complete" after a single check-in.
+        const schedule = activity.schedule;
+        if (isPeriodCounterActivity(activity) && (schedule.frequency === "weekly" || schedule.frequency === "monthly")) {
+            const [rangeStart, rangeEnd] = schedule.frequency === "weekly"
+                ? weekRangeFor(date)
+                : monthRangeFor(date);
+            const periodOccurrences = await listOccurrencesByActivityAndDateRange(activity.id, rangeStart, rangeEnd);
+            const doneDays = periodOccurrences.filter((o) => o.status === "done").length;
+            const total = schedule.frequency === "weekly"
+                ? schedule.daysPerWeek
+                : schedule.daysPerMonth;
+            occurrence.doseProgress = { taken: doneDays, total };
         }
 
         entries.push({

@@ -16,6 +16,7 @@ import type {
 } from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
 import { MEDICINES, MEDICINE_KEYS, type MedicineKey } from "@/types/medicines";
+import IconColorPicker, { getIconColorLabel } from "../IconColorPicker";
 import styles from "../HabitAdd.module.css";
 
 const NUTRITION_PRESET_KEYS: NutritionPresetKey[] = [
@@ -172,6 +173,7 @@ function MedicineFormInner() {
     resolveNutritionPreset(typeKey);
   const isNutrition = categoryParam === "nutrition" || nutritionPreset !== null;
   const hasLockedNutritionPreset = nutritionPreset !== null;
+  const recommendedIconColor = isNutrition ? "#2a9d8f" : "#aa85e5";
   const prefillName = nutritionPreset
     ? (NUTRITION_PRESETS[nutritionPreset] ?? "")
     : "";
@@ -180,7 +182,7 @@ function MedicineFormInner() {
     name: prefillName,
     medicineKey: null,
     medicineMode: "",
-    iconColor: "#aa85e5",
+    iconColor: recommendedIconColor,
     mealRelation: "after",
     mealSlots: [],
     frequency: "daily",
@@ -397,6 +399,19 @@ function MedicineFormInner() {
                     <Sun />
                   </button>
                 </div>
+                <button
+                  type="button"
+                  className={styles.colorStatusBtn}
+                  onClick={() => dialogRef.current?.showModal()}
+                  aria-label="เปลี่ยนสีไอคอน"
+                >
+                  สีไอคอน: {getIconColorLabel(form.iconColor)}
+                  {form.iconColor.toLowerCase() ===
+                  recommendedIconColor.toLowerCase()
+                    ? " (แนะนำ)"
+                    : ""}
+                  {" • เปลี่ยน"}
+                </button>
                 {!isNutrition && form.medicineMode === "other" && (
                   <input
                     className={`${styles.nameField}${form.errors.name ? ` ${styles.error}` : ""}`}
@@ -694,40 +709,13 @@ function MedicineFormInner() {
         className={styles.colorDialog}
         aria-label="เลือกสีไอคอน"
       >
-        <p className={styles.colorDialogTitle}>เลือกสีไอคอน</p>
-        <div className={styles.swatchRow}>
-          {[
-            "#ffffff",
-            "#111111",
-            "#ff6b6b",
-            "#f4a261",
-            "#2a9d8f",
-            "#4d8dff",
-          ].map((color) => (
-            <button
-              key={color}
-              className={styles.swatch}
-              type="button"
-              style={{ background: color }}
-              aria-label={`สี ${color}`}
-              onClick={() =>
-                dispatchForm({ type: "SET_ICON_COLOR", value: color })
-              }
-            />
-          ))}
-        </div>
-        <div className={styles.colorCustomRow}>
-          <label htmlFor="custom-icon-color">สีอื่น:</label>
-          <input
-            className={styles.colorCustom}
-            id="custom-icon-color"
-            type="color"
-            value={form.iconColor}
-            onChange={(e) =>
-              dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })
-            }
-          />
-        </div>
+        <IconColorPicker
+          value={form.iconColor}
+          onChange={(value) => dispatchForm({ type: "SET_ICON_COLOR", value })}
+          recommendedColor={recommendedIconColor}
+          previewLabel={form.name}
+          customInputId="custom-icon-color-medicine"
+        />
         <div className={styles.colorActions}>
           <button
             className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`}

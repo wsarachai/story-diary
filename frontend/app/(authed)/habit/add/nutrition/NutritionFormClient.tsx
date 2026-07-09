@@ -14,6 +14,7 @@ import type {
   WeekdayIndex,
 } from "@/types/habit";
 import { NUTRITION_PRESETS } from "@/types/habit";
+import IconColorPicker, { getIconColorLabel } from "../IconColorPicker";
 import styles from "../HabitAdd.module.css";
 
 interface FormState {
@@ -92,10 +93,11 @@ export default function NutritionFormClient({
   const from = searchParams.get("from") ?? "/habit/checklist";
   const hasLockedNutritionPreset = Boolean(preset);
   const prefillName = preset ? (NUTRITION_PRESETS[preset] ?? "") : "";
+  const recommendedIconColor = "#2a9d8f";
 
   const [form, dispatchForm] = useReducer(formReducer, {
     name: prefillName,
-    iconColor: "#aa85e5",
+    iconColor: recommendedIconColor,
     frequency: "daily",
     weekdays: [0, 1, 2, 3, 4, 5, 6] as WeekdayIndex[],
     daysPerWeek: 3,
@@ -183,7 +185,10 @@ export default function NutritionFormClient({
       <BookShellLayout
         mergedOnly
         merged={
-          <div className={styles.authoringPage} aria-label="สร้างกิจกรรมโภชนาการ">
+          <div
+            className={styles.authoringPage}
+            aria-label="สร้างกิจกรรมโภชนาการ"
+          >
             <div
               className={styles.createCard}
               role="dialog"
@@ -252,6 +257,19 @@ export default function NutritionFormClient({
                     <Sun />
                   </button>
                 </div>
+                <button
+                  type="button"
+                  className={styles.colorStatusBtn}
+                  onClick={() => dialogRef.current?.showModal()}
+                  aria-label="เปลี่ยนสีไอคอน"
+                >
+                  สีไอคอน: {getIconColorLabel(form.iconColor)}
+                  {form.iconColor.toLowerCase() ===
+                  recommendedIconColor.toLowerCase()
+                    ? " (แนะนำ)"
+                    : ""}
+                  {" • เปลี่ยน"}
+                </button>
                 {form.errors.name && (
                   <p className={styles.fieldError} role="alert">
                     {form.errors.name}
@@ -430,40 +448,13 @@ export default function NutritionFormClient({
         className={styles.colorDialog}
         aria-label="เลือกสีไอคอน"
       >
-        <p className={styles.colorDialogTitle}>เลือกสีไอคอน</p>
-        <div className={styles.swatchRow}>
-          {[
-            "#ffffff",
-            "#111111",
-            "#ff6b6b",
-            "#f4a261",
-            "#2a9d8f",
-            "#4d8dff",
-          ].map((color) => (
-            <button
-              key={color}
-              className={styles.swatch}
-              type="button"
-              style={{ background: color }}
-              aria-label={`สี ${color}`}
-              onClick={() =>
-                dispatchForm({ type: "SET_ICON_COLOR", value: color })
-              }
-            />
-          ))}
-        </div>
-        <div className={styles.colorCustomRow}>
-          <label htmlFor="custom-icon-color">สีอื่น:</label>
-          <input
-            className={styles.colorCustom}
-            id="custom-icon-color"
-            type="color"
-            value={form.iconColor}
-            onChange={(e) =>
-              dispatchForm({ type: "SET_ICON_COLOR", value: e.target.value })
-            }
-          />
-        </div>
+        <IconColorPicker
+          value={form.iconColor}
+          onChange={(value) => dispatchForm({ type: "SET_ICON_COLOR", value })}
+          recommendedColor={recommendedIconColor}
+          previewLabel={form.name}
+          customInputId="custom-icon-color-nutrition"
+        />
         <div className={styles.colorActions}>
           <button
             className={`${styles.dialogBtn} ${styles.dialogBtnSecondary}`}

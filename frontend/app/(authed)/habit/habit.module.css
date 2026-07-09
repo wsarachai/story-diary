@@ -606,6 +606,14 @@
   color: rgba(13, 18, 23, 0.52);
 }
 
+/* "ทำวันนี้แล้ว" — today logged toward a weekly/monthly period goal. */
+.habitEntryTodayHint {
+  margin: 0.15rem 0 0;
+  font-size: 0.68em;
+  font-weight: 700;
+  color: #08c65a;
+}
+
 .habitEntryLogArrow {
   color: #59d6dc;
   flex-shrink: 0;

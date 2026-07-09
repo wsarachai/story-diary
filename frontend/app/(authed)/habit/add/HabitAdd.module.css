@@ -404,12 +404,13 @@
   width: 4.4rem;
   height: 4.4rem;
   border-radius: 50%;
-  background: #aa85e5;
+  background: #f9f7f2;
   display: grid;
   place-items: center;
-  border: none;
+  border: 1px solid #ddd6ca;
   cursor: pointer;
   padding: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .nameIcon svg {
@@ -418,6 +419,31 @@
   stroke: var(--name-icon-stroke, #fff);
   stroke-width: 2.3;
   fill: none;
+  filter: drop-shadow(0 0 0.55px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 0.65px rgba(13, 18, 23, 0.5));
+}
+
+.colorStatusBtn {
+  margin-top: -0.15rem;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: rgba(13, 18, 23, 0.62);
+  font-family: inherit;
+  font-size: 1.1em;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.15rem 0.2rem;
+}
+
+.colorStatusBtn:hover {
+  color: rgba(13, 18, 23, 0.82);
+}
+
+.colorStatusBtn:focus-visible {
+  outline: 3px solid var(--panel-blue, #59d6dc);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 
 .activityBadge {
@@ -747,11 +773,12 @@
 
 /* Icon-color dialog */
 .colorDialog {
-  border: none;
+  border: 1px solid #e6dfd3;
   border-radius: 20px;
-  padding: 1rem 1.1rem;
+  padding: 0.95rem 1rem;
   width: min(90vw, 340px);
-  box-shadow: 0 18px 38px -14px rgba(0, 0, 0, 0.45);
+  background: #fcfaf7;
+  box-shadow: 0 14px 28px -18px rgba(13, 18, 23, 0.45);
 }
 
 .colorDialog[open] {
@@ -764,9 +791,160 @@
 }
 
 .colorDialogTitle {
-  margin: 0 0 0.8rem;
-  font-size: 1.35em;
+  margin: 0 0 0.65rem;
+  font-size: 1.12em;
+  font-weight: 700;
+  color: rgba(13, 18, 23, 0.92);
   line-height: 1.1;
+}
+
+.colorPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #ece5da;
+  border-radius: 14px;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.65rem;
+}
+
+.colorPreviewIcon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: #f9f7f2;
+  border: 1px solid #ddd6ca;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.colorPreviewIcon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: var(--name-icon-stroke, #fff);
+  stroke-width: 2.1;
+  fill: none;
+  filter: drop-shadow(0 0 0.55px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 0.65px rgba(13, 18, 23, 0.5));
+}
+
+.colorPreviewText {
+  min-width: 0;
+}
+
+.colorPreviewTitle {
+  margin: 0;
+  font-size: 0.88em;
+  font-weight: 700;
+  color: #111;
+}
+
+.colorPreviewMeta {
+  margin: 0.1rem 0 0;
+  font-size: 0.76em;
+  color: rgba(13, 18, 23, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colorSectionTitle {
+  margin: 0 0 0.38rem;
+  font-size: 0.82em;
+  font-weight: 700;
+  color: rgba(13, 18, 23, 0.66);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.colorTileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+.colorTile {
+  border: 1px solid #e9e2d7;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.34rem 0.48rem;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.colorTile:hover {
+  border-color: #d7cdc0;
+  background: #fdfbf8;
+}
+
+.colorTileSwatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1px solid rgba(13, 18, 23, 0.2);
+  flex-shrink: 0;
+}
+
+.colorTileLabel {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.86);
+}
+
+.colorTileBadge {
+  font-size: 0.68em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.42);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.colorTileSelected {
+  font-size: 0.68em;
+  font-weight: 700;
+  color: rgba(13, 18, 23, 0.64);
+}
+
+.colorTile.isSelected {
+  border-color: #9c8571;
+  background: #faf7f2;
+  box-shadow: inset 0 0 0 1px rgba(156, 133, 113, 0.22);
+}
+
+.colorAdvanced {
+  border-top: 1px dashed #ddd4c7;
+  padding-top: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.colorAdvanced summary {
+  cursor: pointer;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.66);
+}
+
+.colorHexText {
+  font-size: 0.8em;
+  color: rgba(13, 18, 23, 0.75);
+  background: #f6f2ea;
+  border: 1px solid #e6dfd6;
+  border-radius: 8px;
+  padding: 0.22rem 0.4rem;
 }
 
 .swatchRow {
@@ -787,7 +965,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.9rem;
+  margin-top: 0.55rem;
 }
 
 .colorCustomRow label {

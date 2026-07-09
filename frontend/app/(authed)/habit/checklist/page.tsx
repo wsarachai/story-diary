@@ -49,6 +49,25 @@ function isAppointment(activity: HabitActivity): boolean {
   return activity.category === "physical" && activity.physicalCategory === "doctor-visit";
 }
 
+/**
+ * Physical/plain weekly & monthly activities are tracked by days-per-period:
+ * the checklist icon shows "X of N days this week/month" (in progress until N),
+ * not a single-check-in "complete". Medicine/nutrition keep their own per-day
+ * meal counters.
+ */
+function isPeriodCounterActivity(activity: HabitActivity): boolean {
+  const freq = activity.schedule.frequency;
+  return (freq === "weekly" || freq === "monthly")
+    && activity.category !== "medicine"
+    && activity.category !== "nutrition";
+}
+
+/** Whether a period-counter entry has met its week/month target. */
+function isPeriodComplete(activity: HabitActivity, occurrence: HabitOccurrence): boolean {
+  const dp = occurrence.doseProgress;
+  return isPeriodCounterActivity(activity) && !!dp && dp.total > 0 && dp.taken >= dp.total;
+}
+
 function parseISODate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
@@ -229,6 +248,10 @@ const NUTRITION_MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "dinner"];
 const NUTRITION_FILL = "#cdebd6";
 const NUTRITION_BASE = "#eef9f1";
 
+/** Period-counter (weekly/monthly) accent fill + resting tint (warm/physical). */
+const PERIOD_FILL = "#f7dcc8";
+const PERIOD_BASE = "#fcefe6";
+
 /** Baseline (all-unchecked) side-effect list for a known medicine, else []. */
 function defaultSideEffects(activity: HabitActivity): SymptomCheck[] {
   if (activity.medicineKey && isMedicineKey(activity.medicineKey)) {
@@ -299,6 +322,36 @@ export default function HabitChecklistPage() {
 
   function openMedicineForm(activity: HabitActivity, occurrenceId: string) {
     router.push(`/habit/checkin/medicine?occ=${occurrenceId}&actId=${activity.id}`);
+  }
+
+  /**
+   * One tap on a plain (non-medicine/nutrition) activity's check circle:
+   * exercise opens its check-in form; otherwise toggle today's occurrence
+   * done↔pending, opening the detail form (symptoms/emotion) on completion.
+   * Shared by daily activities and weekly/monthly period counters — for the
+   * latter, marking today done contributes one day toward the period target.
+   */
+  function handlePlainTap(activity: HabitActivity, occurrence: HabitOccurrence) {
+    if (activity.physicalCategory === "exercise" || activity.physicalPreset === "exercise") {
+      handleEntryTap(activity, occurrence.id);
+    } else if (occurrence.status === "done") {
+      toggle({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        status: "pending",
+        date: todayStr,
+      });
+    } else {
+      toggle({
+        occurrenceId: occurrence.id,
+        activityId: activity.id,
+        status: "done",
+        date: todayStr,
+      });
+      if (hasDetailedCheckin(activity)) {
+        handleEntryTap(activity, occurrence.id);
+      }
+    }
   }
 
   /**
@@ -517,8 +570,10 @@ export default function HabitChecklistPage() {
               const groupEntries = grouped[key];
               if (!groupEntries || groupEntries.length === 0) return null;
               const isOpen = openSections.has(key);
-              const doneCount = groupEntries.filter(
-                (e) => e.occurrence.status === "done"
+              const doneCount = groupEntries.filter((e) =>
+                isPeriodCounterActivity(e.activity)
+                  ? isPeriodComplete(e.activity, e.occurrence)
+                  : e.occurrence.status === "done"
               ).length;
               return (
                 <div key={key} className={styles.accordionSection}>
@@ -595,16 +650,19 @@ export default function HabitChecklistPage() {
                         // nutrition presets are single-tap (simple check circle).
                         const isNutritionCounter =
                           isNutrition && activity.nutritionPreset === "nutrition_5_groups";
+                        // Weekly/monthly physical activities show a days-per-period counter.
+                        const isPeriodCounter = isPeriodCounterActivity(activity);
+                        const periodComplete = isPeriodComplete(activity, occurrence);
                         // All interaction is on the check circle; card body is never tappable.
                         const doseTotal = occurrence.doseProgress?.total ?? 0;
                         const doseTaken =
                           occurrence.doseProgress?.taken ??
                           ((isMedicine || isNutritionCounter) && occurrence.status === "done" ? doseTotal : 0);
-                        const showDoseFill = (isMedicine || isNutritionCounter) && doseTotal > 0;
-                        const fillColor = isNutrition ? NUTRITION_FILL : DOSE_FILL;
-                        const baseColor = isNutrition ? NUTRITION_BASE : DOSE_BASE;
+                        const showDoseFill = (isMedicine || isNutritionCounter || isPeriodCounter) && doseTotal > 0;
+                        const fillColor = isNutrition ? NUTRITION_FILL : isPeriodCounter ? PERIOD_FILL : DOSE_FILL;
+                        const baseColor = isNutrition ? NUTRITION_BASE : isPeriodCounter ? PERIOD_BASE : DOSE_BASE;
                         const fillPct = showDoseFill
-                          ? Math.round((doseTaken / doseTotal) * 100)
+                          ? Math.round((Math.min(doseTaken, doseTotal) / doseTotal) * 100)
                           : 0;
                         return (
                           <div
@@ -626,6 +684,9 @@ export default function HabitChecklistPage() {
                             <div className={styles.habitEntryBody}>
                               <p className={styles.habitEntryName}>{getActivityDisplayName(entry.activity)}</p>
                               <p className={styles.habitEntrySub}>{entry.subline}</p>
+                              {isPeriodCounter && occurrence.status === "done" && !periodComplete && (
+                                <p className={styles.habitEntryTodayHint}>ทำวันนี้แล้ว</p>
+                              )}
                             </div>
                             <button
                               className={styles.habitDeleteBtn}
@@ -716,6 +777,29 @@ export default function HabitChecklistPage() {
                                   <Minus color="#fff" strokeWidth={3} />
                                 ) : null}
                               </button>
+                            ) : isPeriodCounter ? (
+                              <button
+                                className={`${styles.habitCheck}${periodComplete ? ` ${styles.done}` : ""}`}
+                                aria-label={
+                                  periodComplete
+                                    ? "ครบตามเป้าหมายของช่วงนี้แล้ว – แตะเพื่อยกเลิกวันนี้"
+                                    : occurrence.status === "done"
+                                      ? `ทำแล้ว ${doseTaken} จาก ${doseTotal} – ทำวันนี้แล้ว แตะเพื่อยกเลิก`
+                                      : `ทำแล้ว ${doseTaken} จาก ${doseTotal} – แตะเพื่อบันทึกวันนี้`
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePlainTap(activity, occurrence);
+                                }}
+                              >
+                                {periodComplete ? (
+                                  <Check color="#fff" strokeWidth={3} />
+                                ) : (
+                                  <span className={styles.habitCheckCount}>
+                                    {Math.min(doseTaken, doseTotal)}/{doseTotal}
+                                  </span>
+                                )}
+                              </button>
                             ) : (
                               <button
                                 className={`${styles.habitCheck}${
@@ -738,26 +822,7 @@ export default function HabitChecklistPage() {
                                 }
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (activity.physicalCategory === "exercise" || activity.physicalPreset === "exercise") {
-                                    handleEntryTap(activity, occurrence.id);
-                                  } else if (occurrence.status === "done") {
-                                    toggle({
-                                      occurrenceId: occurrence.id,
-                                      activityId: activity.id,
-                                      status: "pending",
-                                      date: todayStr,
-                                    });
-                                  } else {
-                                    toggle({
-                                      occurrenceId: occurrence.id,
-                                      activityId: activity.id,
-                                      status: "done",
-                                      date: todayStr,
-                                    });
-                                    if (hasDetailedCheckin(activity)) {
-                                      handleEntryTap(activity, occurrence.id);
-                                    }
-                                  }
+                                  handlePlainTap(activity, occurrence);
                                 }}
                               >
                                 {occurrence.status === "done" && (

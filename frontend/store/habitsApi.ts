@@ -150,8 +150,23 @@ export const habitsApi = apiSlice.injectEndpoints({
         const patchResult = dispatch(
           habitsApi.util.updateQueryData("getTodayHabits", date, (draft) => {
             const occ = draft.todayByActivity[activityId];
-            if (occ) {
-              occ.status = status;
+            if (!occ) return;
+            const prev = occ.status;
+            occ.status = status;
+            // Weekly/monthly physical activities show a period counter (days
+            // done this week/month). Toggling today shifts that count by ±1 so
+            // the badge updates before the server reconciles.
+            const activity = draft.activities[activityId];
+            const isPeriodCounter =
+              activity &&
+              (activity.schedule.frequency === "weekly" || activity.schedule.frequency === "monthly") &&
+              activity.category !== "medicine" &&
+              activity.category !== "nutrition";
+            if (isPeriodCounter && occ.doseProgress) {
+              const wasDone = prev === "done";
+              const isDone = status === "done";
+              if (isDone && !wasDone) occ.doseProgress.taken += 1;
+              else if (!isDone && wasDone) occ.doseProgress.taken = Math.max(0, occ.doseProgress.taken - 1);
             }
           })
         );
