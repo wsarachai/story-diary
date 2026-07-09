@@ -19,10 +19,6 @@ export default function ChaptersPage() {
               <div className={styles.chapterDiamond}>
                 <div className={styles.chapterDiamondInner}>
                   <h1>เนื้อเรื่อง</h1>
-                  <div className={styles.diamondMotif} aria-hidden="true">
-                    ✦ ✧ ✦ ✦ ✧ ✦
-                  </div>
-                  <div className={styles.diamondTail} aria-hidden="true" />
                 </div>
               </div>
             </Link>
@@ -31,32 +27,27 @@ export default function ChaptersPage() {
       }
       right={
         <div className={styles.chaptersDashboard}>
-          <section className={[styles.chapterCard, styles.chapterCardTop].join(" ")}>
+          <section
+            className={[styles.chapterCard, styles.chapterCardTop].join(" ")}
+          >
             <Link
               href="/video-clips"
               className={styles.learningLogo}
               aria-label="ดาวแห่งการเรียนรู้ — ไปหน้าคลิปวิดีโอ"
             >
-              <h2>
-                ดาว
-                <br />
-                แห่ง
-                <br />
-                การเรียนรู้
-              </h2>
+              <div className={styles.learningLogoImage} aria-hidden="true" />
             </Link>
           </section>
 
-          <section className={[styles.chapterCard, styles.chapterCardBottom].join(" ")}>
+          <section
+            className={[styles.chapterCard, styles.chapterCardBottom].join(" ")}
+          >
             <Link
               href="/e-books"
               className={styles.ebookLinkOverlay}
               aria-label="ไปหน้า E-book"
             >
-              <div className={styles.ebookArch} aria-hidden="true" />
-              <div className={styles.ebookStep} aria-hidden="true" />
-              <div className={[styles.ebookStep, styles.s2].join(" ")} aria-hidden="true" />
-              <div className={[styles.ebookStep, styles.s3].join(" ")} aria-hidden="true" />
+              <div className={styles.ebookCardImage} aria-hidden="true" />
               <h2>E-book</h2>
             </Link>
           </section>

@@ -33,12 +33,27 @@
   overflow: hidden;
 }
 
+.chapterDiamond::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/star03-1.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  transform: rotate(-45deg) scale(1.42);
+  transform-origin: center;
+  pointer-events: none;
+}
+
 .chapterDiamondInner {
   transform: rotate(-45deg);
-  text-align: center;
   width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: start center;
   position: relative;
-  top: -7%;
+  z-index: 1;
 }
 
 .chapterDiamond h1 {
@@ -46,31 +61,17 @@
   font-size: 3em;
   font-weight: 500;
   line-height: 1;
+  color: #17334f;
+  margin-top: 1.7rem;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.45);
 }
 
 .diamondMotif {
-  margin: 2.2rem auto 0;
-  width: 72%;
-  color: rgba(67, 126, 172, 0.9);
-  font-size: 1.3em;
-  letter-spacing: 0.15rem;
-  white-space: nowrap;
-  opacity: 0.9;
+  display: none;
 }
 
 .diamondTail {
-  width: 46%;
-  height: 5.6rem;
-  margin: 0.5rem auto 0;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 0,
-      rgba(67, 126, 172, 0.5) 0 22%,
-      transparent 23%),
-    radial-gradient(circle at 50% 100%,
-      rgba(67, 126, 172, 0.42) 0 20%,
-      transparent 21%);
-  opacity: 0.86;
+  display: none;
 }
 
 .chaptersDashboard {
@@ -103,102 +104,69 @@
 
 .chapterCardTop {
   justify-content: center;
+  background: transparent;
+  padding: 0;
 }
 
 .learningLogo {
-  width: 84%;
-  max-width: 25rem;
+  width: 100%;
+  max-width: none;
   height: 100%;
-  border-radius: 32px;
+  border-radius: 48px;
   position: relative;
   display: grid;
   place-items: center;
-  text-align: center;
   text-decoration: none;
   color: inherit;
 }
 
-.learningLogo h2 {
-  font-size: 2.5em;
-}
-
-.learningLogo::before,
-.learningLogo::after {
-  content: "";
-  position: absolute;
-  right: 8%;
-  width: 9.2rem;
-  height: 3px;
-  background: rgba(67, 126, 172, 0.58);
-  transform: rotate(48deg);
-  transform-origin: right center;
-}
-
-.learningLogo::before {
-  top: 22%;
-}
-
-.learningLogo::after {
-  top: 34%;
-  right: 5%;
-  width: 8rem;
+.learningLogoImage {
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/star03-2.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
 .ebookLinkOverlay {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   text-decoration: none;
   color: inherit;
   position: relative;
+  border-radius: 48px;
 }
 
 .ebookLinkOverlay h2 {
-  margin: 0 1.4rem 0 0;
-  font-size: 74px;
-  font-weight: 500;
-  line-height: 0.95;
-  position: relative;
+  margin: 0;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   z-index: 1;
-}
-
-.ebookArch {
-  position: absolute;
-  left: 3rem;
-  bottom: 1.4rem;
-  width: 9.8rem;
-  height: 12.8rem;
-  border-radius: 4.8rem 4.8rem 0 0;
-  background: #508db9;
-}
-
-.ebookStep {
-  position: absolute;
-  left: 3.3rem;
-  bottom: 2rem;
-  width: 4.8rem;
-  height: 1.15rem;
-  background: #f0f3f5;
-  border: 2px solid rgba(34, 70, 98, 0.2);
-}
-
-.ebookStep.s2 {
-  left: 5rem;
-  bottom: 3.05rem;
-  width: 6.1rem;
-}
-
-.ebookStep.s3 {
-  left: 6.4rem;
-  bottom: 4.15rem;
-  width: 4.4rem;
-}
-
-.chapterCardBottom h2 {
   font-size: 3.3em;
-  margin-right: 1.4rem;
+  font-weight: 600;
+  line-height: 0.95;
+  color: #0d233a;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.52);
+}
+
+.chapterCardBottom {
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+}
+
+.ebookCardImage {
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/star03-3.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
 /* ── s008 Chapter Menu ── */
@@ -299,9 +267,11 @@
   width: 0.34rem;
   height: 2.3rem;
   transform: translateX(-50%) rotate(38deg);
-  background: repeating-linear-gradient(to bottom,
-      #ff4f4f 0 0.78rem,
-      transparent 0.78rem 1.2rem);
+  background: repeating-linear-gradient(
+    to bottom,
+    #ff4f4f 0 0.78rem,
+    transparent 0.78rem 1.2rem
+  );
   transform-origin: top center;
 }
 
@@ -336,11 +306,22 @@
 
 /* DS-2 lock-hint shake */
 @keyframes chapterShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 .chapterRowShaking .chapterPill {
@@ -551,7 +532,9 @@
 }
 
 @keyframes chapterSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── s010 Chapter Scene (full-bleed) ── */
@@ -948,7 +931,11 @@
   grid-template-rows: auto 1fr auto;
   gap: 1rem;
   background:
-    radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.75) 0 12%, transparent 13%),
+    radial-gradient(
+      circle at 14% 20%,
+      rgba(255, 255, 255, 0.75) 0 12%,
+      transparent 13%
+    ),
     linear-gradient(165deg, #e7f7ff 0%, #d3eef9 55%, #cbe8f5 100%);
 }
 
