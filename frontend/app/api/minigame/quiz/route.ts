@@ -4,8 +4,8 @@ import { ok, handleError } from "@/lib/api-response";
 
 export async function GET(req: Request) {
   try {
-    requireAuth(req);
-    const result = await getQuiz();
+    const userId = requireAuth(req);
+    const result = await getQuiz(userId);
     return ok(result);
   } catch (err) {
     return handleError(err);

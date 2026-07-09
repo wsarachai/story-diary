@@ -207,6 +207,13 @@
 }
 .adminBtnSecondary:hover { background: #30363d; }
 
+/* ── Segmented tabs (e.g. male/female question sets) ──── */
+.adminTabRow {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
 /* ── Table ───────────────────────────────────────────── */
 .adminTableWrap {
   width: 100%;

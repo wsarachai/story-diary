@@ -1,7 +1,7 @@
 import { apiSlice } from "./apiSlice";
 import type { Chapter, ChapterSummary, ChapterLockState, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
-import type { QuizQuestion, AnswerLetter } from "@/types/minigame";
+import type { QuizQuestion, AnswerLetter, QuestionGender } from "@/types/minigame";
 import type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest } from "@/lib/services/adminService";
 
 export type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest };
@@ -40,6 +40,7 @@ export type UpdateEBookRequest = Partial<CreateEBookRequest>;
 // ── Minigame admin payloads ─────────────────────────────────────────────────
 
 export interface CreateQuestionRequest {
+  gender: QuestionGender;
   text: string;
   correctAnswer: AnswerLetter;
   optionA: string;
@@ -49,7 +50,11 @@ export interface CreateQuestionRequest {
   explanation?: string;
 }
 
-export type UpdateQuestionRequest = Partial<CreateQuestionRequest>;
+/** Gender is immutable after creation, so it is not part of the update payload. */
+export type UpdateQuestionRequest = Partial<Omit<CreateQuestionRequest, "gender">>;
+
+/** Admin questions grouped by set. */
+export type GroupedQuestions = Record<QuestionGender, QuizQuestion[]>;
 
 // ── User management payloads ────────────────────────────────────────────────
 
@@ -237,9 +242,12 @@ export const adminApi = apiSlice.injectEndpoints({
     }),
 
     // Minigame questions
-    getAdminQuestions: builder.query<QuizQuestion[], void>({
+    getAdminQuestions: builder.query<GroupedQuestions, void>({
       query: () => "/admin/minigame/questions",
-      transformResponse: (res: { questions: QuizQuestion[] }) => res.questions,
+      transformResponse: (res: Partial<GroupedQuestions>) => ({
+        male: res.male ?? [],
+        female: res.female ?? [],
+      }),
       providesTags: [{ type: "AdminQuestions", id: "LIST" }],
     }),
     createQuestion: builder.mutation<QuizQuestion, CreateQuestionRequest>({
@@ -252,8 +260,10 @@ export const adminApi = apiSlice.injectEndpoints({
       async onQueryStarted({ id, body }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           adminApi.util.updateQueryData("getAdminQuestions", undefined, (draft) => {
-            const question = draft.find((q) => q.id === id);
-            if (question) Object.assign(question, body);
+            for (const set of [draft.male, draft.female]) {
+              const question = set.find((q) => q.id === id);
+              if (question) Object.assign(question, body);
+            }
           })
         );
         try {
@@ -268,9 +278,10 @@ export const adminApi = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "AdminQuestions", id: "LIST" }, "Quiz"],
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patch = dispatch(
-          adminApi.util.updateQueryData("getAdminQuestions", undefined, (draft) =>
-            draft.filter((q) => q.id !== id)
-          )
+          adminApi.util.updateQueryData("getAdminQuestions", undefined, (draft) => {
+            draft.male = draft.male.filter((q) => q.id !== id);
+            draft.female = draft.female.filter((q) => q.id !== id);
+          })
         );
         try {
           await queryFulfilled;
@@ -363,13 +374,13 @@ export const adminApi = apiSlice.injectEndpoints({
         }
       },
     }),
-    reorderQuestions: builder.mutation<void, string[]>({
-      query: (ids) => ({ url: "/admin/minigame/questions/reorder", method: "PUT", body: { ids } }),
+    reorderQuestions: builder.mutation<void, { gender: QuestionGender; ids: string[] }>({
+      query: ({ gender, ids }) => ({ url: "/admin/minigame/questions/reorder", method: "PUT", body: { gender, ids } }),
       invalidatesTags: ["Quiz"],
-      async onQueryStarted(ids, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ gender, ids }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           adminApi.util.updateQueryData("getAdminQuestions", undefined, (draft) => {
-            draft.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+            draft[gender].sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
           })
         );
         try {

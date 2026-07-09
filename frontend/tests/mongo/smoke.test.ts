@@ -188,7 +188,7 @@ describe("mongo-mode smoke: golden flow", () => {
 
     expect(res.status).toBe(200);
     const quiz = await res.json();
-    expect(quiz.id).toBe("quiz-v1");
+    expect(quiz.id).toBe("quiz-male");
     expect(quiz.questions.length).toBeGreaterThanOrEqual(10);
   });
 

@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
             <div className={styles.adminStatCard}>
               <h3>Quiz Questions</h3>
               <div className={styles.value}>
-                {questionsLoading ? "—" : (questions?.length ?? 0)}
+                {questionsLoading ? "—" : (questions ? questions.male.length + questions.female.length : 0)}
               </div>
             </div>
           </div>

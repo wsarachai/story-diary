@@ -11,6 +11,7 @@ import {
   updateEBookDoc,
   deleteEBookDoc,
   listQuizQuestionsDocs,
+  listQuizQuestionsByGender,
   findQuizQuestionById,
   insertQuizQuestionDoc,
   updateQuizQuestionDoc,
@@ -36,7 +37,7 @@ import { Errors } from "@/lib/errors";
 import { resolveRole } from "@/lib/roles";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
-import type { QuizQuestion } from "@/types/minigame";
+import type { QuizQuestion, QuestionGender } from "@/types/minigame";
 import type {
   CreateChapterRequest,
   UpdateChapterRequest,
@@ -250,17 +251,31 @@ function questionDocToModel(row: NonNullable<Awaited<ReturnType<typeof findQuizQ
   };
 }
 
-export async function adminListQuestions(): Promise<QuizQuestion[]> {
+function assertGender(value: unknown): asserts value is QuestionGender {
+  if (value !== "male" && value !== "female") {
+    throw Errors.validation("`gender` must be 'male' or 'female'");
+  }
+}
+
+export async function adminListQuestions(): Promise<Record<QuestionGender, QuizQuestion[]>> {
   const rows = await listQuizQuestionsDocs();
-  return rows.map(questionDocToModel);
+  const grouped: Record<QuestionGender, QuizQuestion[]> = { male: [], female: [] };
+  for (const row of rows) {
+    (grouped[row.gender] ??= []).push(questionDocToModel(row));
+  }
+  // Each gender is ordered by its own sort_order (listQuizQuestionsDocs sorts
+  // globally by sort_order, which preserves per-set order after grouping).
+  return grouped;
 }
 
 export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<QuizQuestion> {
-  const existing = await listQuizQuestionsDocs();
+  assertGender(body.gender);
+  const existing = await listQuizQuestionsByGender(body.gender);
   const maxSort = existing.reduce((m, q) => Math.max(m, q.sort_order), 0);
   const id = `q-${uuidv4().slice(0, 8)}`;
   await insertQuizQuestionDoc({
     id,
+    gender: body.gender,
     sort_order: maxSort + 1,
     text: body.text,
     option_a: body.optionA,
@@ -295,8 +310,9 @@ export async function adminDeleteQuestion(id: string): Promise<void> {
   if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
 }
 
-export async function adminReorderQuestions(orderedIds: string[]): Promise<void> {
-  const existing = await listQuizQuestionsDocs();
+export async function adminReorderQuestions(gender: QuestionGender, orderedIds: string[]): Promise<void> {
+  assertGender(gender);
+  const existing = await listQuizQuestionsByGender(gender);
   const existingIds = existing.map((q) => q.id);
   const unique = new Set(orderedIds);
   const isPermutation =
@@ -304,7 +320,7 @@ export async function adminReorderQuestions(orderedIds: string[]): Promise<void>
     unique.size === orderedIds.length &&
     existingIds.every((id) => unique.has(id));
   if (!isPermutation) {
-    throw Errors.validation("Reorder payload must be a permutation of all question ids");
+    throw Errors.validation("Reorder payload must be a permutation of the set's question ids");
   }
   await reorderQuizQuestionDocs(orderedIds);
 }

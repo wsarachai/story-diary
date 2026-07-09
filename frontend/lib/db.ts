@@ -86,6 +86,8 @@ export interface HabitOccurrenceDoc {
 
 export interface QuizQuestionDoc {
   id: string;
+  /** Which set this question belongs to. `sort_order` is scoped per gender. */
+  gender: "male" | "female";
   sort_order: number;
   text: string;
   option_a: string;
@@ -100,6 +102,8 @@ export interface QuizAttemptDoc {
   id: string;
   user_id: string;
   quiz_id: string;
+  /** The set the player was served, mirroring their gender at play time. */
+  gender: "male" | "female";
   started_at: string;
   completed_at: string;
   score_points: number;
@@ -239,7 +243,22 @@ const CHAPTER_SCENES: ChapterSceneDoc[] = [
   { id: "c5s4", chapter_id: 5, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้" },
 ];
 
-const QUIZ_QUESTIONS: QuizQuestionDoc[] = [
+/**
+ * Derive the female-set id for a given male-set question id. Deterministic so
+ * the seed's q1..q13 clone to qf1..qf13; admin-authored ids (e.g. "q-abcd1234")
+ * fall back to a "<id>-f" suffix. Used by both the seed and the backfill clone.
+ */
+export function femaleQuestionId(maleId: string): string {
+  const numbered = maleId.match(/^q(\d+)$/);
+  return numbered ? `qf${numbered[1]}` : `${maleId}-f`;
+}
+
+/** Clone a male question doc into its female-set counterpart. */
+function toFemaleQuestion(doc: QuizQuestionDoc): QuizQuestionDoc {
+  return { ...doc, id: femaleQuestionId(doc.id), gender: "female" };
+}
+
+const QUIZ_QUESTIONS_BASE: Omit<QuizQuestionDoc, "gender">[] = [
   { id: "q1", sort_order: 1, text: "ควรหลีกเลี่ยงแสงแดดในช่วงเวลาใดเพื่อป้องกันผิวหนังจากแสงยูวี?", option_a: "06:00 – 09:00 น.", option_b: "10:00 – 16:00 น.", option_c: "16:00 – 18:00 น.", option_d: "18:00 – 20:00 น.", correct_answer: "B", explanation: "แสงยูวีจะรุนแรงที่สุดในช่วง 10:00 – 16:00 น." },
   { id: "q2", sort_order: 2, text: "อาหารประเภทใดมีประโยชน์ต่อสุขภาพหัวใจมากที่สุด?", option_a: "อาหารทอดและไขมันสูง", option_b: "ผักและผลไม้สด", option_c: "ขนมหวานและน้ำตาล", option_d: "เครื่องดื่มแอลกอฮอล์", correct_answer: "B", explanation: "ผักและผลไม้สดมีวิตามิน แร่ธาตุ และเส้นใยอาหารที่ดีต่อหัวใจ" },
   { id: "q3", sort_order: 3, text: "ควรออกกำลังกายอย่างน้อยกี่นาทีต่อวันสำหรับผู้ใหญ่ที่มีสุขภาพดี?", option_a: "10 นาที", option_b: "20 นาที", option_c: "30 นาที", option_d: "60 นาที", correct_answer: "C", explanation: "WHO แนะนำให้ออกกำลังกายระดับปานกลางอย่างน้อย 30 นาทีต่อวัน" },
@@ -255,6 +274,13 @@ const QUIZ_QUESTIONS: QuizQuestionDoc[] = [
   { id: "q13", sort_order: 13, text: "การสูบบุหรี่เพิ่มความเสี่ยงต่อโรคใดมากที่สุด?", option_a: "โรคผิวหนัง", option_b: "โรคปอดและโรคหัวใจ", option_c: "โรคข้อเข่าเสื่อม", option_d: "โรคกระดูกพรุน", correct_answer: "B", explanation: "การสูบบุหรี่เป็นปัจจัยเสี่ยงหลักของมะเร็งปอด โรคปอดอุดกั้นเรื้อรัง และโรคหัวใจ" },
 ];
 
+/** Male set = the base 13; female set = deterministic clones (qf1..qf13). */
+const QUIZ_QUESTIONS_MALE: QuizQuestionDoc[] = QUIZ_QUESTIONS_BASE.map((q) => ({ ...q, gender: "male" as const }));
+const QUIZ_QUESTIONS_ALL: QuizQuestionDoc[] = [
+  ...QUIZ_QUESTIONS_MALE,
+  ...QUIZ_QUESTIONS_MALE.map(toFemaleQuestion),
+];
+
 let initialized = false;
 let mongoClient: MongoClient | null = null;
 let mongoDb: Db | null = null;
@@ -268,7 +294,7 @@ function createSeededMemoryStore(): MemoryStore {
     chapterProgress: [],
     habitActivities: [],
     habitOccurrences: [],
-    quizQuestions: QUIZ_QUESTIONS.map((question) => ({ ...question })),
+    quizQuestions: QUIZ_QUESTIONS_ALL.map((question) => ({ ...question })),
     quizAttempts: [],
     medicineCheckins: [],
     nutritionCheckins: [],
@@ -405,7 +431,7 @@ async function ensureMongoIndexes(): Promise<void> {
     habitOccurrencesCollection().createIndex({ id: 1 }, { unique: true }),
     habitOccurrencesCollection().createIndex({ activity_id: 1, date: 1 }, { unique: true }),
     quizQuestionsCollection().createIndex({ id: 1 }, { unique: true }),
-    quizQuestionsCollection().createIndex({ sort_order: 1 }),
+    quizQuestionsCollection().createIndex({ gender: 1, sort_order: 1 }),
     quizAttemptsCollection().createIndex({ id: 1 }, { unique: true }),
     medicineCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
     nutritionCheckinsCollection().createIndex({ occurrence_id: 1 }, { unique: true }),
@@ -440,7 +466,7 @@ async function seedMongoReferenceData(): Promise<void> {
       }))
     ),
     quizQuestionsCollection().bulkWrite(
-      QUIZ_QUESTIONS.map((question) => ({
+      QUIZ_QUESTIONS_MALE.map((question) => ({
         updateOne: {
           filter: { id: question.id },
           update: { $setOnInsert: question },
@@ -469,6 +495,29 @@ async function seedMongoReferenceData(): Promise<void> {
   ]);
 }
 
+/**
+ * One-time, idempotent migration for the per-gender quiz split. Legacy
+ * questions (no `gender`) are assigned to the male set; if the female set is
+ * still empty it is cloned from the current male set (preserving any admin
+ * edits). Safe to run on every startup — a no-op once both sets exist.
+ */
+async function backfillQuizQuestionGenders(): Promise<void> {
+  const col = quizQuestionsCollection();
+  await col.updateMany({ gender: { $exists: false } }, { $set: { gender: "male" } });
+
+  const femaleCount = await col.countDocuments({ gender: "female" });
+  if (femaleCount > 0) return;
+
+  const males = await col.find({ gender: "male" }).toArray();
+  if (males.length === 0) return;
+
+  const clones = males.map((male) => {
+    const { _id, ...rest } = male as QuizQuestionDoc & { _id?: unknown };
+    return toFemaleQuestion(rest as QuizQuestionDoc);
+  });
+  await col.insertMany(clones);
+}
+
 export async function initializeDatabase(): Promise<void> {
   if (initialized) {
     return;
@@ -493,6 +542,7 @@ export async function initializeDatabase(): Promise<void> {
   mongoDb = mongoClient.db(getMongoDatabaseName());
   await ensureMongoIndexes();
   await seedMongoReferenceData();
+  await backfillQuizQuestionGenders();
   initialized = true;
 }
 
@@ -936,6 +986,17 @@ export async function listQuizQuestionsDocs(): Promise<QuizQuestionDoc[]> {
     return [...memoryStore.quizQuestions].sort((a, b) => a.sort_order - b.sort_order);
   }
   return quizQuestionsCollection().find({}, { sort: { sort_order: 1 } }).toArray();
+}
+
+/** Questions for a single set, ordered by that set's own sort_order. */
+export async function listQuizQuestionsByGender(gender: "male" | "female"): Promise<QuizQuestionDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.quizQuestions
+      .filter((q) => q.gender === gender)
+      .sort((a, b) => a.sort_order - b.sort_order);
+  }
+  return quizQuestionsCollection().find({ gender }, { sort: { sort_order: 1 } }).toArray();
 }
 
 export async function reorderQuizQuestionDocs(orderedIds: string[]): Promise<void> {

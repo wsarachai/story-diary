@@ -1,15 +1,26 @@
 import { v4 as uuidv4 } from "uuid";
-import { insertQuizAttempt, listQuizQuestionsDocs } from "@/lib/db";
-import type { Quiz, QuizScore, QuizAnswer } from "@/types/minigame";
+import { insertQuizAttempt, listQuizQuestionsByGender } from "@/lib/db";
+import { getUserById } from "@/lib/services/authService";
+import type { Quiz, QuizScore, QuizAnswer, QuestionGender } from "@/types/minigame";
 
-const QUIZ_ID = "quiz-v1";
 const POINTS_PER_CORRECT = 7;
 
-export async function getQuiz(): Promise<Quiz> {
-  const rows = await listQuizQuestionsDocs();
+function quizIdForGender(gender: QuestionGender): string {
+  return `quiz-${gender}`;
+}
+
+/** The set served to a user mirrors their gender (defaults to male if absent). */
+async function resolveUserGender(userId: string): Promise<QuestionGender> {
+  const user = await getUserById(userId);
+  return user.gender === "female" ? "female" : "male";
+}
+
+export async function getQuiz(userId: string): Promise<Quiz> {
+  const gender = await resolveUserGender(userId);
+  const rows = await listQuizQuestionsByGender(gender);
 
   return {
-    id: QUIZ_ID,
+    id: quizIdForGender(gender),
     title: "บททดสอบความรู้สุขภาพ",
     showFinalScore: true,
     questions: rows.map((row) => ({
@@ -29,13 +40,16 @@ export async function getQuiz(): Promise<Quiz> {
 
 export async function submitQuiz(
   userId: string,
-  quizId: string,
+  _quizId: string,
   answers: Record<string, QuizAnswer>
 ): Promise<QuizScore> {
-  const questions = await listQuizQuestionsDocs();
+  // Grade against the user's own set — the quizId from the client is advisory.
+  const gender = await resolveUserGender(userId);
+  const quizId = quizIdForGender(gender);
+  const questions = await listQuizQuestionsByGender(gender);
 
   const correctCount = Object.entries(answers).filter(([id, answer]) => {
-    const q = questions.find(q => q.id === id);
+    const q = questions.find((q) => q.id === id);
     return q && q.correct_answer === answer.selected;
   }).length;
 
@@ -47,6 +61,7 @@ export async function submitQuiz(
     id: uuidv4(),
     user_id: userId,
     quiz_id: quizId,
+    gender,
     started_at: now,
     completed_at: now,
     score_points: points,

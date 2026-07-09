@@ -27,10 +27,12 @@ import {
   useReorderQuestionsMutation,
   type CreateQuestionRequest,
 } from "@/store/adminApi";
-import type { QuizQuestion, AnswerLetter } from "@/types/minigame";
+import type { QuizQuestion, AnswerLetter, QuestionGender } from "@/types/minigame";
 import styles from "@/components/Admin.module.css";
 
-const EMPTY_FORM: CreateQuestionRequest = {
+type QuestionForm = Omit<CreateQuestionRequest, "gender">;
+
+const EMPTY_FORM: QuestionForm = {
   text: "",
   correctAnswer: "A",
   optionA: "",
@@ -39,6 +41,11 @@ const EMPTY_FORM: CreateQuestionRequest = {
   optionD: "",
   explanation: "",
 };
+
+const GENDER_TABS: { key: QuestionGender; label: string }[] = [
+  { key: "male", label: "ชาย" },
+  { key: "female", label: "หญิง" },
+];
 
 function SortableRow({
   question,
@@ -103,13 +110,14 @@ export default function AdminMinigamePage() {
   const [deleteQuestion] = useDeleteQuestionMutation();
   const [reorderQuestions] = useReorderQuestionsMutation();
 
+  const [activeGender, setActiveGender] = useState<QuestionGender>("male");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateQuestionRequest>(EMPTY_FORM);
+  const [form, setForm] = useState<QuestionForm>(EMPTY_FORM);
   const [reorderError, setReorderError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
-  const questions: QuizQuestion[] = serverQuestions ?? [];
+  const questions: QuizQuestion[] = serverQuestions?.[activeGender] ?? [];
 
   useEffect(() => {
     if (showForm) {
@@ -121,18 +129,25 @@ export default function AdminMinigamePage() {
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id || !serverQuestions) return;
+    if (!over || active.id === over.id) return;
 
-    const base = serverQuestions.map((q) => q.id);
+    const base = questions.map((q) => q.id);
     const oldIndex = base.indexOf(active.id as string);
     const newIndex = base.indexOf(over.id as string);
     const newOrder = arrayMove(base, oldIndex, newIndex);
 
     try {
-      await reorderQuestions(newOrder).unwrap();
+      await reorderQuestions({ gender: activeGender, ids: newOrder }).unwrap();
     } catch {
       setReorderError("บันทึกลำดับคำถามไม่สำเร็จ ลองอีกครั้ง");
     }
+  }
+
+  function switchGender(gender: QuestionGender) {
+    if (gender === activeGender) return;
+    setActiveGender(gender);
+    closeForm();
+    setReorderError(null);
   }
 
   function openCreate() {
@@ -166,7 +181,7 @@ export default function AdminMinigamePage() {
     if (editId !== null) {
       await updateQuestion({ id: editId, body: form });
     } else {
-      await createQuestion(form);
+      await createQuestion({ ...form, gender: activeGender });
     }
     closeForm();
   }
@@ -186,6 +201,21 @@ export default function AdminMinigamePage() {
             <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
               + เพิ่มคำถาม
             </button>
+          </div>
+
+          <div className={styles.adminTabRow} role="tablist" aria-label="ชุดคำถามตามเพศ">
+            {GENDER_TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={activeGender === key}
+                className={`${styles.adminBtn} ${activeGender === key ? styles.adminBtnPrimary : styles.adminBtnSecondary}`}
+                onClick={() => switchGender(key)}
+              >
+                {label}
+                {serverQuestions ? ` (${serverQuestions[key].length})` : ""}
+              </button>
+            ))}
           </div>
 
           {reorderError && (

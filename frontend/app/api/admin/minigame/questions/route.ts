@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   try {
     await requireAdmin(req);
     const questions = await adminListQuestions();
-    return ok({ questions });
+    return ok(questions);
   } catch (err) {
     return handleError(err);
   }

@@ -8,9 +8,11 @@ import styles from "./minigame.module.css";
 
 export default function MinigamePage() {
   const router = useRouter();
-  const { start, isLoading } = useQuiz();
+  const { start, isLoading, quiz } = useQuiz();
+  const hasNoQuestions = !isLoading && !!quiz && quiz.questions.length === 0;
 
   function handleStart() {
+    if (hasNoQuestions) return;
     start();
     router.push("/minigame/quiz?n=0");
   }
@@ -53,13 +55,19 @@ export default function MinigamePage() {
               <circle cx="210" cy="30" r="5" fill="#55c8ce" opacity="0.8"/>
             </svg>
           </div>
-          <p className={styles.readyText}>พร้อมทำแบบทดสอบ<br />แล้วหรือยัง?</p>
+          <p className={styles.readyText}>
+            {hasNoQuestions ? (
+              <>ยังไม่มีแบบทดสอบ<br />สำหรับคุณตอนนี้</>
+            ) : (
+              <>พร้อมทำแบบทดสอบ<br />แล้วหรือยัง?</>
+            )}
+          </p>
           <div className={styles.readyBtns}>
             <button
               className={`${styles.readyBtn} ${styles.readyBtnYes}`}
               onClick={handleStart}
               aria-label="เริ่มทำแบบทดสอบ"
-              disabled={isLoading}
+              disabled={isLoading || hasNoQuestions}
             >
               พร้อมแล้ว!
             </button>

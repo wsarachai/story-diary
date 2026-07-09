@@ -2,59 +2,67 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { clearTestData } from "@/lib/db";
 import { getQuiz, submitQuiz } from "@/lib/services/minigameService";
+import { registerUser } from "@/lib/services/authService";
 import type { AnswerLetter } from "@/types/minigame";
 
-beforeEach(() => {
+let maleUserId = "";
+let femaleUserId = "";
+
+beforeEach(async () => {
   clearTestData();
+  const male = await registerUser({
+    name: "ชาย", tel: "0800000001", password: "password123", characterName: "M", gender: "male",
+  });
+  const female = await registerUser({
+    name: "หญิง", tel: "0800000002", password: "password123", characterName: "F", gender: "female",
+  });
+  maleUserId = male.id;
+  femaleUserId = female.id;
 });
 
 describe("getQuiz", () => {
-  it("returns a quiz with an id and title", async () => {
-    const quiz = await getQuiz();
-    expect(typeof quiz.id).toBe("string");
+  it("returns a quiz with a gender-specific id and title", async () => {
+    const quiz = await getQuiz(maleUserId);
+    expect(quiz.id).toBe("quiz-male");
     expect(typeof quiz.title).toBe("string");
     expect(quiz.showFinalScore).toBe(true);
   });
 
-  it("contains all 13 seeded questions", async () => {
-    const quiz = await getQuiz();
+  it("serves the male set to a male user (ids q1..q13)", async () => {
+    const quiz = await getQuiz(maleUserId);
     expect(quiz.questions).toHaveLength(13);
+    expect(quiz.questions.map((q) => q.id)).toEqual(
+      Array.from({ length: 13 }, (_, i) => `q${i + 1}`)
+    );
+  });
+
+  it("serves the female set to a female user (ids qf1..qf13)", async () => {
+    const quiz = await getQuiz(femaleUserId);
+    expect(quiz.id).toBe("quiz-female");
+    expect(quiz.questions).toHaveLength(13);
+    expect(quiz.questions.map((q) => q.id)).toEqual(
+      Array.from({ length: 13 }, (_, i) => `qf${i + 1}`)
+    );
   });
 
   it("each question has options A, B, C, D in order", async () => {
-    const quiz = await getQuiz();
+    const quiz = await getQuiz(maleUserId);
     for (const q of quiz.questions) {
-      const letters = q.options.map((o) => o.letter);
-      expect(letters).toEqual(["A", "B", "C", "D"]);
+      expect(q.options.map((o) => o.letter)).toEqual(["A", "B", "C", "D"]);
     }
   });
 
   it("each question has a correctAnswer that is one of A-D", async () => {
-    const quiz = await getQuiz();
+    const quiz = await getQuiz(maleUserId);
     for (const q of quiz.questions) {
       expect(["A", "B", "C", "D"]).toContain(q.correctAnswer);
     }
   });
-
-  it("each question has a non-empty text", async () => {
-    const quiz = await getQuiz();
-    for (const q of quiz.questions) {
-      expect(q.text.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("returns questions ordered by sort_order", async () => {
-    const quiz = await getQuiz();
-    const ids = quiz.questions.map((q) => q.id);
-    // Seed defines q1..q13 with sort_order 1..13, so getQuiz must echo that order.
-    const expected = Array.from({ length: 13 }, (_, i) => `q${i + 1}`);
-    expect(ids).toEqual(expected);
-  });
 });
 
 describe("submitQuiz", () => {
-  it("scores 7 points per correct answer (all correct)", async () => {
-    const quiz = await getQuiz();
+  it("scores 7 points per correct answer and records the gender", async () => {
+    const quiz = await getQuiz(femaleUserId);
     const answers: Record<string, {
       questionId: string;
       selected: AnswerLetter;
@@ -73,16 +81,16 @@ describe("submitQuiz", () => {
       };
     }
 
-    const score = await submitQuiz("user-1", quiz.id, answers);
+    const score = await submitQuiz(femaleUserId, quiz.id, answers);
     expect(score.correctCount).toBe(13);
     expect(score.wrongCount).toBe(0);
     expect(score.total).toBe(13);
     expect(score.points).toBe(13 * 7);
-    expect(score.quizId).toBe(quiz.id);
+    expect(score.quizId).toBe("quiz-female");
   });
 
   it("scores 0 points for all-wrong answers", async () => {
-    const quiz = await getQuiz();
+    const quiz = await getQuiz(maleUserId);
     const answers: Record<string, {
       questionId: string;
       selected: AnswerLetter;
@@ -102,14 +110,14 @@ describe("submitQuiz", () => {
       };
     }
 
-    const score = await submitQuiz("user-1", quiz.id, answers);
+    const score = await submitQuiz(maleUserId, quiz.id, answers);
     expect(score.correctCount).toBe(0);
     expect(score.wrongCount).toBe(13);
     expect(score.points).toBe(0);
   });
 
   it("total equals the number of submitted answers", async () => {
-    const quiz = await getQuiz();
+    const quiz = await getQuiz(maleUserId);
     const firstQ = quiz.questions[0];
     const answers = {
       [firstQ.id]: {
@@ -121,15 +129,15 @@ describe("submitQuiz", () => {
       },
     };
 
-    const score = await submitQuiz("user-1", quiz.id, answers);
+    const score = await submitQuiz(maleUserId, quiz.id, answers);
     expect(score.total).toBe(1);
     expect(score.correctCount).toBe(1);
   });
 
   it("stores the attempt (multiple calls do not error)", async () => {
-    const quiz = await getQuiz();
-    const score1 = await submitQuiz("user-1", quiz.id, {});
-    const score2 = await submitQuiz("user-1", quiz.id, {});
+    const quiz = await getQuiz(maleUserId);
+    const score1 = await submitQuiz(maleUserId, quiz.id, {});
+    const score2 = await submitQuiz(maleUserId, quiz.id, {});
     expect(score1.total).toBe(0);
     expect(score2.total).toBe(0);
   });

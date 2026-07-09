@@ -178,14 +178,15 @@ describe("adminDeleteEBook", () => {
 // ── Quiz Questions ────────────────────────────────────────────────────────────
 
 describe("adminListQuestions", () => {
-  it("returns all 13 seeded questions", async () => {
+  it("returns both sets, each with the 13 seeded questions", async () => {
     const qs = await adminListQuestions();
-    expect(qs).toHaveLength(13);
+    expect(qs.male).toHaveLength(13);
+    expect(qs.female).toHaveLength(13);
   });
 
   it("questions have expected shape", async () => {
     const qs = await adminListQuestions();
-    const q = qs[0];
+    const q = qs.male[0];
     expect(q).toHaveProperty("id");
     expect(q).toHaveProperty("text");
     expect(q.options).toHaveLength(4);
@@ -194,8 +195,9 @@ describe("adminListQuestions", () => {
 });
 
 describe("adminCreateQuestion", () => {
-  it("creates a question and returns it", async () => {
+  it("creates a question in the requested set and returns it", async () => {
     const q = await adminCreateQuestion({
+      gender: "male",
       text: "Test question?",
       correctAnswer: "A",
       optionA: "Yes",
@@ -208,61 +210,66 @@ describe("adminCreateQuestion", () => {
     expect(q.options[0].text).toBe("Yes");
   });
 
-  it("new question appears in list", async () => {
+  it("adds only to the target set", async () => {
     await adminCreateQuestion({
+      gender: "female",
       text: "Extra?",
       correctAnswer: "B",
       optionA: "A", optionB: "B", optionC: "C", optionD: "D",
     });
     const qs = await adminListQuestions();
-    expect(qs).toHaveLength(14);
+    expect(qs.female).toHaveLength(14);
+    expect(qs.male).toHaveLength(13);
   });
 
-  it("appends new questions after the existing set", async () => {
+  it("appends new questions after the target set", async () => {
     const created = await adminCreateQuestion({
+      gender: "male",
       text: "Appended?",
       correctAnswer: "C",
       optionA: "A", optionB: "B", optionC: "C", optionD: "D",
     });
     const qs = await adminListQuestions();
-    expect(qs[qs.length - 1].id).toBe(created.id);
+    expect(qs.male[qs.male.length - 1].id).toBe(created.id);
   });
 });
 
 describe("adminReorderQuestions", () => {
-  it("persists the new order returned by a subsequent list", async () => {
+  it("persists the new order within a set", async () => {
     const qs = await adminListQuestions();
-    const reversed = [...qs].reverse().map((q) => q.id);
-    await adminReorderQuestions(reversed);
+    const reversed = [...qs.male].reverse().map((q) => q.id);
+    await adminReorderQuestions("male", reversed);
     const after = await adminListQuestions();
-    expect(after.map((q) => q.id)).toEqual(reversed);
+    expect(after.male.map((q) => q.id)).toEqual(reversed);
   });
 
-  it("rejects a payload that is not a full permutation", async () => {
-    const qs = await adminListQuestions();
-    const partial = qs.slice(0, 3).map((q) => q.id);
-    await expect(adminReorderQuestions(partial)).rejects.toMatchObject({ statusCode: 400 });
+  it("does not affect the other set", async () => {
+    const before = await adminListQuestions();
+    const femaleOrder = before.female.map((q) => q.id);
+    const reversedMale = [...before.male].reverse().map((q) => q.id);
+    await adminReorderQuestions("male", reversedMale);
+    const after = await adminListQuestions();
+    expect(after.female.map((q) => q.id)).toEqual(femaleOrder);
   });
 
-  it("rejects a payload containing duplicate ids", async () => {
+  it("rejects a payload that is not a full permutation of the set", async () => {
     const qs = await adminListQuestions();
-    const ids = qs.map((q) => q.id);
-    const dupes = [ids[0], ...ids.slice(0, ids.length - 1)];
-    await expect(adminReorderQuestions(dupes)).rejects.toMatchObject({ statusCode: 400 });
+    const partial = qs.male.slice(0, 3).map((q) => q.id);
+    await expect(adminReorderQuestions("male", partial)).rejects.toMatchObject({ statusCode: 400 });
   });
 
-  it("rejects a payload containing unknown ids", async () => {
+  it("rejects mixing another set's ids into the reorder", async () => {
     const qs = await adminListQuestions();
-    const ids = qs.map((q) => q.id);
-    const withGhost = [...ids.slice(0, ids.length - 1), "ghost-id"];
-    await expect(adminReorderQuestions(withGhost)).rejects.toMatchObject({ statusCode: 400 });
+    const ids = qs.male.map((q) => q.id);
+    const withCrossSet = [...ids.slice(0, ids.length - 1), qs.female[0].id];
+    await expect(adminReorderQuestions("male", withCrossSet)).rejects.toMatchObject({ statusCode: 400 });
   });
 });
 
 describe("adminUpdateQuestion", () => {
   it("updates question text", async () => {
     const qs = await adminListQuestions();
-    const id = qs[0].id;
+    const id = qs.male[0].id;
     const updated = await adminUpdateQuestion(id, { text: "Updated text?" });
     expect(updated.text).toBe("Updated text?");
   });
@@ -275,13 +282,14 @@ describe("adminUpdateQuestion", () => {
 });
 
 describe("adminDeleteQuestion", () => {
-  it("removes question from list", async () => {
+  it("removes question from its set only", async () => {
     const qs = await adminListQuestions();
-    const id = qs[0].id;
+    const id = qs.male[0].id;
     await adminDeleteQuestion(id);
     const after = await adminListQuestions();
-    expect(after.some((q) => q.id === id)).toBe(false);
-    expect(after).toHaveLength(12);
+    expect(after.male.some((q) => q.id === id)).toBe(false);
+    expect(after.male).toHaveLength(12);
+    expect(after.female).toHaveLength(13);
   });
 
   it("throws 404 for missing id", async () => {

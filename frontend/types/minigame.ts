@@ -17,6 +17,13 @@
  */
 export type AnswerLetter = "A" | "B" | "C" | "D";
 
+/**
+ * Which question set a question belongs to. Mirrors the user's `gender`, which
+ * decides the set a player is served. Each set is authored and ordered
+ * independently in the admin screen.
+ */
+export type QuestionGender = "male" | "female";
+
 /** One option in a quiz question. Letter + body copy. */
 export interface QuizOption {
     letter: AnswerLetter;
