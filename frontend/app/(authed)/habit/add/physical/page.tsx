@@ -12,7 +12,7 @@ const PHYSICAL_ITEMS: PhysicalItem[] = [
   { label: "การป้องกันแสงแดด", base: "/habit/add/physical/sunlight", isMenu: true },
   { label: "ป้องกันการติดเชื้อ", base: "/habit/add/physical/infection", isMenu: true },
   { label: "สังเกตอาการผิดปกติ/อาการกำเริบ", base: "/habit/add/physical/form?type=symptoms", isMenu: false },
-  { label: "ตรวจตามนัดแพทย์", base: "/habit/add/physical/form?type=doctor_visit", isMenu: false },
+  { label: "ตรวจตามนัดแพทย์", base: "/habit/add/physical/appointment", isMenu: true },
   { label: "การวางแผนการตั้งครรภ์/การคุมกำเนิด", base: "/habit/add/physical/pregnancy", isMenu: true },
   { label: "อื่นๆ", base: "/habit/add/physical/form?type=other", isMenu: false },
 ];

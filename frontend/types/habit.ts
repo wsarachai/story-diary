@@ -166,6 +166,14 @@ export interface HabitActivity {
     mealRelation?: MealRelation;
     /** Medicine-only: which meals it is taken with (multi-select). */
     mealSlots?: MealSlot[];
+    /**
+     * Appointment-only (physicalCategory === "doctor-visit"): the calendar date
+     * the doctor will see the user, YYYY-MM-DD. Drives the checklist reminder,
+     * the monthly marker, and the single occurrence that records "attended".
+     */
+    appointmentDate?: string;
+    /** Appointment-only: free-text note of what to prepare for the visit. */
+    appointmentNote?: string;
     /** ISO-8601. */
     createdAt: string;
     /** ISO-8601; bumped on edit. */
@@ -340,6 +348,14 @@ export interface HabitGridRow {
      * only, no weekly target).
      */
     target: number;
+    /**
+     * Appointment rows (doctor-visit) are a single dated marker, not a habit
+     * cadence. Present only in the monthly view. When set, the grid renders a
+     * marker on `date` (and nothing on other cells) and excludes the row from
+     * the done/target summary. `attended` mirrors the appointment-date
+     * occurrence's done status.
+     */
+    appointment?: { date: string; note?: string; attended: boolean };
 }
 
 /* ────────────────────────────────────────────────────────────────────────

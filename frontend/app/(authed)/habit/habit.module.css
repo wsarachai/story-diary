@@ -560,6 +560,15 @@
   border-left-color: #e76f51;
 }
 
+.habitEntry.entryAppointment {
+  border-left-color: #6c8ee3;
+  background: #eef2fb;
+}
+
+.habitEntry.entryAppointment.hasLog:hover {
+  background: #e3eafb;
+}
+
 .habitEntryIcon {
   width: 2rem;
   height: 2rem;
@@ -775,6 +784,95 @@
 
 .deleteConfirmOk:hover {
   background: #e63939;
+}
+
+/* ── Appointment detail dialog ── */
+.apptDetailCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.6rem;
+  width: min(100%, 28rem);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+}
+
+.apptDetailHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.apptDetailHeader .deleteConfirmTitle {
+  margin: 0;
+}
+
+.apptDetailIcon {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: #eef2fb;
+  color: #6c8ee3;
+  flex-shrink: 0;
+}
+
+.apptDetailIcon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.apptDetailStatus {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3f5aa6;
+  background: #eef2fb;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.apptDetailStatus.apptDetailStatusDone {
+  color: #067a3a;
+  background: #e4f7ec;
+}
+
+.apptDetailStatus.apptDetailStatusOverdue {
+  color: #c0392b;
+  background: #fdecea;
+}
+
+.apptDetailList {
+  margin: 0 0 1.4rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.apptDetailTerm {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.apptDetailValue {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+  color: #222;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.apptDetailEmpty {
+  color: #9aa1ab;
+}
+
+.apptDetailConfirmText {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
 }
 
 /* ── Entry action menu (trash button → Undo / Delete) ── */
@@ -1202,6 +1300,38 @@
   border-radius: 50%;
   border: 1.5px dashed rgba(13, 18, 23, 0.18);
   background: transparent;
+}
+
+/* Appointment marker: a diamond, distinct from the round habit dots. */
+.apptMarker {
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 2px solid #6c8ee3;
+  background: #6c8ee3;
+  transform: rotate(45deg);
+  border-radius: 2px;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.apptMarker:hover {
+  transform: rotate(45deg) scale(1.15);
+}
+
+.apptMarker:focus-visible {
+  outline: 2px solid rgba(108, 142, 227, 0.75);
+  outline-offset: 2px;
+}
+
+.apptMarker.apptMarkerAttended {
+  border-color: #08c65a;
+  background: #08c65a;
+}
+
+.apptMarker.apptMarkerOverdue {
+  border-color: #ff6b6b;
+  background: #ff6b6b;
 }
 
 .monthlySummaryColumn {

@@ -19,11 +19,14 @@ import type {
 
 /** Grid row keyed for the tracker pages. */
 export interface GridRowView {
+  activityId: string;
   activityName: string;
   accent: string;
   cells: HabitGridCell[];
   done: number;
   target: number;
+  /** Appointment rows (monthly only): a single dated marker, not a habit row. */
+  appointment?: { date: string; note?: string; attended: boolean };
 }
 
 interface TodayHabitsView {
@@ -35,6 +38,7 @@ function rowAccent(row: HabitGridRow): string {
   if (row.category === "medicine") return "#57a8db";
   if (row.category === "nutrition") return "#2eb563";
   const pc = row.physicalCategory;
+  if (pc === "doctor-visit") return "#6c8ee3";
   if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
   return "#ee8a4a";
 }
@@ -43,11 +47,13 @@ function keyRowsByActivity(rows: HabitGridRow[]): Record<string, GridRowView> {
   const rowsByActivity: Record<string, GridRowView> = {};
   for (const row of rows) {
     rowsByActivity[row.activityId] = {
+      activityId: row.activityId,
       activityName: row.activityName,
       accent: rowAccent(row),
       cells: row.cells,
       done: row.done,
       target: row.target,
+      ...(row.appointment ? { appointment: row.appointment } : {}),
     };
   }
   return rowsByActivity;
@@ -118,12 +124,14 @@ export const habitsApi = apiSlice.injectEndpoints({
       month: string;
       rowsByActivity: Record<string, GridRowView>;
       summary: PeriodSummary;
+      maxAppointmentMonth: string | null;
     }, string>({
       query: (month) => `/habits/monthly?month=${month}`,
-      transformResponse: (response: { month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }) => ({
+      transformResponse: (response: { month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary; maxAppointmentMonth?: string | null }) => ({
         month: response.month,
         rowsByActivity: keyRowsByActivity(response.rowsByActivity),
         summary: response.summary,
+        maxAppointmentMonth: response.maxAppointmentMonth ?? null,
       }),
       providesTags: ["HabitMonthly"],
     }),

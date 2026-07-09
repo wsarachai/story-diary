@@ -67,6 +67,10 @@ export interface HabitActivityDoc {
   meal_slots_json?: string | null;
   /** Medicine-only stable catalogue key; null for "Other"/legacy meds. */
   medicine_key?: string | null;
+  /** Appointment-only (doctor-visit): visit date YYYY-MM-DD; null otherwise. */
+  appointment_date?: string | null;
+  /** Appointment-only: what to prepare for the visit; null otherwise. */
+  appointment_note?: string | null;
   created_at: string;
   updated_at: string;
   archived: boolean;

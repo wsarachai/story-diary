@@ -278,6 +278,65 @@
   padding: 0 1em 0;
 }
 
+/* ── Appointment (doctor-visit) form fields ── */
+.apptField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.apptLabel {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink, #2b2b2b);
+}
+
+.apptDateInput {
+  border-radius: 14px;
+  background: #eef2fb;
+  border: 2px solid #cfd9f2;
+  color: var(--ink, #2b2b2b);
+  font-family: inherit;
+  font-size: 1.15rem;
+  padding: 0.7rem 1rem;
+  width: 100%;
+  outline: none;
+}
+
+.apptDateInput:focus {
+  border-color: #6c8ee3;
+  box-shadow: 0 0 0 3px rgba(108, 142, 227, 0.25);
+}
+
+.apptDateInput.error {
+  border-color: #ff4d4d;
+  box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.2);
+}
+
+.apptNoteInput {
+  border-radius: 14px;
+  background: #f6f7fb;
+  border: 2px solid #e0e4ef;
+  color: var(--ink, #2b2b2b);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0.7rem 1rem;
+  width: 100%;
+  resize: vertical;
+  min-height: 5.5rem;
+  outline: none;
+}
+
+.apptNoteInput::placeholder {
+  color: rgba(43, 43, 43, 0.45);
+}
+
+.apptNoteInput:focus {
+  border-color: #6c8ee3;
+  box-shadow: 0 0 0 3px rgba(108, 142, 227, 0.25);
+}
+
 .nameRow {
   display: grid;
   grid-template-columns: 1fr auto;

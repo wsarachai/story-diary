@@ -125,6 +125,10 @@ export const CreateActivitySchema = z.object({
   mealRelation: z.enum(["before", "after"]).optional(),
   mealSlots: z.array(MealSlotEnum).optional(),
   medicineKey: MedicineKeyEnum.nullish(),
+  /** Appointment (doctor-visit) date, YYYY-MM-DD. */
+  appointmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "INVALID_FORMAT").optional(),
+  /** Appointment note; what to prepare for the visit. */
+  appointmentNote: z.string().max(1000, "TOO_LONG").optional(),
   archived: z.boolean().optional(),
 });
 

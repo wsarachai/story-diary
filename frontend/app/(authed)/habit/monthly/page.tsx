@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useGetMonthlyHabitsQuery } from "@/store/habitsApi";
+import {
+  useGetMonthlyHabitsQuery,
+  useDeleteActivityMutation,
+  type GridRowView,
+} from "@/store/habitsApi";
 import { useGetMeQuery } from "@/store/authApi";
 import type { HabitGridCell } from "@/types/habit";
 import { gridDotState } from "@/lib/utils/habitStatus";
@@ -14,6 +18,18 @@ import PageSpinner from "@/components/PageSpinner";
 import { TrackerError, TrackerEmpty } from "../TrackerStates";
 import HabitTrackerHeader from "@/components/HabitTrackerHeader";
 import { HABIT_TRACKER_LEGEND } from "../legendConfig";
+import AppointmentDetailDialog from "../AppointmentDetailDialog";
+
+/** Marker class for an appointment cell: upcoming / attended / overdue. */
+function apptMarkerClass(
+  appointment: { date: string; attended: boolean },
+  todayStr: string,
+): string {
+  let cls = styles.apptMarker;
+  if (appointment.attended) cls += ` ${styles.apptMarkerAttended}`;
+  else if (todayStr && appointment.date < todayStr) cls += ` ${styles.apptMarkerOverdue}`;
+  return cls;
+}
 
 function mDotClass(cell: HabitGridCell, todayStr: string): string {
   const state = gridDotState(cell, todayStr);
@@ -65,7 +81,9 @@ export default function HabitMonthlyPage() {
   const currentMonth = localMonthStr(me?.timezone);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [expandedLabel, setExpandedLabel] = useState<string | null>(null);
+  const [apptDetail, setApptDetail] = useState<GridRowView | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(true);
+  const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();
   const gridWrapRef = useRef<HTMLDivElement | null>(null);
   const userTouchedGridRef = useRef(false);
   const todayStr = localDateStr(me?.timezone);
@@ -75,7 +93,14 @@ export default function HabitMonthlyPage() {
   const summary = data?.summary;
   const scrollKey = `habit-monthly-scroll:${selectedMonth}`;
   const hintHiddenKey = `habit-monthly-scroll-hint-hidden:${selectedMonth}`;
-  const disableNextMonth = selectedMonth >= currentMonth;
+  // Forward navigation normally stops at the current month, but is extended up
+  // to the furthest month that holds an appointment so its marker is reachable.
+  const maxAppointmentMonth = data?.maxAppointmentMonth ?? null;
+  const maxNavMonth =
+    maxAppointmentMonth && maxAppointmentMonth > currentMonth
+      ? maxAppointmentMonth
+      : currentMonth;
+  const disableNextMonth = selectedMonth >= maxNavMonth;
   const disablePrevMonth = monthsDiff(selectedMonth, currentMonth) >= 12;
   const monthAnnouncement = `แสดงข้อมูลเดือน ${monthLabel(selectedMonth)}`;
 
@@ -238,7 +263,18 @@ export default function HabitMonthlyPage() {
                     </button>
                     {row.cells.map((cell) => (
                       <div key={cell.date} className={styles.monthlyCell}>
-                        <div className={mDotClass(cell, todayStr)} />
+                        {row.appointment ? (
+                          cell.date === row.appointment.date ? (
+                            <button
+                              type="button"
+                              className={apptMarkerClass(row.appointment, todayStr)}
+                              aria-label={`ดูรายละเอียดการนัดตรวจตามแพทย์ วันที่ ${cell.date}`}
+                              onClick={() => setApptDetail(row)}
+                            />
+                          ) : null
+                        ) : (
+                          <div className={mDotClass(cell, todayStr)} />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -290,5 +326,22 @@ export default function HabitMonthlyPage() {
     </HabitTrackerHeader>
   );
 
-  return <BookShellLayout tight rail={<IconRail />} mergedOnly merged={left} />;
+  return (
+    <BookShellLayout tight rail={<IconRail />} mergedOnly merged={left}>
+      {apptDetail?.appointment && (
+        <AppointmentDetailDialog
+          date={apptDetail.appointment.date}
+          note={apptDetail.appointment.note}
+          attended={apptDetail.appointment.attended}
+          todayStr={todayStr}
+          isDeleting={isDeleting}
+          onClose={() => setApptDetail(null)}
+          onDelete={async () => {
+            await deleteActivity(apptDetail.activityId);
+            setApptDetail(null);
+          }}
+        />
+      )}
+    </BookShellLayout>
+  );
 }

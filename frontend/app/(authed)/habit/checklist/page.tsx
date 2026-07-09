@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Check,
   Minus,
+  CalendarClock,
 } from "lucide-react";
 import {
   useGetTodayHabitsQuery,
@@ -38,6 +39,20 @@ import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
 import { TrackerError, TrackerEmpty } from "../TrackerStates";
 import HabitTrackerHeader from "@/components/HabitTrackerHeader";
+import { formatShort } from "@/components/DateBadge";
+import AppointmentDetailDialog from "../AppointmentDetailDialog";
+
+const APPOINTMENT_ACCENT = "#6c8ee3";
+
+/** Doctor-visit appointments are dated events, not habit checkers. */
+function isAppointment(activity: HabitActivity): boolean {
+  return activity.category === "physical" && activity.physicalCategory === "doctor-visit";
+}
+
+function parseISODate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 
 const GROUPS: { key: HabitFrequency; label: string }[] = [
   { key: "daily",   label: "รายวัน" },
@@ -50,6 +65,7 @@ function getAccent(activity: HabitActivity): string {
   if (activity.category === "medicine") return "#57a8db";
   if (activity.category === "nutrition") return "#2eb563";
   const pc = activity.physicalCategory;
+  if (pc === "doctor-visit") return APPOINTMENT_ACCENT;
   if (pc === "symptoms" || pc === "emotion-management") return "#e76f51";
   return "#ee8a4a";
 }
@@ -67,6 +83,9 @@ function hasDetailedCheckin(activity: HabitActivity): boolean {
 
 function getSubline(activity: HabitActivity): string {
   const { schedule, mealRelation, mealSlots } = activity;
+  if (isAppointment(activity) && activity.appointmentDate) {
+    return formatShort(parseISODate(activity.appointmentDate));
+  }
   if (
     activity.category === "medicine" &&
     mealRelation &&
@@ -92,6 +111,7 @@ function getCategoryClass(accent: string): string {
   if (accent === "#57a8db") return styles.entryMed;
   if (accent === "#2eb563") return styles.entryFood;
   if (accent === "#e76f51") return styles.entryMood;
+  if (accent === APPOINTMENT_ACCENT) return styles.entryAppointment;
   return styles.entryBody;
 }
 
@@ -106,6 +126,7 @@ function CategoryIcon({ accent }: { accent: string }) {
   if (accent === "#57a8db") return <Pill color={accent} />;
   if (accent === "#2eb563") return <Apple color={accent} />;
   if (accent === "#e76f51") return <SmilePlus color={accent} />;
+  if (accent === APPOINTMENT_ACCENT) return <CalendarClock color={accent} />;
   return <PersonStanding color="#ee8a4a" />;
 }
 
@@ -232,6 +253,7 @@ export default function HabitChecklistPage() {
     useDeleteActivityMutation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [apptDetailId, setApptDetailId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<HabitFrequency>>(
     new Set<HabitFrequency>(["daily", "weekly", "monthly", "todo"])
   );
@@ -463,6 +485,9 @@ export default function HabitChecklistPage() {
   const menuOccurrence = menuId ? data?.todayByActivity[menuId] : null;
   const menuActivityName = menuActivity ? getActivityDisplayName(menuActivity) : "";
 
+  const apptDetailActivity = apptDetailId ? data?.activities[apptDetailId] : null;
+  const apptDetailOccurrence = apptDetailId ? data?.todayByActivity[apptDetailId] : null;
+
   async function handleDeleteConfirm() {
     if (!confirmId) return;
     await deleteActivity(confirmId);
@@ -514,6 +539,56 @@ export default function HabitChecklistPage() {
                     <div className={styles.accordionBody}>
                       {groupEntries.map((entry) => {
                         const { activity, occurrence } = entry;
+                        // Appointments: tap the card to view details; the check
+                        // circle marks the visit attended (its own dated
+                        // occurrence). No skip / manage affordances.
+                        if (isAppointment(activity)) {
+                          return (
+                            <div
+                              key={activity.id}
+                              className={`${styles.habitEntry} ${styles.entryAppointment} ${styles.hasLog}`}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`${getActivityDisplayName(activity)} — ดูรายละเอียด`}
+                              onClick={() => setApptDetailId(activity.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setApptDetailId(activity.id);
+                                }
+                              }}
+                            >
+                              <div className={styles.habitEntryIcon}>
+                                <CalendarClock color={APPOINTMENT_ACCENT} />
+                              </div>
+                              <div className={styles.habitEntryBody}>
+                                <p className={styles.habitEntryName}>{getActivityDisplayName(activity)}</p>
+                                <p className={styles.habitEntrySub}>{entry.subline}</p>
+                              </div>
+                              <button
+                                className={`${styles.habitCheck}${occurrence.status === "done" ? ` ${styles.done}` : ""}`}
+                                aria-label={
+                                  occurrence.status === "done"
+                                    ? "ตรวจแล้ว – แตะเพื่อยกเลิก"
+                                    : "แตะเพื่อทำเครื่องหมายว่าตรวจแล้ว"
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggle({
+                                    occurrenceId: occurrence.id,
+                                    activityId: activity.id,
+                                    status: occurrence.status === "done" ? "pending" : "done",
+                                    date: todayStr,
+                                  });
+                                }}
+                              >
+                                {occurrence.status === "done" && (
+                                  <Check color="#fff" strokeWidth={3} />
+                                )}
+                              </button>
+                            </div>
+                          );
+                        }
                         const isMedicine = activity.category === "medicine";
                         const isNutrition = activity.category === "nutrition";
                         // nutrition_5_groups uses a 3-tap meal counter; other
@@ -726,6 +801,22 @@ export default function HabitChecklistPage() {
           isDeleting={isDeleting}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setConfirmId(null)}
+        />
+      )}
+      {apptDetailActivity && apptDetailActivity.appointmentDate && (
+        <AppointmentDetailDialog
+          date={apptDetailActivity.appointmentDate}
+          note={apptDetailActivity.appointmentNote}
+          attended={apptDetailOccurrence?.status === "done"}
+          todayStr={todayStr}
+          isDeleting={isDeleting}
+          onClose={() => setApptDetailId(null)}
+          onDelete={async () => {
+            const id = apptDetailId;
+            if (!id) return;
+            await deleteActivity(id);
+            setApptDetailId(null);
+          }}
         />
       )}
     </BookShellLayout>

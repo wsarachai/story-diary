@@ -83,7 +83,25 @@ function rowToActivity(row: HabitActivityDoc): HabitActivity {
     if (row.meal_relation) activity.mealRelation = row.meal_relation;
     if (row.meal_slots_json) activity.mealSlots = JSON.parse(row.meal_slots_json);
     if (row.medicine_key) activity.medicineKey = row.medicine_key as HabitActivity["medicineKey"];
+    if (row.appointment_date) activity.appointmentDate = row.appointment_date;
+    if (row.appointment_note) activity.appointmentNote = row.appointment_note;
     return activity;
+}
+
+/** True when an activity is a doctor's-appointment (not a habit checker). */
+function isAppointmentActivity(activity: HabitActivity): boolean {
+    return activity.category === "physical" && activity.physicalCategory === "doctor-visit";
+}
+
+const THAI_MONTH_SHORT = [
+    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+];
+
+/** "20 ก.ค. 2026" from a YYYY-MM-DD string (Gregorian year, matching DateBadge). */
+function formatThaiShortDate(iso: string): string {
+    const [year, month, day] = iso.split("-").map(Number);
+    return `${day} ${THAI_MONTH_SHORT[month - 1]} ${year}`;
 }
 
 function rowToOccurrence(row: HabitOccurrenceDoc): HabitOccurrence {
@@ -133,6 +151,7 @@ function accentForCategory(category: string): `#${string}` {
         case "medicine": return "#57a8db";
         case "nutrition": return "#2eb563";
         case "physical": return "#ee8a4a";
+        case "appointment": return "#6c8ee3";
         default: return "#aaaaaa";
     }
 }
@@ -235,14 +254,48 @@ async function buildGridRows(
     period: "week" | "month"
 ): Promise<{ rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
     const allActivities = await getActivities(userId);
-    const activities = allActivities.filter((a) => a.schedule.frequency !== "todo");
+    const rangeStart = dates[0];
+    const rangeEnd = dates[dates.length - 1];
+
+    // Appointments (todo cadence) are surfaced only in the month view, as a
+    // single dated marker rather than a habit row. Every other todo stays out
+    // of the grids entirely.
+    const includeAppointments = period === "month";
+    const activities = allActivities.filter((a) => {
+        if (a.schedule.frequency !== "todo") return true;
+        return includeAppointments && isAppointmentActivity(a);
+    });
 
     let totalDone = 0;
     let totalTarget = 0;
 
-    const rowsByActivity = await Promise.all(activities.map(async (activity) => {
-        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, dates[0], dates[dates.length - 1]);
+    const rows = await Promise.all(activities.map(async (activity): Promise<HabitGridRow | null> => {
+        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, rangeStart, rangeEnd);
         const byDate = new Map(occurrenceRows.map((row) => [row.date, rowToOccurrence(row)]));
+
+        if (isAppointmentActivity(activity)) {
+            const apptDate = activity.appointmentDate;
+            // Skip appointments that fall outside the viewed month.
+            if (!apptDate || apptDate < rangeStart || apptDate > rangeEnd) return null;
+            const attended = byDate.get(apptDate)?.status === "done";
+            const cells: HabitGridCell[] = dates.map((date) => ({
+                date,
+                status: date === apptDate ? (byDate.get(date)?.status ?? "pending") : "pending",
+                scheduled: date === apptDate,
+            }));
+            // Appointments never contribute to the done/target summary.
+            return {
+                activityId: activity.id,
+                activityName: activity.name,
+                category: activity.category,
+                physicalCategory: activity.physicalCategory,
+                cells,
+                done: 0,
+                target: 0,
+                appointment: { date: apptDate, note: activity.appointmentNote, attended },
+            };
+        }
+
         const cells: HabitGridCell[] = dates.map((date) => ({
             date,
             status: byDate.get(date)?.status ?? "pending",
@@ -265,6 +318,8 @@ async function buildGridRows(
         };
     }));
 
+    const rowsByActivity = rows.filter((row): row is HabitGridRow => row !== null);
+
     return { rowsByActivity, summary: { done: totalDone, target: totalTarget } };
 }
 
@@ -274,6 +329,24 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
 
     for (const row of rows) {
         const activity = rowToActivity(row);
+
+        // Appointments are not habit checkers: they carry a single occurrence
+        // keyed to their appointment date (not `date`), and stay in the list
+        // every day — upcoming or overdue — until attended (that occurrence is
+        // marked done) or deleted.
+        if (isAppointmentActivity(activity)) {
+            if (!activity.appointmentDate) continue;
+            const occurrence = await ensureOccurrence(activity.id, activity.appointmentDate);
+            if (occurrence.status === "done") continue;
+            entries.push({
+                activity,
+                occurrence,
+                subline: formatThaiShortDate(activity.appointmentDate),
+                accent: accentForCategory("appointment"),
+            });
+            continue;
+        }
+
         if (!isScheduledOnDate(activity, date)) continue;
 
         const occurrence = await ensureOccurrence(activity.id, date);
@@ -323,10 +396,15 @@ export async function createActivity(
         : undefined;
     const resolvedName = resolveNutritionName(data.name, nutritionPreset);
     const normalizedName = normalizeActivityName(resolvedName);
-    const conflict = await findHabitActivityConflictByName(userId, normalizedName);
 
-    if (conflict) {
-        throw Errors.conflict("ACTIVITY_NAME_TAKEN", "An activity with this name already exists");
+    // Appointments share a fixed name ("ตรวจตามนัดแพทย์") and are disambiguated
+    // by their date, so the per-user name-uniqueness rule does not apply to them.
+    const isAppointment = data.category === "physical" && data.physicalCategory === "doctor-visit";
+    if (!isAppointment) {
+        const conflict = await findHabitActivityConflictByName(userId, normalizedName);
+        if (conflict) {
+            throw Errors.conflict("ACTIVITY_NAME_TAKEN", "An activity with this name already exists");
+        }
     }
 
     const now = new Date().toISOString();
@@ -344,6 +422,8 @@ export async function createActivity(
         meal_relation: data.mealRelation ?? null,
         meal_slots_json: data.mealSlots ? JSON.stringify(data.mealSlots) : null,
         medicine_key: data.medicineKey ?? null,
+        appointment_date: data.appointmentDate ?? null,
+        appointment_note: data.appointmentNote?.trim() ? data.appointmentNote.trim() : null,
         created_at: now,
         updated_at: now,
         archived: data.archived ?? false,
@@ -627,10 +707,21 @@ export async function getWeeklyView(
 export async function getMonthlyView(
     userId: string,
     month: string
-): Promise<{ month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
+): Promise<{ month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary; maxAppointmentMonth: string | null }> {
     const dates = monthDates(month);
     const { rowsByActivity, summary } = await buildGridRows(userId, dates, "month");
-    return { month, rowsByActivity, summary };
+
+    // The furthest month that holds an appointment, so the monthly page can
+    // enable forward navigation past the current month up to that point.
+    const activities = await getActivities(userId);
+    const appointmentMonths = activities
+        .filter((a) => isAppointmentActivity(a) && a.appointmentDate)
+        .map((a) => a.appointmentDate!.slice(0, 7));
+    const maxAppointmentMonth = appointmentMonths.length > 0
+        ? appointmentMonths.reduce((max, m) => (m > max ? m : max))
+        : null;
+
+    return { month, rowsByActivity, summary, maxAppointmentMonth };
 }
 
 export async function getMonthlySummary(
