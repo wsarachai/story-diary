@@ -12,6 +12,7 @@ import styles from "../habit.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import { TrackerError, TrackerEmpty } from "../TrackerStates";
 import HabitTrackerHeader from "@/components/HabitTrackerHeader";
+import { HABIT_TRACKER_LEGEND } from "../legendConfig";
 
 const DAY_LABELS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
@@ -24,6 +25,15 @@ function dotClass(cell: HabitGridCell, todayStr: string): string {
   else if (state === "partial") cls += ` ${styles.partial}`;
   else if (state === "missed") cls += ` ${styles.missed}`;
   if (cell.date === todayStr) cls += ` ${styles.todayRing}`;
+  return cls;
+}
+
+function weeklyLegendDotClass(
+  variant: "done" | "partial" | "skip" | "missed" | "future" | "off",
+): string {
+  let cls = styles.legendDot;
+  if (variant === "off") return `${cls} ${styles.legendDotOff}`;
+  if (variant !== "future") cls += ` ${styles[variant]}`;
   return cls;
 }
 
@@ -111,26 +121,23 @@ export default function HabitWeeklyPage() {
                 </span>
               </div>
               <div className={styles.weeklyLegend}>
-                <div className={styles.legendRow}>
-                  <div className={`${styles.legendDot} ${styles.done}`} />
-                  <span className={styles.legendLabel}>ทำเสร็จ</span>
-                </div>
-                <div className={styles.legendRow}>
-                  <div className={`${styles.legendDot} ${styles.partial}`} />
-                  <span className={styles.legendLabel}>กำลังทำ</span>
-                </div>
-                <div className={styles.legendRow}>
-                  <div className={`${styles.legendDot} ${styles.skip}`} />
-                  <span className={styles.legendLabel}>ข้ามไป</span>
-                </div>
-                <div className={styles.legendRow}>
-                  <div className={`${styles.legendDot} ${styles.missed}`} />
-                  <span className={styles.legendLabel}>ไม่ได้ทำ</span>
-                </div>
-                <div className={styles.legendRow}>
-                  <div className={styles.legendDot} />
-                  <span className={styles.legendLabel}>ยังไม่ถึง</span>
-                </div>
+                {HABIT_TRACKER_LEGEND.map((item) =>
+                  item.kind === "hint" ? (
+                    <div key={item.key} className={styles.legendHintRow}>
+                      <span className={styles.legendHintText}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <div key={item.key} className={styles.legendRow}>
+                      <div
+                        aria-hidden="true"
+                        className={weeklyLegendDotClass(item.variant)}
+                      />
+                      <span className={styles.legendLabel}>{item.label}</span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </>

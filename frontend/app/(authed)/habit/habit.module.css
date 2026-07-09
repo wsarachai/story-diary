@@ -1006,6 +1006,12 @@
   background: #fff;
 }
 
+.legendDotOff {
+  border-style: dashed;
+  border-color: rgba(13, 18, 23, 0.18);
+  background: transparent;
+}
+
 .legendDot.done {
   background: #08c65a;
   border-color: #08c65a;
@@ -1029,6 +1035,17 @@
 .legendLabel {
   font-size: 0.75em;
   color: rgba(13, 18, 23, 0.65);
+}
+
+.legendHintRow {
+  display: flex;
+  align-items: center;
+}
+
+.legendHintText {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.75);
 }
 
 /* ── Monthly Tracker (s014) ── */
@@ -1241,6 +1258,12 @@
   background: #fff;
 }
 
+.monthlyLegendDotOff {
+  border-style: dashed;
+  border-color: rgba(13, 18, 23, 0.18);
+  background: transparent;
+}
+
 .monthlyLegendDot.done {
   background: #08c65a;
   border-color: #08c65a;
@@ -1266,6 +1289,17 @@
   color: rgba(13, 18, 23, 0.65);
 }
 
+.monthlyLegendHintRow {
+  display: flex;
+  align-items: center;
+}
+
+.monthlyLegendHintText {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: rgba(13, 18, 23, 0.75);
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
@@ -1279,6 +1313,26 @@
 }
 
 @media (max-width: 900px) {
+  .weeklySummaryColumn {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .weeklySummaryCard {
+    justify-content: space-between;
+  }
+
+  .weeklyLegend {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .legendLabel,
+  .legendHintText {
+    white-space: nowrap;
+  }
+
   .monthlyScrollHint {
     display: block;
     padding: 0 0.2rem;
@@ -1329,6 +1383,7 @@
 
   .monthlyColHeader span,
   .monthlyLegendLabel,
+  .monthlyLegendHintText,
   .monthlySummaryCard h3 {
     white-space: nowrap;
   }

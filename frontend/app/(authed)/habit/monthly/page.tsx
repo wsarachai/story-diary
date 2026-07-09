@@ -13,6 +13,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 import PageSpinner from "@/components/PageSpinner";
 import { TrackerError, TrackerEmpty } from "../TrackerStates";
 import HabitTrackerHeader from "@/components/HabitTrackerHeader";
+import { HABIT_TRACKER_LEGEND } from "../legendConfig";
 
 function mDotClass(cell: HabitGridCell, todayStr: string): string {
   const state = gridDotState(cell, todayStr);
@@ -23,6 +24,15 @@ function mDotClass(cell: HabitGridCell, todayStr: string): string {
   else if (state === "partial") cls += ` ${styles.partial}`;
   else if (state === "missed") cls += ` ${styles.missed}`;
   if (cell.date === todayStr) cls += ` ${styles.todayRing}`;
+  return cls;
+}
+
+function monthlyLegendDotClass(
+  variant: "done" | "partial" | "skip" | "missed" | "future" | "off",
+): string {
+  let cls = styles.monthlyLegendDot;
+  if (variant === "off") return `${cls} ${styles.monthlyLegendDotOff}`;
+  if (variant !== "future") cls += ` ${styles[variant]}`;
   return cls;
 }
 
@@ -253,34 +263,25 @@ export default function HabitMonthlyPage() {
                 </span>
               </div>
               <div className={styles.monthlyLegend}>
-                <div className={styles.monthlyLegendRow}>
-                  <div
-                    className={`${styles.monthlyLegendDot} ${styles.done}`}
-                  />
-                  <span className={styles.monthlyLegendLabel}>ทำเสร็จ</span>
-                </div>
-                <div className={styles.monthlyLegendRow}>
-                  <div
-                    className={`${styles.monthlyLegendDot} ${styles.partial}`}
-                  />
-                  <span className={styles.monthlyLegendLabel}>กำลังทำ</span>
-                </div>
-                <div className={styles.monthlyLegendRow}>
-                  <div
-                    className={`${styles.monthlyLegendDot} ${styles.skip}`}
-                  />
-                  <span className={styles.monthlyLegendLabel}>ข้ามไป</span>
-                </div>
-                <div className={styles.monthlyLegendRow}>
-                  <div
-                    className={`${styles.monthlyLegendDot} ${styles.missed}`}
-                  />
-                  <span className={styles.monthlyLegendLabel}>ไม่ได้ทำ</span>
-                </div>
-                <div className={styles.monthlyLegendRow}>
-                  <div className={styles.monthlyLegendDot} />
-                  <span className={styles.monthlyLegendLabel}>ยังไม่ถึง</span>
-                </div>
+                {HABIT_TRACKER_LEGEND.map((item) =>
+                  item.kind === "hint" ? (
+                    <div key={item.key} className={styles.monthlyLegendHintRow}>
+                      <span className={styles.monthlyLegendHintText}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <div key={item.key} className={styles.monthlyLegendRow}>
+                      <div
+                        aria-hidden="true"
+                        className={monthlyLegendDotClass(item.variant)}
+                      />
+                      <span className={styles.monthlyLegendLabel}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </>
