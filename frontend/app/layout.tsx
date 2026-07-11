@@ -3,6 +3,7 @@ import { Baloo_2, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import AuthProbe from "@/components/AuthProbe";
+import { Analytics } from "@vercel/analytics/next";
 
 const baloo2 = Baloo_2({
   variable: "--font-baloo2",
@@ -27,14 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="th"
-      className={`${baloo2.variable} ${notoSansThai.variable}`}
-    >
+    <html lang="th" className={`${baloo2.variable} ${notoSansThai.variable}`}>
       <body suppressHydrationWarning>
         <Providers>
           <AuthProbe />
           {children}
+          <Analytics />
         </Providers>
       </body>
     </html>
