@@ -67,15 +67,27 @@ describe("adminCreateChapter", () => {
   });
 
   it("new chapter appears in subsequent list", async () => {
-    await adminCreateChapter({ title: "Extra", introTitle: "Intro", lockState: "locked" });
+    await adminCreateChapter({
+      title: "Extra",
+      introTitle: "Intro",
+      lockState: "locked",
+    });
     const chapters = await adminListChapters();
     expect(chapters).toHaveLength(6);
     expect(chapters.some((c) => c.title === "Extra")).toBe(true);
   });
 
   it("assigns auto-incrementing id", async () => {
-    const ch1 = await adminCreateChapter({ title: "A", introTitle: "I", lockState: "locked" });
-    const ch2 = await adminCreateChapter({ title: "B", introTitle: "I", lockState: "locked" });
+    const ch1 = await adminCreateChapter({
+      title: "A",
+      introTitle: "I",
+      lockState: "locked",
+    });
+    const ch2 = await adminCreateChapter({
+      title: "B",
+      introTitle: "I",
+      lockState: "locked",
+    });
     expect(ch2.id).toBeGreaterThan(ch1.id);
   });
 });
@@ -93,7 +105,9 @@ describe("adminUpdateChapter", () => {
   });
 
   it("throws 404 for non-existent chapter id", async () => {
-    await expect(adminUpdateChapter(9999, { title: "X" })).rejects.toMatchObject({
+    await expect(
+      adminUpdateChapter(9999, { title: "X" }),
+    ).rejects.toMatchObject({
       statusCode: 404,
       code: "CHAPTER_NOT_FOUND",
     });
@@ -133,7 +147,10 @@ describe("adminListEBooks", () => {
 
 describe("adminCreateEBook", () => {
   it("creates an e-book and returns it", async () => {
-    const book = await adminCreateEBook({ title: "New Book", pdfUrl: "/books/new.pdf" });
+    const book = await adminCreateEBook({
+      title: "New Book",
+      pdfUrl: "/books/new.pdf",
+    });
     expect(book.title).toBe("New Book");
     expect(book.pdfUrl).toBe("/books/new.pdf");
     expect(typeof book.id).toBe("string");
@@ -155,7 +172,7 @@ describe("adminCreateEBook", () => {
 
   it("rejects a non-PDF URL", async () => {
     await expect(
-      adminCreateEBook({ title: "Image", pdfUrl: "/images/cover.png" })
+      adminCreateEBook({ title: "Image", pdfUrl: "/images/cover.png" }),
     ).rejects.toMatchObject({ statusCode: 400 });
   });
 });
@@ -170,13 +187,17 @@ describe("adminUpdateEBook", () => {
 
   it("rejects a non-PDF replacement URL", async () => {
     const books = await adminListEBooks();
-    await expect(adminUpdateEBook(books[0].id, { pdfUrl: "/images/cover.png" })).rejects.toMatchObject({
+    await expect(
+      adminUpdateEBook(books[0].id, { pdfUrl: "/images/cover.png" }),
+    ).rejects.toMatchObject({
       statusCode: 400,
     });
   });
 
   it("throws 404 for missing id", async () => {
-    await expect(adminUpdateEBook("no-such-id", { title: "X" })).rejects.toMatchObject({
+    await expect(
+      adminUpdateEBook("no-such-id", { title: "X" }),
+    ).rejects.toMatchObject({
       statusCode: 404,
     });
   });
@@ -192,7 +213,9 @@ describe("adminDeleteEBook", () => {
   });
 
   it("throws 404 for missing id", async () => {
-    await expect(adminDeleteEBook("ghost")).rejects.toMatchObject({ statusCode: 404 });
+    await expect(adminDeleteEBook("ghost")).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 });
 
@@ -236,7 +259,10 @@ describe("adminCreateQuestion", () => {
       gender: "female",
       text: "Extra?",
       correctAnswer: "B",
-      optionA: "A", optionB: "B", optionC: "C", optionD: "D",
+      optionA: "A",
+      optionB: "B",
+      optionC: "C",
+      optionD: "D",
     });
     const qs = await adminListQuestions();
     expect(qs.female).toHaveLength(14);
@@ -248,7 +274,10 @@ describe("adminCreateQuestion", () => {
       gender: "male",
       text: "Appended?",
       correctAnswer: "C",
-      optionA: "A", optionB: "B", optionC: "C", optionD: "D",
+      optionA: "A",
+      optionB: "B",
+      optionC: "C",
+      optionD: "D",
     });
     const qs = await adminListQuestions();
     expect(qs.male[qs.male.length - 1].id).toBe(created.id);
@@ -276,14 +305,18 @@ describe("adminReorderQuestions", () => {
   it("rejects a payload that is not a full permutation of the set", async () => {
     const qs = await adminListQuestions();
     const partial = qs.male.slice(0, 3).map((q) => q.id);
-    await expect(adminReorderQuestions("male", partial)).rejects.toMatchObject({ statusCode: 400 });
+    await expect(adminReorderQuestions("male", partial)).rejects.toMatchObject({
+      statusCode: 400,
+    });
   });
 
   it("rejects mixing another set's ids into the reorder", async () => {
     const qs = await adminListQuestions();
     const ids = qs.male.map((q) => q.id);
     const withCrossSet = [...ids.slice(0, ids.length - 1), qs.female[0].id];
-    await expect(adminReorderQuestions("male", withCrossSet)).rejects.toMatchObject({ statusCode: 400 });
+    await expect(
+      adminReorderQuestions("male", withCrossSet),
+    ).rejects.toMatchObject({ statusCode: 400 });
   });
 });
 
@@ -296,7 +329,9 @@ describe("adminUpdateQuestion", () => {
   });
 
   it("throws 404 for missing id", async () => {
-    await expect(adminUpdateQuestion("ghost-id", { text: "X" })).rejects.toMatchObject({
+    await expect(
+      adminUpdateQuestion("ghost-id", { text: "X" }),
+    ).rejects.toMatchObject({
       statusCode: 404,
     });
   });
@@ -314,7 +349,9 @@ describe("adminDeleteQuestion", () => {
   });
 
   it("throws 404 for missing id", async () => {
-    await expect(adminDeleteQuestion("ghost")).rejects.toMatchObject({ statusCode: 404 });
+    await expect(adminDeleteQuestion("ghost")).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 });
 
@@ -329,7 +366,10 @@ describe("adminGetChapter", () => {
   });
 
   it("throws 404 for missing chapter", async () => {
-    await expect(adminGetChapter(9999)).rejects.toMatchObject({ statusCode: 404, code: "CHAPTER_NOT_FOUND" });
+    await expect(adminGetChapter(9999)).rejects.toMatchObject({
+      statusCode: 404,
+      code: "CHAPTER_NOT_FOUND",
+    });
   });
 });
 
@@ -366,14 +406,18 @@ describe("adminCreateScene", () => {
 
   it("new scene appears in list", async () => {
     const before = await adminListScenes(1);
-    await adminCreateScene(1, { idx: 50, speakerName: "ผู้บรรยาย", text: "เพิ่มใหม่" });
+    await adminCreateScene(1, {
+      idx: 50,
+      speakerName: "ผู้บรรยาย",
+      text: "เพิ่มใหม่",
+    });
     const after = await adminListScenes(1);
     expect(after.length).toBe(before.length + 1);
   });
 
   it("throws 404 for non-existent chapter", async () => {
     await expect(
-      adminCreateScene(9999, { idx: 0, speakerName: "x", text: "x" })
+      adminCreateScene(9999, { idx: 0, speakerName: "x", text: "x" }),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 });
@@ -394,7 +438,9 @@ describe("adminUpdateScene", () => {
   });
 
   it("throws 404 for missing scene", async () => {
-    await expect(adminUpdateScene("ghost-id", { text: "x" })).rejects.toMatchObject({ statusCode: 404 });
+    await expect(
+      adminUpdateScene("ghost-id", { text: "x" }),
+    ).rejects.toMatchObject({ statusCode: 404 });
   });
 });
 
@@ -408,7 +454,9 @@ describe("adminDeleteScene", () => {
   });
 
   it("throws 404 for missing scene", async () => {
-    await expect(adminDeleteScene("ghost")).rejects.toMatchObject({ statusCode: 404 });
+    await expect(adminDeleteScene("ghost")).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 });
 
@@ -440,16 +488,19 @@ describe("adminCreateVideoClip", () => {
   it("creates a clip and returns it with the correct fields", async () => {
     const clip = await adminCreateVideoClip({
       caption: "คลิปทดสอบ",
-      sourceUrl: "https://example.com/video.mp4",
+      sourceUrl: "https://www.youtube.com/watch?v=test-video",
     });
     expect(clip.caption).toBe("คลิปทดสอบ");
-    expect(clip.sourceUrl).toBe("https://example.com/video.mp4");
+    expect(clip.sourceUrl).toBe("https://www.youtube.com/watch?v=test-video");
     expect(typeof clip.id).toBe("string");
     expect(typeof clip.sortOrder).toBe("number");
   });
 
   it("created clip appears in subsequent list", async () => {
-    await adminCreateVideoClip({ caption: "Extra", sourceUrl: "https://x.com/v.mp4" });
+    await adminCreateVideoClip({
+      caption: "Extra",
+      sourceUrl: "https://youtu.be/test-video",
+    });
     const clips = await adminListVideoClips();
     expect(clips).toHaveLength(6);
     expect(clips.some((c) => c.caption === "Extra")).toBe(true);
@@ -458,20 +509,45 @@ describe("adminCreateVideoClip", () => {
   it("stores optional thumbnailUrl when provided", async () => {
     const clip = await adminCreateVideoClip({
       caption: "With Thumb",
-      sourceUrl: "https://x.com/v.mp4",
+      sourceUrl: "https://www.youtube.com/watch?v=test-video",
       thumbnailUrl: "https://x.com/thumb.jpg",
     });
     expect(clip.thumbnailUrl).toBe("https://x.com/thumb.jpg");
   });
 
   it("omits thumbnailUrl when not provided", async () => {
-    const clip = await adminCreateVideoClip({ caption: "No Thumb", sourceUrl: "https://x.com/v.mp4" });
+    const clip = await adminCreateVideoClip({
+      caption: "No Thumb",
+      sourceUrl: "https://youtu.be/test-video",
+    });
     expect(clip.thumbnailUrl).toBeUndefined();
   });
 
   it("assigns a sort_order after existing clips", async () => {
-    const clip = await adminCreateVideoClip({ caption: "Last", sourceUrl: "https://x.com/v.mp4" });
+    const clip = await adminCreateVideoClip({
+      caption: "Last",
+      sourceUrl: "https://youtu.be/test-video",
+    });
     expect(clip.sortOrder).toBe(6);
+  });
+
+  it("accepts a Google Drive sharing URL", async () => {
+    const sourceUrl =
+      "https://drive.google.com/file/d/1-F5HIBfjqLkmouwCjO6xIao5F06JJU_n/view?usp=sharing";
+    const clip = await adminCreateVideoClip({
+      caption: "Google Drive",
+      sourceUrl,
+    });
+    expect(clip.sourceUrl).toBe(sourceUrl);
+  });
+
+  it("rejects an unsupported video URL", async () => {
+    await expect(
+      adminCreateVideoClip({
+        caption: "Unsupported",
+        sourceUrl: "https://example.com/video.mp4",
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
   });
 });
 
@@ -487,19 +563,25 @@ describe("adminUpdateVideoClip", () => {
   it("updates sourceUrl", async () => {
     const clips = await adminListVideoClips();
     const id = clips[0].id;
-    const updated = await adminUpdateVideoClip(id, { sourceUrl: "https://new.com/v.mp4" });
-    expect(updated.sourceUrl).toBe("https://new.com/v.mp4");
+    const updated = await adminUpdateVideoClip(id, {
+      sourceUrl: "https://youtu.be/new-video",
+    });
+    expect(updated.sourceUrl).toBe("https://youtu.be/new-video");
   });
 
   it("updates thumbnailUrl", async () => {
     const clips = await adminListVideoClips();
     const id = clips[0].id;
-    const updated = await adminUpdateVideoClip(id, { thumbnailUrl: "https://new.com/t.jpg" });
+    const updated = await adminUpdateVideoClip(id, {
+      thumbnailUrl: "https://new.com/t.jpg",
+    });
     expect(updated.thumbnailUrl).toBe("https://new.com/t.jpg");
   });
 
   it("throws 404 for non-existent clip id", async () => {
-    await expect(adminUpdateVideoClip("no-such-id", { caption: "X" })).rejects.toMatchObject({
+    await expect(
+      adminUpdateVideoClip("no-such-id", { caption: "X" }),
+    ).rejects.toMatchObject({
       statusCode: 404,
       code: "CLIP_NOT_FOUND",
     });
@@ -517,7 +599,9 @@ describe("adminDeleteVideoClip", () => {
   });
 
   it("throws 404 for non-existent clip", async () => {
-    await expect(adminDeleteVideoClip("ghost")).rejects.toMatchObject({ statusCode: 404 });
+    await expect(adminDeleteVideoClip("ghost")).rejects.toMatchObject({
+      statusCode: 404,
+    });
   });
 });
 

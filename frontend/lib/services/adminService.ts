@@ -35,6 +35,7 @@ import {
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import { resolveRole } from "@/lib/roles";
+import { isSupportedVideoUrl } from "@/lib/videoEmbed";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, QuestionGender } from "@/types/minigame";
@@ -59,20 +60,26 @@ export async function adminListChapters(): Promise<ChapterSummary[]> {
   }));
 }
 
-function chapterDocToModel(row: Awaited<ReturnType<typeof findChapterById>>): Chapter {
+function chapterDocToModel(
+  row: Awaited<ReturnType<typeof findChapterById>>,
+): Chapter {
   if (!row) throw Errors.notFound("CHAPTER_NOT_FOUND", "Chapter not found");
   return {
     id: row.id,
     title: row.title,
     introTitle: row.intro_title,
-    ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
+    ...(row.background_image_url
+      ? { backgroundImageUrl: row.background_image_url }
+      : {}),
     lockState: row.lock_state,
     progress: "not-started",
     scenes: [],
   };
 }
 
-export async function adminCreateChapter(body: CreateChapterRequest): Promise<Chapter> {
+export async function adminCreateChapter(
+  body: CreateChapterRequest,
+): Promise<Chapter> {
   const id = await getNextChapterId();
   const rows = await listChaptersDocs();
   const sortOrder = rows.length + 1;
@@ -90,52 +97,75 @@ export async function adminCreateChapter(body: CreateChapterRequest): Promise<Ch
   return chapterDocToModel(saved);
 }
 
-export async function adminUpdateChapter(id: number, body: UpdateChapterRequest): Promise<Chapter> {
+export async function adminUpdateChapter(
+  id: number,
+  body: UpdateChapterRequest,
+): Promise<Chapter> {
   const existing = await findChapterById(id);
-  if (!existing) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+  if (!existing)
+    throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
 
   const patch: Record<string, unknown> = {};
   if (body.title !== undefined) patch.title = body.title;
   if (body.introTitle !== undefined) patch.intro_title = body.introTitle;
   if (body.lockState !== undefined) patch.lock_state = body.lockState;
-  if (body.backgroundImageUrl !== undefined) patch.background_image_url = body.backgroundImageUrl || null;
+  if (body.backgroundImageUrl !== undefined)
+    patch.background_image_url = body.backgroundImageUrl || null;
 
-  const updated = await updateChapterDoc(id, patch as Parameters<typeof updateChapterDoc>[1]);
+  const updated = await updateChapterDoc(
+    id,
+    patch as Parameters<typeof updateChapterDoc>[1],
+  );
   return chapterDocToModel(updated);
 }
 
 export async function adminDeleteChapter(id: number): Promise<void> {
   const deleted = await deleteChapterDoc(id);
-  if (!deleted) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+  if (!deleted)
+    throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
 }
 
 // ── Admin: Chapter detail + Scene CRUD ───────────────────────────────────────
 
 export async function adminGetChapter(id: number): Promise<Chapter> {
   const row = await findChapterById(id);
-  if (!row) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+  if (!row)
+    throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
   return {
     id: row.id,
     title: row.title,
     introTitle: row.intro_title,
-    ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
+    ...(row.background_image_url
+      ? { backgroundImageUrl: row.background_image_url }
+      : {}),
     lockState: row.lock_state,
     progress: "not-started",
     scenes: [],
   };
 }
 
-function sceneDocToModel(doc: { id: string; chapter_id: number; idx: number; speaker_name: string; speaker_image_url?: string | null; text: string }): ChapterScene {
+function sceneDocToModel(doc: {
+  id: string;
+  chapter_id: number;
+  idx: number;
+  speaker_name: string;
+  speaker_image_url?: string | null;
+  text: string;
+}): ChapterScene {
   return {
     id: doc.id,
     index: doc.idx,
     speakerName: doc.speaker_name,
-    ...(doc.speaker_image_url ? { speakerImageUrl: doc.speaker_image_url } : {}),
+    ...(doc.speaker_image_url
+      ? { speakerImageUrl: doc.speaker_image_url }
+      : {}),
     text: doc.text,
   };
 }
 
-export async function adminListScenes(chapterId: number): Promise<ChapterScene[]> {
+export async function adminListScenes(
+  chapterId: number,
+): Promise<ChapterScene[]> {
   const rows = await listChapterScenesByChapterId(chapterId);
   return rows.map(sceneDocToModel);
 }
@@ -149,9 +179,16 @@ export interface CreateSceneRequest {
 
 export type UpdateSceneRequest = Partial<CreateSceneRequest>;
 
-export async function adminCreateScene(chapterId: number, body: CreateSceneRequest): Promise<ChapterScene> {
+export async function adminCreateScene(
+  chapterId: number,
+  body: CreateSceneRequest,
+): Promise<ChapterScene> {
   const chapter = await findChapterById(chapterId);
-  if (!chapter) throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${chapterId} not found`);
+  if (!chapter)
+    throw Errors.notFound(
+      "CHAPTER_NOT_FOUND",
+      `Chapter ${chapterId} not found`,
+    );
 
   const id = `scene-${uuidv4().slice(0, 8)}`;
   await insertChapterSceneDoc({
@@ -171,21 +208,30 @@ export async function adminCreateScene(chapterId: number, body: CreateSceneReque
   };
 }
 
-export async function adminUpdateScene(sceneId: string, body: UpdateSceneRequest): Promise<ChapterScene> {
+export async function adminUpdateScene(
+  sceneId: string,
+  body: UpdateSceneRequest,
+): Promise<ChapterScene> {
   const patch: Record<string, unknown> = {};
   if (body.idx !== undefined) patch.idx = body.idx;
   if (body.speakerName !== undefined) patch.speaker_name = body.speakerName;
-  if (body.speakerImageUrl !== undefined) patch.speaker_image_url = body.speakerImageUrl || null;
+  if (body.speakerImageUrl !== undefined)
+    patch.speaker_image_url = body.speakerImageUrl || null;
   if (body.text !== undefined) patch.text = body.text;
 
-  const updated = await updateChapterSceneDoc(sceneId, patch as Parameters<typeof updateChapterSceneDoc>[1]);
-  if (!updated) throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
+  const updated = await updateChapterSceneDoc(
+    sceneId,
+    patch as Parameters<typeof updateChapterSceneDoc>[1],
+  );
+  if (!updated)
+    throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
   return sceneDocToModel(updated);
 }
 
 export async function adminDeleteScene(sceneId: string): Promise<void> {
   const deleted = await deleteChapterSceneDoc(sceneId);
-  if (!deleted) throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
+  if (!deleted)
+    throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
 }
 
 // ── EBooks ────────────────────────────────────────────────────────────────────
@@ -211,16 +257,26 @@ export async function adminListEBooks(): Promise<EBookChapter[]> {
   }));
 }
 
-export async function adminCreateEBook(body: CreateEBookRequest): Promise<EBookChapter> {
+export async function adminCreateEBook(
+  body: CreateEBookRequest,
+): Promise<EBookChapter> {
   assertPdfUrl(body.pdfUrl);
   const existing = await listEBooksDocs();
   const maxSort = existing.reduce((m, e) => Math.max(m, e.sort_order), 0);
   const id = `ebk-${uuidv4().slice(0, 8)}`;
-  await insertEBookDoc({ id, title: body.title, pdf_url: body.pdfUrl, sort_order: maxSort + 1 });
+  await insertEBookDoc({
+    id,
+    title: body.title,
+    pdf_url: body.pdfUrl,
+    sort_order: maxSort + 1,
+  });
   return { id, title: body.title, pdfUrl: body.pdfUrl };
 }
 
-export async function adminUpdateEBook(id: string, body: UpdateEBookRequest): Promise<EBookChapter> {
+export async function adminUpdateEBook(
+  id: string,
+  body: UpdateEBookRequest,
+): Promise<EBookChapter> {
   const patch: Record<string, unknown> = {};
   if (body.title !== undefined) patch.title = body.title;
   if (body.pdfUrl !== undefined) {
@@ -228,21 +284,31 @@ export async function adminUpdateEBook(id: string, body: UpdateEBookRequest): Pr
     patch.pdf_url = body.pdfUrl;
   }
 
-  const updated = await updateEBookDoc(id, patch as Parameters<typeof updateEBookDoc>[1]);
-  if (!updated) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
+  const updated = await updateEBookDoc(
+    id,
+    patch as Parameters<typeof updateEBookDoc>[1],
+  );
+  if (!updated)
+    throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
   return { id: updated.id, title: updated.title, pdfUrl: updated.pdf_url };
 }
 
 export async function adminDeleteEBook(id: string): Promise<void> {
   const deleted = await deleteEBookDoc(id);
-  if (!deleted) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
+  if (!deleted)
+    throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
 }
 
-export async function adminReorderChapters(orderedIds: number[]): Promise<void> {
+export async function adminReorderChapters(
+  orderedIds: number[],
+): Promise<void> {
   await reorderChapterDocs(orderedIds);
 }
 
-export async function adminReorderChapterScenes(chapterId: number, orderedIds: string[]): Promise<void> {
+export async function adminReorderChapterScenes(
+  chapterId: number,
+  orderedIds: string[],
+): Promise<void> {
   await reorderChapterSceneDocs(chapterId, orderedIds);
 }
 
@@ -252,7 +318,9 @@ export async function adminReorderEBooks(orderedIds: string[]): Promise<void> {
 
 // ── Quiz Questions ────────────────────────────────────────────────────────────
 
-function questionDocToModel(row: NonNullable<Awaited<ReturnType<typeof findQuizQuestionById>>>): QuizQuestion {
+function questionDocToModel(
+  row: NonNullable<Awaited<ReturnType<typeof findQuizQuestionById>>>,
+): QuizQuestion {
   return {
     id: row.id,
     text: row.text,
@@ -273,9 +341,14 @@ function assertGender(value: unknown): asserts value is QuestionGender {
   }
 }
 
-export async function adminListQuestions(): Promise<Record<QuestionGender, QuizQuestion[]>> {
+export async function adminListQuestions(): Promise<
+  Record<QuestionGender, QuizQuestion[]>
+> {
   const rows = await listQuizQuestionsDocs();
-  const grouped: Record<QuestionGender, QuizQuestion[]> = { male: [], female: [] };
+  const grouped: Record<QuestionGender, QuizQuestion[]> = {
+    male: [],
+    female: [],
+  };
   for (const row of rows) {
     (grouped[row.gender] ??= []).push(questionDocToModel(row));
   }
@@ -284,7 +357,9 @@ export async function adminListQuestions(): Promise<Record<QuestionGender, QuizQ
   return grouped;
 }
 
-export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<QuizQuestion> {
+export async function adminCreateQuestion(
+  body: CreateQuestionRequest,
+): Promise<QuizQuestion> {
   assertGender(body.gender);
   const existing = await listQuizQuestionsByGender(body.gender);
   const maxSort = existing.reduce((m, q) => Math.max(m, q.sort_order), 0);
@@ -306,27 +381,39 @@ export async function adminCreateQuestion(body: CreateQuestionRequest): Promise<
   return questionDocToModel(saved);
 }
 
-export async function adminUpdateQuestion(id: string, body: UpdateQuestionRequest): Promise<QuizQuestion> {
+export async function adminUpdateQuestion(
+  id: string,
+  body: UpdateQuestionRequest,
+): Promise<QuizQuestion> {
   const patch: Record<string, unknown> = {};
   if (body.text !== undefined) patch.text = body.text;
   if (body.optionA !== undefined) patch.option_a = body.optionA;
   if (body.optionB !== undefined) patch.option_b = body.optionB;
   if (body.optionC !== undefined) patch.option_c = body.optionC;
   if (body.optionD !== undefined) patch.option_d = body.optionD;
-  if (body.correctAnswer !== undefined) patch.correct_answer = body.correctAnswer;
+  if (body.correctAnswer !== undefined)
+    patch.correct_answer = body.correctAnswer;
   if (body.explanation !== undefined) patch.explanation = body.explanation;
 
-  const updated = await updateQuizQuestionDoc(id, patch as Parameters<typeof updateQuizQuestionDoc>[1]);
-  if (!updated) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+  const updated = await updateQuizQuestionDoc(
+    id,
+    patch as Parameters<typeof updateQuizQuestionDoc>[1],
+  );
+  if (!updated)
+    throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
   return questionDocToModel(updated);
 }
 
 export async function adminDeleteQuestion(id: string): Promise<void> {
   const deleted = await deleteQuizQuestionDoc(id);
-  if (!deleted) throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
+  if (!deleted)
+    throw Errors.notFound("QUESTION_NOT_FOUND", `Question ${id} not found`);
 }
 
-export async function adminReorderQuestions(gender: QuestionGender, orderedIds: string[]): Promise<void> {
+export async function adminReorderQuestions(
+  gender: QuestionGender,
+  orderedIds: string[],
+): Promise<void> {
   assertGender(gender);
   const existing = await listQuizQuestionsByGender(gender);
   const existingIds = existing.map((q) => q.id);
@@ -336,7 +423,9 @@ export async function adminReorderQuestions(gender: QuestionGender, orderedIds: 
     unique.size === orderedIds.length &&
     existingIds.every((id) => unique.has(id));
   if (!isPermutation) {
-    throw Errors.validation("Reorder payload must be a permutation of the set's question ids");
+    throw Errors.validation(
+      "Reorder payload must be a permutation of the set's question ids",
+    );
   }
   await reorderQuizQuestionDocs(orderedIds);
 }
@@ -359,7 +448,21 @@ export interface CreateVideoClipRequest {
 
 export type UpdateVideoClipRequest = Partial<CreateVideoClipRequest>;
 
-function clipDocToModel(doc: { id: string; caption: string; source_url: string; thumbnail_url?: string | null; sort_order: number }): VideoClipModel {
+function assertSupportedVideoUrl(sourceUrl: string): void {
+  if (!isSupportedVideoUrl(sourceUrl)) {
+    throw Errors.validation(
+      "`sourceUrl` must be a supported YouTube or Google Drive video URL",
+    );
+  }
+}
+
+function clipDocToModel(doc: {
+  id: string;
+  caption: string;
+  source_url: string;
+  thumbnail_url?: string | null;
+  sort_order: number;
+}): VideoClipModel {
   return {
     id: doc.id,
     caption: doc.caption,
@@ -374,7 +477,10 @@ export async function adminListVideoClips(): Promise<VideoClipModel[]> {
   return rows.map(clipDocToModel);
 }
 
-export async function adminCreateVideoClip(body: CreateVideoClipRequest): Promise<VideoClipModel> {
+export async function adminCreateVideoClip(
+  body: CreateVideoClipRequest,
+): Promise<VideoClipModel> {
+  assertSupportedVideoUrl(body.sourceUrl);
   const rows = await listVideoClipsDocs();
   const sortOrder = rows.length + 1;
   const id = `clip-${uuidv4().slice(0, 8)}`;
@@ -390,23 +496,37 @@ export async function adminCreateVideoClip(body: CreateVideoClipRequest): Promis
   return clipDocToModel(saved);
 }
 
-export async function adminUpdateVideoClip(id: string, body: UpdateVideoClipRequest): Promise<VideoClipModel> {
+export async function adminUpdateVideoClip(
+  id: string,
+  body: UpdateVideoClipRequest,
+): Promise<VideoClipModel> {
   const patch: Record<string, unknown> = {};
   if (body.caption !== undefined) patch.caption = body.caption;
-  if (body.sourceUrl !== undefined) patch.source_url = body.sourceUrl;
-  if (body.thumbnailUrl !== undefined) patch.thumbnail_url = body.thumbnailUrl || null;
+  if (body.sourceUrl !== undefined) {
+    assertSupportedVideoUrl(body.sourceUrl);
+    patch.source_url = body.sourceUrl;
+  }
+  if (body.thumbnailUrl !== undefined)
+    patch.thumbnail_url = body.thumbnailUrl || null;
 
-  const updated = await updateVideoClipDoc(id, patch as Parameters<typeof updateVideoClipDoc>[1]);
-  if (!updated) throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
+  const updated = await updateVideoClipDoc(
+    id,
+    patch as Parameters<typeof updateVideoClipDoc>[1],
+  );
+  if (!updated)
+    throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
   return clipDocToModel(updated);
 }
 
 export async function adminDeleteVideoClip(id: string): Promise<void> {
   const deleted = await deleteVideoClipDoc(id);
-  if (!deleted) throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
+  if (!deleted)
+    throw Errors.notFound("CLIP_NOT_FOUND", `Video clip ${id} not found`);
 }
 
-export async function adminReorderVideoClips(orderedIds: string[]): Promise<void> {
+export async function adminReorderVideoClips(
+  orderedIds: string[],
+): Promise<void> {
   await reorderVideoClipDocs(orderedIds);
 }
 
@@ -431,9 +551,16 @@ export async function adminListUsers(): Promise<UserSummary[]> {
   }));
 }
 
-export async function adminChangeUserRole(userId: string, role: "user" | "admin"): Promise<UserSummary> {
-  const updated = await updateUserDoc(userId, { role, updated_at: new Date().toISOString() });
-  if (!updated) throw Errors.notFound("USER_NOT_FOUND", `User ${userId} not found`);
+export async function adminChangeUserRole(
+  userId: string,
+  role: "user" | "admin",
+): Promise<UserSummary> {
+  const updated = await updateUserDoc(userId, {
+    role,
+    updated_at: new Date().toISOString(),
+  });
+  if (!updated)
+    throw Errors.notFound("USER_NOT_FOUND", `User ${userId} not found`);
   return {
     id: updated.id,
     name: updated.name,

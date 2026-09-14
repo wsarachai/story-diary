@@ -30,9 +30,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { isSupportedVideoUrl } from "@/lib/videoEmbed";
 import styles from "@/components/Admin.module.css";
 
-const EMPTY_FORM: CreateVideoClipRequest = { caption: "", sourceUrl: "", thumbnailUrl: "" };
+const EMPTY_FORM: CreateVideoClipRequest = {
+  caption: "",
+  sourceUrl: "",
+  thumbnailUrl: "",
+};
 
 function SortableRow({
   clip,
@@ -43,8 +48,14 @@ function SortableRow({
   onEdit: (clip: VideoClipModel) => void;
   onDelete: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: clip.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: clip.id });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -57,7 +68,15 @@ function SortableRow({
   return (
     <tr ref={setNodeRef} style={style}>
       <td>
-        <span {...attributes} {...listeners} style={{ display: "inline-flex", alignItems: "center", padding: "0 4px" }}>
+        <span
+          {...attributes}
+          {...listeners}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "0 4px",
+          }}
+        >
           <AdminDragHandle />
         </span>
       </td>
@@ -69,7 +88,14 @@ function SortableRow({
           target="_blank"
           rel="noopener noreferrer"
           className={styles.adminLink}
-          style={{ maxWidth: "280px", display: "inline-block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", verticalAlign: "bottom" }}
+          style={{
+            maxWidth: "280px",
+            display: "inline-block",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            verticalAlign: "bottom",
+          }}
         >
           {clip.sourceUrl}
         </a>
@@ -81,7 +107,14 @@ function SortableRow({
             target="_blank"
             rel="noopener noreferrer"
             className={styles.adminLink}
-            style={{ maxWidth: "180px", display: "inline-block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", verticalAlign: "bottom" }}
+            style={{
+              maxWidth: "180px",
+              display: "inline-block",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              verticalAlign: "bottom",
+            }}
           >
             {clip.thumbnailUrl}
           </a>
@@ -120,6 +153,7 @@ export default function AdminVideoClipsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateVideoClipRequest>(EMPTY_FORM);
+  const [sourceUrlError, setSourceUrlError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
   const clips: VideoClipModel[] = serverClips ?? [];
@@ -132,18 +166,26 @@ export default function AdminVideoClipsPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   function openCreate() {
     setEditId(null);
     setForm(EMPTY_FORM);
+    setSourceUrlError(null);
     setShowForm(true);
   }
 
   function openEdit(clip: VideoClipModel) {
     setEditId(clip.id);
-    setForm({ caption: clip.caption, sourceUrl: clip.sourceUrl, thumbnailUrl: clip.thumbnailUrl ?? "" });
+    setForm({
+      caption: clip.caption,
+      sourceUrl: clip.sourceUrl,
+      thumbnailUrl: clip.thumbnailUrl ?? "",
+    });
+    setSourceUrlError(null);
     setShowForm(true);
   }
 
@@ -151,10 +193,17 @@ export default function AdminVideoClipsPage() {
     setShowForm(false);
     setEditId(null);
     setForm(EMPTY_FORM);
+    setSourceUrlError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isSupportedVideoUrl(form.sourceUrl)) {
+      setSourceUrlError(
+        "รองรับเฉพาะลิงก์ YouTube หรือ Google Drive รูปแบบ file/d/.../view",
+      );
+      return;
+    }
     const payload = { ...form, thumbnailUrl: form.thumbnailUrl || undefined };
     if (editId !== null) {
       await updateVideoClip({ id: editId, body: payload });
@@ -191,18 +240,26 @@ export default function AdminVideoClipsPage() {
         <main className={styles.adminMain}>
           <div className={styles.adminPageHeader}>
             <h1 className={styles.adminPageTitle}>Video Clips</h1>
-            <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
+            <button
+              className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+              onClick={openCreate}
+            >
               + เพิ่มวิดีโอคลิป
             </button>
           </div>
 
           {reorderError && (
-            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+            <AdminErrorBanner
+              message={reorderError}
+              onDismiss={() => setReorderError(null)}
+            />
           )}
 
           {showForm && (
             <div className={styles.adminFormCard} ref={formRef}>
-              <h2>{editId !== null ? "แก้ไขวิดีโอคลิป" : "เพิ่มวิดีโอคลิปใหม่"}</h2>
+              <h2>
+                {editId !== null ? "แก้ไขวิดีโอคลิป" : "เพิ่มวิดีโอคลิปใหม่"}
+              </h2>
               <form onSubmit={handleSubmit}>
                 <div className={styles.adminFormGrid}>
                   <div className={styles.adminFormField}>
@@ -210,26 +267,40 @@ export default function AdminVideoClipsPage() {
                     <input
                       className={styles.adminInput}
                       value={form.caption}
-                      onChange={(e) => setForm({ ...form, caption: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, caption: e.target.value })
+                      }
                       required
                     />
                   </div>
                   <div className={styles.adminFormField}>
                     <label className={styles.adminLabel}>Source URL</label>
                     <input
-                      className={styles.adminInput}
+                      className={`${styles.adminInput} ${sourceUrlError ? styles.adminInputError : ""}`}
                       value={form.sourceUrl}
-                      onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
-                      placeholder="https://..."
+                      onChange={(e) => {
+                        setForm({ ...form, sourceUrl: e.target.value });
+                        if (sourceUrlError) setSourceUrlError(null);
+                      }}
+                      placeholder="https://drive.google.com/file/d/.../view"
                       required
                     />
+                    {sourceUrlError && (
+                      <span className={styles.adminFieldError}>
+                        {sourceUrlError}
+                      </span>
+                    )}
                   </div>
                   <div className={styles.adminFormField}>
-                    <label className={styles.adminLabel}>Thumbnail URL (optional)</label>
+                    <label className={styles.adminLabel}>
+                      Thumbnail URL (optional)
+                    </label>
                     <input
                       className={styles.adminInput}
                       value={form.thumbnailUrl ?? ""}
-                      onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, thumbnailUrl: e.target.value })
+                      }
                       placeholder="https://..."
                     />
                   </div>
@@ -242,7 +313,10 @@ export default function AdminVideoClipsPage() {
                   >
                     ยกเลิก
                   </button>
-                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
+                  <button
+                    type="submit"
+                    className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+                  >
                     {editId !== null ? "บันทึก" : "เพิ่ม"}
                   </button>
                 </div>
@@ -254,7 +328,11 @@ export default function AdminVideoClipsPage() {
             <div className={styles.adminSpinner} />
           ) : (
             <div className={styles.adminTableWrap}>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
                 <table className={styles.adminTable}>
                   <thead>
                     <tr>
@@ -266,7 +344,10 @@ export default function AdminVideoClipsPage() {
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <SortableContext items={clips.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                  <SortableContext
+                    items={clips.map((c) => c.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
                     <tbody>
                       {clips.map((clip) => (
                         <SortableRow
