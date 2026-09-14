@@ -27,7 +27,11 @@ import {
   useReorderQuestionsMutation,
   type CreateQuestionRequest,
 } from "@/store/adminApi";
-import type { QuizQuestion, AnswerLetter, QuestionGender } from "@/types/minigame";
+import type {
+  QuizQuestion,
+  AnswerLetter,
+  QuestionGender,
+} from "@/types/minigame";
 import styles from "@/components/Admin.module.css";
 
 type QuestionForm = Omit<CreateQuestionRequest, "gender">;
@@ -58,7 +62,14 @@ function SortableRow({
   onEdit: (q: QuizQuestion) => void;
   onDelete: (id: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: question.id,
   });
 
@@ -74,14 +85,28 @@ function SortableRow({
   return (
     <tr ref={setNodeRef} style={style}>
       <td style={{ width: 32 }}>
-        <span {...attributes} {...listeners} style={{ display: "inline-flex", alignItems: "center", padding: "0 4px" }}>
+        <span
+          {...attributes}
+          {...listeners}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "0 4px",
+          }}
+        >
           <AdminDragHandle />
         </span>
       </td>
       <td>{position}</td>
-      <td>{question.text.length > 60 ? question.text.slice(0, 60) + "…" : question.text}</td>
       <td>
-        <span className={`${styles.adminBadge} ${styles.adminBadgeGreen}`}>{question.correctAnswer}</span>
+        {question.text.length > 60
+          ? question.text.slice(0, 60) + "…"
+          : question.text}
+      </td>
+      <td>
+        <span className={`${styles.adminBadge} ${styles.adminBadgeGreen}`}>
+          {question.correctAnswer}
+        </span>
       </td>
       <td>
         <div className={styles.adminTableActions}>
@@ -114,6 +139,7 @@ export default function AdminMinigamePage() {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<QuestionForm>(EMPTY_FORM);
+  const [mutationError, setMutationError] = useState<string | null>(null);
   const [reorderError, setReorderError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -125,7 +151,9 @@ export default function AdminMinigamePage() {
     }
   }, [showForm]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -153,6 +181,7 @@ export default function AdminMinigamePage() {
   function openCreate() {
     setEditId(null);
     setForm(EMPTY_FORM);
+    setMutationError(null);
     setShowForm(true);
   }
 
@@ -167,6 +196,7 @@ export default function AdminMinigamePage() {
       optionD: q.options[3]?.text ?? "",
       explanation: q.explanation ?? "",
     });
+    setMutationError(null);
     setShowForm(true);
   }
 
@@ -174,21 +204,32 @@ export default function AdminMinigamePage() {
     setShowForm(false);
     setEditId(null);
     setForm(EMPTY_FORM);
+    setMutationError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (editId !== null) {
-      await updateQuestion({ id: editId, body: form });
-    } else {
-      await createQuestion({ ...form, gender: activeGender });
+    setMutationError(null);
+    try {
+      if (editId !== null) {
+        await updateQuestion({ id: editId, body: form }).unwrap();
+      } else {
+        await createQuestion({ ...form, gender: activeGender }).unwrap();
+      }
+      closeForm();
+    } catch {
+      setMutationError("บันทึกคำถามไม่สำเร็จ ลองอีกครั้ง");
     }
-    closeForm();
   }
 
   async function handleDelete(id: string) {
     if (!window.confirm("ลบคำถามนี้หรือไม่?")) return;
-    await deleteQuestion(id);
+    setMutationError(null);
+    try {
+      await deleteQuestion(id).unwrap();
+    } catch {
+      setMutationError("ลบคำถามไม่สำเร็จ ลองอีกครั้ง");
+    }
   }
 
   return (
@@ -198,12 +239,19 @@ export default function AdminMinigamePage() {
         <main className={styles.adminMain}>
           <div className={styles.adminPageHeader}>
             <h1 className={styles.adminPageTitle}>Minigame Questions</h1>
-            <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
+            <button
+              className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+              onClick={openCreate}
+            >
               + เพิ่มคำถาม
             </button>
           </div>
 
-          <div className={styles.adminTabRow} role="tablist" aria-label="ชุดคำถามตามเพศ">
+          <div
+            className={styles.adminTabRow}
+            role="tablist"
+            aria-label="ชุดคำถามตามเพศ"
+          >
             {GENDER_TABS.map(({ key, label }) => (
               <button
                 key={key}
@@ -219,7 +267,16 @@ export default function AdminMinigamePage() {
           </div>
 
           {reorderError && (
-            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+            <AdminErrorBanner
+              message={reorderError}
+              onDismiss={() => setReorderError(null)}
+            />
+          )}
+          {mutationError && (
+            <AdminErrorBanner
+              message={mutationError}
+              onDismiss={() => setMutationError(null)}
+            />
           )}
 
           {showForm && (
@@ -233,7 +290,10 @@ export default function AdminMinigamePage() {
                       className={styles.adminSelect}
                       value={form.correctAnswer}
                       onChange={(e) =>
-                        setForm({ ...form, correctAnswer: e.target.value as AnswerLetter })
+                        setForm({
+                          ...form,
+                          correctAnswer: e.target.value as AnswerLetter,
+                        })
                       }
                     >
                       <option value="A">A</option>
@@ -247,7 +307,9 @@ export default function AdminMinigamePage() {
                     <textarea
                       className={styles.adminTextarea}
                       value={form.text}
-                      onChange={(e) => setForm({ ...form, text: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, text: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -256,7 +318,9 @@ export default function AdminMinigamePage() {
                     <input
                       className={styles.adminInput}
                       value={form.optionA}
-                      onChange={(e) => setForm({ ...form, optionA: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, optionA: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -265,7 +329,9 @@ export default function AdminMinigamePage() {
                     <input
                       className={styles.adminInput}
                       value={form.optionB}
-                      onChange={(e) => setForm({ ...form, optionB: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, optionB: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -274,7 +340,9 @@ export default function AdminMinigamePage() {
                     <input
                       className={styles.adminInput}
                       value={form.optionC}
-                      onChange={(e) => setForm({ ...form, optionC: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, optionC: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -283,16 +351,22 @@ export default function AdminMinigamePage() {
                     <input
                       className={styles.adminInput}
                       value={form.optionD}
-                      onChange={(e) => setForm({ ...form, optionD: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, optionD: e.target.value })
+                      }
                       required
                     />
                   </div>
                   <div className={`${styles.adminFormField} ${styles.full}`}>
-                    <label className={styles.adminLabel}>Explanation (optional)</label>
+                    <label className={styles.adminLabel}>
+                      Explanation (optional)
+                    </label>
                     <textarea
                       className={styles.adminTextarea}
                       value={form.explanation ?? ""}
-                      onChange={(e) => setForm({ ...form, explanation: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, explanation: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -304,7 +378,10 @@ export default function AdminMinigamePage() {
                   >
                     ยกเลิก
                   </button>
-                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
+                  <button
+                    type="submit"
+                    className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+                  >
                     {editId !== null ? "บันทึก" : "เพิ่ม"}
                   </button>
                 </div>
@@ -316,7 +393,11 @@ export default function AdminMinigamePage() {
             <div className={styles.adminSpinner} />
           ) : (
             <div className={styles.adminTableWrap}>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
                 <table className={styles.adminTable}>
                   <thead>
                     <tr>
