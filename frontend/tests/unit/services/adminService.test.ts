@@ -144,6 +144,20 @@ describe("adminCreateEBook", () => {
     const books = await adminListEBooks();
     expect(books).toHaveLength(6);
   });
+
+  it("accepts a PDF URL with query parameters", async () => {
+    const book = await adminCreateEBook({
+      title: "Downloadable Book",
+      pdfUrl: "https://example.com/book.PDF?download=1",
+    });
+    expect(book.pdfUrl).toBe("https://example.com/book.PDF?download=1");
+  });
+
+  it("rejects a non-PDF URL", async () => {
+    await expect(
+      adminCreateEBook({ title: "Image", pdfUrl: "/images/cover.png" })
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
 });
 
 describe("adminUpdateEBook", () => {
@@ -152,6 +166,13 @@ describe("adminUpdateEBook", () => {
     const id = books[0].id;
     const updated = await adminUpdateEBook(id, { title: "Renamed" });
     expect(updated.title).toBe("Renamed");
+  });
+
+  it("rejects a non-PDF replacement URL", async () => {
+    const books = await adminListEBooks();
+    await expect(adminUpdateEBook(books[0].id, { pdfUrl: "/images/cover.png" })).rejects.toMatchObject({
+      statusCode: 400,
+    });
   });
 
   it("throws 404 for missing id", async () => {

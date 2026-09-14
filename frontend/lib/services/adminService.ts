@@ -190,6 +190,18 @@ export async function adminDeleteScene(sceneId: string): Promise<void> {
 
 // ── EBooks ────────────────────────────────────────────────────────────────────
 
+function assertPdfUrl(pdfUrl: string): void {
+  let pathname: string;
+  try {
+    pathname = new URL(pdfUrl, "https://story-diary.local").pathname;
+  } catch {
+    throw Errors.validation("`pdfUrl` must be a valid URL or absolute path");
+  }
+  if (!pathname.toLowerCase().endsWith(".pdf")) {
+    throw Errors.validation("`pdfUrl` must point to a PDF file");
+  }
+}
+
 export async function adminListEBooks(): Promise<EBookChapter[]> {
   const rows = await listEBooksDocs();
   return rows.map((row) => ({
@@ -200,6 +212,7 @@ export async function adminListEBooks(): Promise<EBookChapter[]> {
 }
 
 export async function adminCreateEBook(body: CreateEBookRequest): Promise<EBookChapter> {
+  assertPdfUrl(body.pdfUrl);
   const existing = await listEBooksDocs();
   const maxSort = existing.reduce((m, e) => Math.max(m, e.sort_order), 0);
   const id = `ebk-${uuidv4().slice(0, 8)}`;
@@ -210,7 +223,10 @@ export async function adminCreateEBook(body: CreateEBookRequest): Promise<EBookC
 export async function adminUpdateEBook(id: string, body: UpdateEBookRequest): Promise<EBookChapter> {
   const patch: Record<string, unknown> = {};
   if (body.title !== undefined) patch.title = body.title;
-  if (body.pdfUrl !== undefined) patch.pdf_url = body.pdfUrl;
+  if (body.pdfUrl !== undefined) {
+    assertPdfUrl(body.pdfUrl);
+    patch.pdf_url = body.pdfUrl;
+  }
 
   const updated = await updateEBookDoc(id, patch as Parameters<typeof updateEBookDoc>[1]);
   if (!updated) throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);

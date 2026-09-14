@@ -139,6 +139,11 @@ export default function AdminEBooksPage() {
       setPdfUrlError("URL ต้องขึ้นต้นด้วย http://, https:// หรือ /");
       return false;
     }
+    const pathname = new URL(url, window.location.origin).pathname;
+    if (!pathname.toLowerCase().endsWith(".pdf")) {
+      setPdfUrlError("ต้องเป็นลิงก์ไฟล์ PDF เท่านั้น");
+      return false;
+    }
     setPdfUrlError(null);
     return true;
   }
@@ -210,6 +215,7 @@ export default function AdminEBooksPage() {
                   <input
                     className={`${styles.adminInput} ${pdfUrlError ? styles.adminInputError : ""}`}
                     value={form.pdfUrl}
+                    placeholder="https://example.com/book.pdf"
                     onChange={(e) => {
                       setForm({ ...form, pdfUrl: e.target.value });
                       if (pdfUrlError) validatePdfUrl(e.target.value);
