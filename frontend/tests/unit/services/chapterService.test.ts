@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from "vitest";
-import { clearTestData } from "@/lib/db";
+import { clearTestData, deleteChapterDoc } from "@/lib/db";
 import {
   listChapters,
   getChapter,
@@ -47,6 +47,18 @@ describe("listChapters", () => {
     await setChapterProgress(USER, 1, "completed");
     const chapters = await listChapters(USER);
     expect(chapters[1].lockState).toBe("unlocked");
+  });
+
+  it("unlock derivation is gap-tolerant for legacy sort_order gaps", async () => {
+    // Simulate legacy data with a gap (db-level delete skips resequencing):
+    // remaining sort orders are 1, 2, 4, 5. Completing the chapter before the
+    // gap must still unlock the chapter after it — the old sort_order-1
+    // lookup left it permanently locked.
+    await deleteChapterDoc(3);
+    await setChapterProgress(USER, 2, "completed");
+    const chapters = await listChapters(USER);
+    expect(chapters.find((c) => c.id === 4)?.lockState).toBe("unlocked");
+    expect(chapters.find((c) => c.id === 5)?.lockState).toBe("locked");
   });
 });
 

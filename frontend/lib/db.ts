@@ -866,6 +866,38 @@ export async function findOccurrenceById(occurrenceId: string): Promise<HabitOcc
   return (await habitOccurrencesCollection().findOne({ id: occurrenceId })) ?? undefined;
 }
 
+/**
+ * Bulk form of upsertPendingOccurrence: materializes every (activity_id,
+ * date) pair in one bulkWrite, then reads them all back in one query. Used by
+ * the /habits/today hot path so a user with N activities costs a constant
+ * number of round trips instead of 2N sequential ones.
+ */
+export async function ensureOccurrencesBatch(docs: HabitOccurrenceDoc[]): Promise<HabitOccurrenceDoc[]> {
+  await initializeDatabase();
+  if (docs.length === 0) return [];
+  if (mode === "memory") {
+    return docs.map((doc) => {
+      const existing = memoryStore.habitOccurrences.find(
+        (row) => row.activity_id === doc.activity_id && row.date === doc.date
+      );
+      if (existing) return existing;
+      memoryStore.habitOccurrences.push({ ...doc });
+      return doc;
+    });
+  }
+  await habitOccurrencesCollection().bulkWrite(
+    docs.map((doc) => ({
+      updateOne: {
+        filter: { activity_id: doc.activity_id, date: doc.date },
+        update: { $setOnInsert: doc },
+        upsert: true,
+      },
+    }))
+  );
+  const pairs = docs.map((doc) => ({ activity_id: doc.activity_id, date: doc.date }));
+  return habitOccurrencesCollection().find({ $or: pairs }).toArray();
+}
+
 export async function updateOccurrence(occurrenceId: string, patch: Partial<HabitOccurrenceDoc>): Promise<HabitOccurrenceDoc | undefined> {
   await initializeDatabase();
   if (mode === "memory") {
@@ -897,6 +929,21 @@ export async function listOccurrencesByActivityAndDateRange(activityId: string, 
   ).toArray();
 }
 
+/** One query across many activities for a shared date range (plural form of the above). */
+export async function listOccurrencesByActivitiesAndDateRange(activityIds: string[], startDate: string, endDate: string): Promise<HabitOccurrenceDoc[]> {
+  await initializeDatabase();
+  if (activityIds.length === 0) return [];
+  if (mode === "memory") {
+    return memoryStore.habitOccurrences
+      .filter((occurrence) => activityIds.includes(occurrence.activity_id) && occurrence.date >= startDate && occurrence.date <= endDate)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return habitOccurrencesCollection().find(
+    { activity_id: { $in: activityIds }, date: { $gte: startDate, $lte: endDate } },
+    { sort: { date: 1 } }
+  ).toArray();
+}
+
 export async function findMedicineCheckinByOccurrence(occurrenceId: string): Promise<MedicineCheckinDoc | null> {
   await initializeDatabase();
   if (mode === "memory") {
@@ -911,6 +958,25 @@ export async function findNutritionCheckinByOccurrence(occurrenceId: string): Pr
     return memoryStore.nutritionCheckins.find((c) => c.occurrence_id === occurrenceId) ?? null;
   }
   return nutritionCheckinsCollection().findOne({ occurrence_id: occurrenceId });
+}
+
+/** One query across many occurrences (unique per occurrence_id). */
+export async function findMedicineCheckinsByOccurrenceIds(occurrenceIds: string[]): Promise<MedicineCheckinDoc[]> {
+  await initializeDatabase();
+  if (occurrenceIds.length === 0) return [];
+  if (mode === "memory") {
+    return memoryStore.medicineCheckins.filter((c) => occurrenceIds.includes(c.occurrence_id));
+  }
+  return medicineCheckinsCollection().find({ occurrence_id: { $in: occurrenceIds } }).toArray();
+}
+
+export async function findNutritionCheckinsByOccurrenceIds(occurrenceIds: string[]): Promise<NutritionCheckinDoc[]> {
+  await initializeDatabase();
+  if (occurrenceIds.length === 0) return [];
+  if (mode === "memory") {
+    return memoryStore.nutritionCheckins.filter((c) => occurrenceIds.includes(c.occurrence_id));
+  }
+  return nutritionCheckinsCollection().find({ occurrence_id: { $in: occurrenceIds } }).toArray();
 }
 
 export async function findSymptomsCheckinByOccurrence(occurrenceId: string): Promise<SymptomsCheckinDoc | null> {

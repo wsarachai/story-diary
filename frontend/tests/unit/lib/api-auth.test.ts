@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import { requireAuth } from "@/lib/api-auth";
 import { AppError } from "@/lib/errors";
 
-const SECRET = "story-diary-dev-secret";
+const SECRET = "unit-test-jwt-secret";
+process.env.JWT_SECRET = SECRET;
 
 function makeReq(authHeader?: string): Request {
   const headers = new Headers();

@@ -1,6 +1,8 @@
 "use client";
 
 import { useGetMonthlySummaryQuery } from "@/store/habitsApi";
+import { useGetMeQuery } from "@/store/authApi";
+import { localMonthStr } from "@/lib/utils/date";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import PageSpinner from "@/components/PageSpinner";
@@ -12,7 +14,8 @@ function ringDashOffset(percent: number): number {
 }
 
 export default function HabitSummaryPage() {
-  const month = new Date().toISOString().slice(0, 7);
+  const { data: me } = useGetMeQuery();
+  const month = localMonthStr(me?.timezone);
   const { data, isLoading: loading } = useGetMonthlySummaryQuery(month);
 
   const left = (

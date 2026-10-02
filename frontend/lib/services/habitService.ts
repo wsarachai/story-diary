@@ -6,6 +6,10 @@ import {
     findOccurrenceById,
     listHabitActivitiesByUser,
     listOccurrencesByActivityAndDateRange,
+    listOccurrencesByActivitiesAndDateRange,
+    ensureOccurrencesBatch,
+    findMedicineCheckinsByOccurrenceIds,
+    findNutritionCheckinsByOccurrenceIds,
     findMedicineCheckinByOccurrence,
     findNutritionCheckinByOccurrence,
     findSymptomsCheckinByOccurrence,
@@ -18,7 +22,6 @@ import {
     replaceSymptomsCheckin,
     updateHabitActivity as updateHabitActivityDoc,
     updateOccurrence,
-    upsertPendingOccurrence,
     insertHabitActivity,
     type HabitActivityDoc,
     type HabitOccurrenceDoc,
@@ -133,17 +136,6 @@ function isScheduledOnDate(activity: HabitActivity, date: string): boolean {
         default:
             return false;
     }
-}
-
-async function ensureOccurrence(activityId: string, date: string): Promise<HabitOccurrence> {
-    const saved = await upsertPendingOccurrence({
-        id: uuidv4(),
-        activity_id: activityId,
-        date,
-        status: "pending",
-        completed_at: null,
-    });
-    return rowToOccurrence(saved);
 }
 
 function accentForCategory(category: string): `#${string}` {
@@ -357,35 +349,100 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
     const rows = await listHabitActivitiesByUser(userId);
     const entries: TodayHabitEntry[] = [];
 
+    // First pass (no DB): decide which occurrences are needed. Appointments
+    // are not habit checkers: they carry a single occurrence keyed to their
+    // appointment date (not `date`), and stay in the list every day —
+    // upcoming or overdue — until attended (that occurrence is marked done)
+    // or deleted.
+    interface Needed { activity: HabitActivity; date: string; appointment: boolean }
+    const needed: Needed[] = [];
     for (const row of rows) {
         const activity = rowToActivity(row);
-
-        // Appointments are not habit checkers: they carry a single occurrence
-        // keyed to their appointment date (not `date`), and stay in the list
-        // every day — upcoming or overdue — until attended (that occurrence is
-        // marked done) or deleted.
         if (isAppointmentActivity(activity)) {
-            if (!activity.appointmentDate) continue;
-            const occurrence = await ensureOccurrence(activity.id, activity.appointmentDate);
+            if (activity.appointmentDate) {
+                needed.push({ activity, date: activity.appointmentDate, appointment: true });
+            }
+        } else if (isScheduledOnDate(activity, date)) {
+            needed.push({ activity, date, appointment: false });
+        }
+    }
+
+    // Materialize all occurrences in one bulkWrite + one read. The previous
+    // per-activity awaited loop cost 2 sequential round trips per activity on
+    // the hottest read endpoint.
+    const occurrenceDocs = await ensureOccurrencesBatch(
+        needed.map(({ activity, date: occDate }) => ({
+            id: uuidv4(),
+            activity_id: activity.id,
+            date: occDate,
+            status: "pending" as const,
+            completed_at: null,
+        }))
+    );
+    const occurrenceByKey = new Map(
+        occurrenceDocs.map((doc) => [`${doc.activity_id}|${doc.date}`, doc])
+    );
+    const occKey = (activityId: string, occDate: string) => `${activityId}|${occDate}`;
+
+    // Bulk-read the check-ins that decorate progress counters.
+    const scheduled = needed.filter((n) => !n.appointment);
+    const medicineOccIds = scheduled
+        .filter((n) => n.activity.category === "medicine" && n.activity.mealSlots && n.activity.mealSlots.length > 0)
+        .map((n) => occurrenceByKey.get(occKey(n.activity.id, n.date))!.id);
+    const nutritionOccIds = scheduled
+        .filter((n) => n.activity.category === "nutrition")
+        .map((n) => occurrenceByKey.get(occKey(n.activity.id, n.date))!.id);
+    const [medicineCheckins, nutritionCheckins] = await Promise.all([
+        findMedicineCheckinsByOccurrenceIds(medicineOccIds),
+        findNutritionCheckinsByOccurrenceIds(nutritionOccIds),
+    ]);
+    const medicineByOcc = new Map(medicineCheckins.map((c) => [c.occurrence_id, c]));
+    const nutritionByOcc = new Map(nutritionCheckins.map((c) => [c.occurrence_id, c]));
+
+    // Weekly/monthly physical activities track progress by the number of
+    // distinct days done in the current period (vs the days-per-period
+    // target), so the checklist icon reads "in progress" until the target
+    // is met instead of "complete" after a single check-in. Every weekly
+    // activity shares the same range (and every monthly one), so two range
+    // queries cover them all.
+    const weeklyIds = scheduled
+        .filter((n) => isPeriodCounterActivity(n.activity) && n.activity.schedule.frequency === "weekly")
+        .map((n) => n.activity.id);
+    const monthlyIds = scheduled
+        .filter((n) => isPeriodCounterActivity(n.activity) && n.activity.schedule.frequency === "monthly")
+        .map((n) => n.activity.id);
+    const [weekStart, weekEnd] = weekRangeFor(date);
+    const [monthStart, monthEnd] = monthRangeFor(date);
+    const [weeklyOccurrences, monthlyOccurrences] = await Promise.all([
+        listOccurrencesByActivitiesAndDateRange(weeklyIds, weekStart, weekEnd),
+        listOccurrencesByActivitiesAndDateRange(monthlyIds, monthStart, monthEnd),
+    ]);
+    const doneDaysByActivity = new Map<string, number>();
+    for (const doc of [...weeklyOccurrences, ...monthlyOccurrences]) {
+        if (doc.status === "done") {
+            doneDaysByActivity.set(doc.activity_id, (doneDaysByActivity.get(doc.activity_id) ?? 0) + 1);
+        }
+    }
+
+    for (const { activity, date: occDate, appointment } of needed) {
+        const occurrence = rowToOccurrence(occurrenceByKey.get(occKey(activity.id, occDate))!);
+
+        if (appointment) {
             if (occurrence.status === "done") continue;
             entries.push({
                 activity,
                 occurrence,
-                subline: formatThaiShortDate(activity.appointmentDate),
+                subline: formatThaiShortDate(activity.appointmentDate!),
                 accent: accentForCategory("appointment"),
             });
             continue;
         }
 
-        if (!isScheduledOnDate(activity, date)) continue;
-
-        const occurrence = await ensureOccurrence(activity.id, date);
-
         // Medicine with configured meals carries per-dose progress so the
         // checklist can render the tap counter + background fill without a
         // separate round-trip per row.
         if (activity.category === "medicine" && activity.mealSlots && activity.mealSlots.length > 0) {
-            const checkin = await findMedicineCheckinByOccurrence(occurrence.id);
+            const checkin = medicineByOcc.get(occurrence.id);
             const checked: MealSlot[] = checkin ? JSON.parse(checkin.meal_slots_json) : [];
             const taken = activity.mealSlots.filter((slot) => checked.includes(slot)).length;
             occurrence.doseProgress = { taken, total: activity.mealSlots.length };
@@ -394,28 +451,19 @@ export async function getTodayEntries(userId: string, date: string): Promise<Tod
         // Nutrition activities carry per-meal progress so the checklist can
         // render the tap counter + background fill without a separate round-trip.
         if (activity.category === "nutrition") {
-            const checkin = await findNutritionCheckinByOccurrence(occurrence.id);
+            const checkin = nutritionByOcc.get(occurrence.id);
             const slots: MealSlot[] = checkin?.meal_slots_json
                 ? JSON.parse(checkin.meal_slots_json)
                 : [];
             occurrence.doseProgress = { taken: slots.length, total: 3 };
         }
 
-        // Weekly/monthly physical activities track progress by the number of
-        // distinct days done in the current period (vs the days-per-period
-        // target), so the checklist icon reads "in progress" until the target
-        // is met instead of "complete" after a single check-in.
         const schedule = activity.schedule;
         if (isPeriodCounterActivity(activity) && (schedule.frequency === "weekly" || schedule.frequency === "monthly")) {
-            const [rangeStart, rangeEnd] = schedule.frequency === "weekly"
-                ? weekRangeFor(date)
-                : monthRangeFor(date);
-            const periodOccurrences = await listOccurrencesByActivityAndDateRange(activity.id, rangeStart, rangeEnd);
-            const doneDays = periodOccurrences.filter((o) => o.status === "done").length;
             const total = schedule.frequency === "weekly"
                 ? schedule.daysPerWeek
                 : schedule.daysPerMonth;
-            occurrence.doseProgress = { taken: doneDays, total };
+            occurrence.doseProgress = { taken: doneDaysByActivity.get(activity.id) ?? 0, total };
         }
 
         entries.push({

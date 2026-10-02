@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from "vitest";
-import { clearTestData } from "@/lib/db";
+import { clearTestData, listChaptersDocs } from "@/lib/db";
 import {
   adminListChapters,
   adminCreateChapter,
@@ -90,6 +90,19 @@ describe("adminCreateChapter", () => {
     });
     expect(ch2.id).toBeGreaterThan(ch1.id);
   });
+
+  it("assigns max+1 sort_order after a deletion instead of colliding", async () => {
+    await adminDeleteChapter(3);
+    const created = await adminCreateChapter({
+      title: "After Gap",
+      introTitle: "I",
+      lockState: "locked",
+    });
+    const rows = await listChaptersDocs();
+    const orders = rows.map((r) => r.sort_order).sort((a, b) => a - b);
+    expect(new Set(orders).size).toBe(orders.length);
+    expect(rows.find((r) => r.id === created.id)?.sort_order).toBe(5);
+  });
 });
 
 describe("adminUpdateChapter", () => {
@@ -120,6 +133,14 @@ describe("adminDeleteChapter", () => {
     const chapters = await adminListChapters();
     expect(chapters.some((c) => c.id === 1)).toBe(false);
     expect(chapters).toHaveLength(4);
+  });
+
+  it("resequences the remaining chapters to contiguous sort orders", async () => {
+    await adminDeleteChapter(2);
+    const rows = await listChaptersDocs();
+    const orders = rows.map((r) => r.sort_order).sort((a, b) => a - b);
+    expect(orders).toEqual([1, 2, 3, 4]);
+    expect(rows.find((r) => r.id === 3)?.sort_order).toBe(2);
   });
 
   it("throws 404 for non-existent chapter", async () => {

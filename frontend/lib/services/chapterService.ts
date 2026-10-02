@@ -4,7 +4,6 @@ import {
     listChapterScenesByChapterId,
     listChaptersDocs,
     upsertChapterProgress,
-    unlockNextChapterBySortOrder,
     listEBooksDocs,
     listVideoClipsDocs,
 } from "@/lib/db";
@@ -16,28 +15,32 @@ async function getProgress(userId: string, chapterId: number): Promise<ChapterPr
     return row?.progress ?? "not-started";
 }
 
-export async function listChapters(userId: string): Promise<ChapterSummary[]> {
-    const rows = await listChaptersDocs();
+/**
+ * Lock derivation, position-based: chapter N is unlocked when the chapter
+ * immediately before it (by sorted order) is completed. Matching the previous
+ * chapter by `sort_order - 1` (the old approach) strands every chapter after
+ * a gap — e.g. legacy rows left over from deletions.
+ */
+function deriveLockState(
+    storedLock: Chapter["lockState"],
+    prevProgress: ChapterProgressState | undefined,
+): Chapter["lockState"] {
+    if (prevProgress === undefined) return storedLock;
+    return prevProgress === "completed" ? "unlocked" : "locked";
+}
 
-    return Promise.all(rows.map(async (row) => {
-        let lockState = row.lock_state;
-        if (row.sort_order > 1) {
-            const prevRow = rows.find(r => r.sort_order === row.sort_order - 1);
-            if (prevRow) {
-                const prevProgress = await getProgress(userId, prevRow.id);
-                if (prevProgress === "completed") {
-                    lockState = "unlocked";
-                } else {
-                    lockState = "locked";
-                }
-            }
-        }
-        return {
-            id: row.id,
-            title: row.title,
-            lockState,
-            progress: await getProgress(userId, row.id),
-        };
+export async function listChapters(userId: string): Promise<ChapterSummary[]> {
+    const rows = (await listChaptersDocs()).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const progressById = new Map<number, ChapterProgressState>();
+    for (const row of rows) {
+        progressById.set(row.id, await getProgress(userId, row.id));
+    }
+
+    return rows.map((row, index) => ({
+        id: row.id,
+        title: row.title,
+        lockState: deriveLockState(row.lock_state, progressById.get(rows[index - 1]?.id ?? -1)),
+        progress: progressById.get(row.id) ?? "not-started",
     }));
 }
 
@@ -51,17 +54,11 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
     const scenes = await listChapterScenesByChapterId(chapterId);
 
     let lockState = row.lock_state;
-    if (row.sort_order > 1) {
-        const rows = await listChaptersDocs();
-        const prevRow = rows.find(r => r.sort_order === row.sort_order - 1);
-        if (prevRow) {
-            const prevProgress = await getProgress(userId, prevRow.id);
-            if (prevProgress === "completed") {
-                lockState = "unlocked";
-            } else {
-                lockState = "locked";
-            }
-        }
+    const rows = (await listChaptersDocs()).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const index = rows.findIndex((r) => r.id === row.id);
+    if (index > 0) {
+        const prevProgress = await getProgress(userId, rows[index - 1].id);
+        lockState = deriveLockState(row.lock_state, prevProgress);
     }
 
     return {

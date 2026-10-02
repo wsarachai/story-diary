@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveExerciseCheckinMutation, useGetExerciseCheckinQuery } from "@/store/habitsApi";
+import { useGetMeQuery } from "@/store/authApi";
+import { localDateStr } from "@/lib/utils/date";
 import styles from "../../../add/HabitAdd.module.css";
 
 interface State {
@@ -52,7 +54,8 @@ function ExerciseCheckinInner() {
     }
   }, [existingCheckin]);
 
-  const today = new Date().toISOString().split("T")[0];
+  const { data: me } = useGetMeQuery();
+  const today = localDateStr(me?.timezone);
 
   async function handleSave() {
     if (saving || !occId) return;

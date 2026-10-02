@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import { requireAdmin } from "@/lib/api-auth";
 import { clearTestData, insertUser } from "@/lib/db";
 
-const SECRET = "story-diary-dev-secret";
+const SECRET = "unit-test-jwt-secret";
+process.env.JWT_SECRET = SECRET;
 const ROOT_TEL = "0899999999";
 
 function makeReq(authHeader?: string): Request {

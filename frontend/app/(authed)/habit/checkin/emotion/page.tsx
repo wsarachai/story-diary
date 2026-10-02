@@ -7,6 +7,8 @@ import BookShellLayout from "@/components/BookShellLayout";
 import { DateShort } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
 import { useSaveMoodCheckinMutation, useGetTodayHabitsQuery, useGetMoodCheckinQuery } from "@/store/habitsApi";
+import { useGetMeQuery } from "@/store/authApi";
+import { localDateStr } from "@/lib/utils/date";
 import type { MoodLevel } from "@/types/habit";
 import styles from "../HabitCheckin.module.css";
 
@@ -34,7 +36,8 @@ function EmotionCheckinInner() {
   const occId = searchParams.get("occ") ?? "";
   const activityId = searchParams.get("actId") ?? "";
 
-  const today = new Date().toISOString().split("T")[0];
+  const { data: me } = useGetMeQuery();
+  const today = localDateStr(me?.timezone);
   const { data: todayData } = useGetTodayHabitsQuery(today);
   const activity = todayData?.activities[activityId];
 

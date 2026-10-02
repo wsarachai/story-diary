@@ -82,7 +82,10 @@ export async function adminCreateChapter(
 ): Promise<Chapter> {
   const id = await getNextChapterId();
   const rows = await listChaptersDocs();
-  const sortOrder = rows.length + 1;
+  // max+1, NOT rows.length+1: after any deletion the count-based value
+  // collides with an existing sort_order and breaks the prev-chapter lookup
+  // that drives unlocking.
+  const sortOrder = rows.reduce((max, r) => Math.max(max, r.sort_order), 0) + 1;
 
   await insertChapterDoc({
     id,
@@ -123,6 +126,11 @@ export async function adminDeleteChapter(id: number): Promise<void> {
   const deleted = await deleteChapterDoc(id);
   if (!deleted)
     throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${id} not found`);
+
+  // Resequence the survivors to 1..n: a gap would otherwise strand every
+  // chapter after it (unlock derivation walks sort_order − 1).
+  const remaining = await listChaptersDocs();
+  await reorderChapterDocs(remaining.map((row) => row.id));
 }
 
 // ── Admin: Chapter detail + Scene CRUD ───────────────────────────────────────
@@ -482,7 +490,9 @@ export async function adminCreateVideoClip(
 ): Promise<VideoClipModel> {
   assertSupportedVideoUrl(body.sourceUrl);
   const rows = await listVideoClipsDocs();
-  const sortOrder = rows.length + 1;
+  // max+1 for the same reason as chapters: count-based order collides after
+  // deletions and makes clip ordering unstable.
+  const sortOrder = rows.reduce((max, r) => Math.max(max, r.sort_order), 0) + 1;
   const id = `clip-${uuidv4().slice(0, 8)}`;
   await insertVideoClipDoc({
     id,

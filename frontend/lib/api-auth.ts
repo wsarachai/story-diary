@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { findUserById } from "@/lib/db";
 import { Errors } from "@/lib/errors";
 import { isAdmin, isRootAdmin } from "@/lib/roles";
+import { getJwtSecret } from "@/lib/services/authService";
 
 export function requireAuth(request: Request): string {
   let token: string | null = null;
@@ -22,7 +23,7 @@ export function requireAuth(request: Request): string {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET ?? "story-diary-dev-secret") as { userId: string };
+    const payload = jwt.verify(token, getJwtSecret()) as { userId: string };
     return payload.userId;
   } catch {
     throw Errors.unauthenticated();

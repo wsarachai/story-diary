@@ -6,24 +6,28 @@ import { useGetMeQuery } from "@/store/authApi";
 
 /**
  * Auth guard wrapper for the (authed) route group.
- * If status is "unauthenticated", redirects to /login with a `from=` param.
+ * Redirects to /login only when the session is truly gone: getMe fulfilled
+ * with no user, or rejected with a 401. Transient failures (network errors,
+ * 5xx) keep the page mounted rather than bouncing a signed-in user to /login.
  * If status is "unknown", shows nothing (probe is still in flight).
  */
 export default function AuthedShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: user, status, isFetching } = useGetMeQuery();
+  const { data: user, error, status, isFetching } = useGetMeQuery();
 
-  const isUnauthenticated = status === "rejected" || (status === "fulfilled" && !user);
+  const isUnauthorized =
+    (status === "fulfilled" && !user) ||
+    (status === "rejected" && error != null && "status" in error && error.status === 401);
   const isLoading = status === "pending" || isFetching;
 
   useEffect(() => {
-    if (isUnauthenticated) {
+    if (isUnauthorized) {
       router.replace(`/login?from=${encodeURIComponent(pathname)}`);
     }
-  }, [isUnauthenticated, pathname, router]);
+  }, [isUnauthorized, pathname, router]);
 
-  if (isLoading || isUnauthenticated) {
+  if (isLoading || isUnauthorized) {
     return null;
   }
 

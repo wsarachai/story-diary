@@ -2,6 +2,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import jwt from "jsonwebtoken";
 
+// signToken/requireAuth fail fast without a secret (no hardcoded fallback).
+process.env.JWT_SECRET ??= "unit-test-jwt-secret";
+
 // Mock bcrypt to avoid 12-round hashing overhead in unit tests.
 // hash stores "hashed:<plain>" so compare can verify it deterministically.
 vi.mock("bcrypt", () => {

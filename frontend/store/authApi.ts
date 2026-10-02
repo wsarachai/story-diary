@@ -34,7 +34,9 @@ export const authApi = apiSlice.injectEndpoints({
           dispatch(apiSlice.util.resetApiState());
           dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch {
-          localStorage.removeItem("auth_token");
+          // Keep any existing token: a mistyped password must not log out a
+          // user who is still signed in on this device. Stale tokens are
+          // cleared by getMe's 401 handling and by logout.
         }
       },
     }),
@@ -51,7 +53,7 @@ export const authApi = apiSlice.injectEndpoints({
           dispatch(apiSlice.util.resetApiState());
           dispatch(authApi.util.upsertQueryData("getMe", undefined, data.user));
         } catch {
-          localStorage.removeItem("auth_token");
+          // See login: never wipe an existing token on failure.
         }
       },
     }),

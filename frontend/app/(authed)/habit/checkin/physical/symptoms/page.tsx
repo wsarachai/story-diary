@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import IconRail from "@/components/IconRail";
 import BookShellLayout from "@/components/BookShellLayout";
 import { useSaveSymptomsCheckinMutation, useGetSymptomsCheckinQuery } from "@/store/habitsApi";
+import { useGetMeQuery } from "@/store/authApi";
+import { localDateStr } from "@/lib/utils/date";
 import type { SymptomCheck } from "@/types/habit";
 import styles from "../../../add/HabitAdd.module.css";
 import checkinStyles from "../../HabitCheckin.module.css";
@@ -71,7 +73,8 @@ function SymptomsCheckinInner() {
   }, [existingCheckin]);
 
   const dirty = state.dirty;
-  const today = new Date().toISOString().split("T")[0];
+  const { data: me } = useGetMeQuery();
+  const today = localDateStr(me?.timezone);
 
   async function handleSave() {
     if (saving || !occId) return;

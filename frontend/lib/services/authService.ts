@@ -130,8 +130,21 @@ export async function getUserTimezone(userId: string): Promise<string> {
     return row?.timezone ?? DEFAULT_TIMEZONE;
 }
 
+/**
+ * The JWT signing/verification secret. Fails fast when unset: a silent
+ * hardcoded fallback would let a misconfigured deployment accept tokens
+ * forged by anyone who reads the source.
+ */
+export function getJwtSecret(): string {
+    const secret = process.env.JWT_SECRET?.trim();
+    if (!secret) {
+        throw new Error("[story-diary] JWT_SECRET is not set — refusing to sign or verify tokens");
+    }
+    return secret;
+}
+
 export function signToken(userId: string): string {
-    return jwt.sign({ userId }, process.env.JWT_SECRET ?? "story-diary-dev-secret", { expiresIn: "7d" });
+    return jwt.sign({ userId }, getJwtSecret(), { expiresIn: "7d" });
 }
 
 export async function registerUser(input: RegisterRequest): Promise<UserProfile> {
