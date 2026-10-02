@@ -1,0 +1,17 @@
+# Never bake secrets or local state into the image (env is injected at runtime)
+.env*
+!.env.local.example
+
+node_modules
+.next
+coverage
+tests
+
+.git
+.gitignore
+.claude
+.vscode
+Dockerfile
+.dockerignore
+docker-compose*.yml
+*.md

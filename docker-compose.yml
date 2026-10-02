@@ -1,0 +1,12 @@
+services:
+  web:
+    build:
+      context: ./frontend
+    container_name: story-diary-web
+    ports:
+      - "3000:3000"
+    # Reuses the developer's frontend/.env.local (MONGODB_URI → Atlas, JWT_SECRET)
+    # so the local container sees the same data as production.
+    env_file:
+      - ./frontend/.env.local
+    restart: unless-stopped
