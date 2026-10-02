@@ -445,6 +445,32 @@ async function ensureMongoIndexes(): Promise<void> {
   ]);
 }
 
+/**
+ * Run a one-time seed/migration step at most once per database.
+ *
+ * These steps used to run on every `initializeDatabase()` — i.e. every
+ * serverless cold start — which resurrected admin-deleted reference rows
+ * (quiz questions, chapters, e-books, video clips) shortly after removal.
+ * The `seed_state` collection records finished steps; concurrent cold starts
+ * racing through the check are harmless because the underlying writes are
+ * idempotent ($setOnInsert upserts).
+ */
+interface SeedStateDoc {
+  _id: string;
+  completed_at: string;
+}
+
+async function runOncePerDatabase(step: string, fn: () => Promise<void>): Promise<void> {
+  const state = requireMongoDb().collection<SeedStateDoc>("seed_state");
+  if (await state.findOne({ _id: step })) return;
+  await fn();
+  await state.updateOne(
+    { _id: step },
+    { $set: { completed_at: new Date().toISOString() } },
+    { upsert: true }
+  );
+}
+
 async function seedMongoReferenceData(): Promise<void> {
   await Promise.all([
     chaptersCollection().bulkWrite(
@@ -499,7 +525,8 @@ async function seedMongoReferenceData(): Promise<void> {
  * One-time, idempotent migration for the per-gender quiz split. Legacy
  * questions (no `gender`) are assigned to the male set; if the female set is
  * still empty it is cloned from the current male set (preserving any admin
- * edits). Safe to run on every startup — a no-op once both sets exist.
+ * edits). No-op once both sets exist; gated to run once per database by
+ * `runOncePerDatabase` so emptying a set via the admin UI is respected.
  */
 async function backfillQuizQuestionGenders(): Promise<void> {
   const col = quizQuestionsCollection();
@@ -541,8 +568,8 @@ export async function initializeDatabase(): Promise<void> {
   await mongoClient.connect();
   mongoDb = mongoClient.db(getMongoDatabaseName());
   await ensureMongoIndexes();
-  await seedMongoReferenceData();
-  await backfillQuizQuestionGenders();
+  await runOncePerDatabase("reference-data", seedMongoReferenceData);
+  await runOncePerDatabase("quiz-gender-backfill", backfillQuizQuestionGenders);
   initialized = true;
 }
 

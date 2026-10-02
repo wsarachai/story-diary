@@ -52,8 +52,8 @@ describe("mongo-mode smoke: golden flow", () => {
   let occurrenceId = "";
 
   // Clear any user data left by a previous run so re-runs against the same
-  // (in-process) mongod start clean. Reference data (chapters/quiz) is re-seeded
-  // idempotently by initializeDatabase.
+  // (in-process) mongod start clean. Reference data (chapters/quiz) is seeded
+  // on the first init — once per database, gated by the seed_state collection.
   beforeAll(async () => {
     const { initializeDatabase, clearUserDataForTesting } = await import("@/lib/db");
     await initializeDatabase();
