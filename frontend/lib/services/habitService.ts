@@ -49,6 +49,7 @@ import type {
     PhysicalPresetKey,
 } from "@/types/habit";
 import { NUTRITION_PRESETS, PHYSICAL_PRESET_CATEGORY } from "@/types/habit";
+import { localDateStr } from "@/lib/utils/date";
 
 function isNutritionPresetKey(value: unknown): value is NutritionPresetKey {
     return typeof value === "string" && value in NUTRITION_PRESETS;
@@ -113,7 +114,17 @@ function rowToOccurrence(row: HabitOccurrenceDoc): HabitOccurrence {
         date: row.date,
         status: row.status,
         ...(row.completed_at ? { completedAt: row.completed_at } : {}),
+        ...(row.recorded_by ? { recordedByAdmin: true, ...(row.recorded_at ? { recordedAt: row.recorded_at } : {}) } : {}),
     };
+}
+
+/**
+ * Status patch for a check-in the user makes themselves. Clears any earlier
+ * admin attribution so the "recorded by admin" tag only marks days the admin
+ * actually filled in.
+ */
+function selfRecordedPatch(status: HabitOccurrenceStatus, now: string): Partial<HabitOccurrenceDoc> {
+    return { status, completed_at: status === "done" ? now : null, recorded_by: null, recorded_at: null };
 }
 
 function normalizeActivityName(name: string): string {
@@ -633,10 +644,7 @@ export async function toggleOccurrence(
 ): Promise<HabitOccurrence> {
     await getOwnedOccurrenceDoc(userId, occurrenceId);
 
-    const updated = await updateOccurrence(occurrenceId, {
-        status,
-        completed_at: status === "done" ? new Date().toISOString() : null,
-    });
+    const updated = await updateOccurrence(occurrenceId, selfRecordedPatch(status, new Date().toISOString()));
 
     if (!updated) {
         throw Errors.notFound("VALIDATION_ERROR", "Occurrence not found");
@@ -720,10 +728,7 @@ export async function saveMedicineCheckin(userId: string, data: MedicineCheckin)
             side_effect_note: data.sideEffectNote ?? null,
             created_at: now,
         }),
-        updateOccurrence(data.occurrenceId, {
-            status,
-            completed_at: status === "done" ? now : null,
-        }),
+        updateOccurrence(data.occurrenceId, selfRecordedPatch(status, now)),
     ]);
 }
 
@@ -762,10 +767,7 @@ export async function saveNutritionCheckin(userId: string, data: NutritionChecki
             meal_slots_json: JSON.stringify(data.mealSlots ?? []),
             created_at: now,
         }),
-        updateOccurrence(data.occurrenceId, {
-            status,
-            completed_at: status === "done" ? now : null,
-        }),
+        updateOccurrence(data.occurrenceId, selfRecordedPatch(status, now)),
     ]);
 }
 
@@ -780,7 +782,7 @@ export async function saveSymptomsCheckin(userId: string, data: UnusualSymptomsC
             items_json: JSON.stringify(data.items),
             created_at: now,
         }),
-        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+        updateOccurrence(data.occurrenceId, selfRecordedPatch("done", now)),
     ]);
 }
 
@@ -797,7 +799,7 @@ export async function saveMoodCheckin(userId: string, data: MoodCheckin): Promis
             note: data.note ?? null,
             created_at: now,
         }),
-        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+        updateOccurrence(data.occurrenceId, selfRecordedPatch("done", now)),
     ]);
 }
 
@@ -824,7 +826,7 @@ export async function saveExerciseCheckin(userId: string, data: ExerciseCheckin)
             duration_minutes: data.durationMinutes ?? null,
             created_at: now,
         }),
-        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+        updateOccurrence(data.occurrenceId, selfRecordedPatch("done", now)),
     ]);
 }
 
@@ -940,4 +942,98 @@ export async function getMonthlySummary(
             completionPercent: overallTarget > 0 ? Math.min(100, Math.round((overallDone / overallTarget) * 100)) : 0,
         },
     };
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Admin: record a day on the user's behalf (e.g. the user forgot to log it)
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/** Statuses an admin can set; partial meal counts stay a user-side action. */
+export type AdminRecordStatus = "done" | "skipped" | "pending";
+
+/**
+ * Every activity the user had scheduled on `date`, with that day's occurrence.
+ * Unlike getTodayEntries, appointments appear only on their own date (and
+ * stay listed once attended), and activities created after `date` — in the
+ * user's timezone — are left out so no occurrences are invented for days the
+ * activity didn't exist yet.
+ */
+export async function getEntriesForDate(userId: string, date: string, timezone: string): Promise<TodayHabitEntry[]> {
+    const activities = (await listHabitActivitiesByUser(userId))
+        .map(rowToActivity)
+        .filter((a) => localDateStr(timezone, new Date(a.createdAt)) <= date)
+        .filter((a) => isAppointmentActivity(a) ? a.appointmentDate === date : isScheduledOnDate(a, date));
+
+    const docs = await ensureOccurrencesBatch(activities.map((a) => ({
+        id: uuidv4(),
+        activity_id: a.id,
+        date,
+        status: "pending" as const,
+        completed_at: null,
+    })));
+    const byActivity = new Map(docs.map((d) => [d.activity_id, d]));
+
+    return activities.map((activity) => ({
+        activity,
+        occurrence: rowToOccurrence(byActivity.get(activity.id)!),
+        subline: isAppointmentActivity(activity) ? formatThaiShortDate(activity.appointmentDate!) : buildSubline(activity),
+        accent: accentForCategory(isAppointmentActivity(activity) ? "appointment" : activity.category),
+    }));
+}
+
+/**
+ * Set one of `userId`'s occurrences on their behalf. Meal-tracked activities
+ * (nutrition, medicine with meal slots) get their meal check-in filled or
+ * cleared too, so the checklist counter and the period totals agree; existing
+ * meal notes and side effects are kept. The occurrence is attributed to the
+ * admin (recorded_by / recorded_at).
+ */
+export async function recordOccurrenceOnBehalf(
+    adminId: string,
+    userId: string,
+    occurrenceId: string,
+    status: AdminRecordStatus
+): Promise<HabitOccurrence> {
+    const { activity } = await getOwnedOccurrenceDoc(userId, occurrenceId);
+    const now = new Date().toISOString();
+
+    if (status !== "skipped" && activity.category === "nutrition") {
+        const existing = await findNutritionCheckinByOccurrence(occurrenceId);
+        await replaceNutritionCheckin({
+            id: existing?.id ?? uuidv4(),
+            occurrence_id: occurrenceId,
+            activity_name: existing?.activity_name ?? activity.name,
+            breakfast: existing?.breakfast ?? "",
+            lunch: existing?.lunch ?? "",
+            dinner: existing?.dinner ?? "",
+            meal_slots_json: JSON.stringify(status === "done" ? NUTRITION_MEALS : []),
+            created_at: now,
+        });
+    }
+
+    const configSlots: MealSlot[] = activity.meal_slots_json ? JSON.parse(activity.meal_slots_json) : [];
+    if (status !== "skipped" && activity.category === "medicine" && configSlots.length > 0) {
+        const existing = await findMedicineCheckinByOccurrence(occurrenceId);
+        await replaceMedicineCheckin({
+            id: existing?.id ?? uuidv4(),
+            occurrence_id: occurrenceId,
+            medicine_name: existing?.medicine_name ?? activity.name,
+            meal_relation: existing?.meal_relation ?? activity.meal_relation ?? "after",
+            meal_slots_json: JSON.stringify(status === "done" ? configSlots : []),
+            side_effects_json: existing?.side_effects_json ?? "[]",
+            side_effect_note: existing?.side_effect_note ?? null,
+            created_at: now,
+        });
+    }
+
+    const updated = await updateOccurrence(occurrenceId, {
+        status,
+        completed_at: status === "done" ? now : null,
+        recorded_by: adminId,
+        recorded_at: now,
+    });
+    if (!updated) {
+        throw Errors.notFound("VALIDATION_ERROR", "Occurrence not found");
+    }
+    return rowToOccurrence(updated);
 }

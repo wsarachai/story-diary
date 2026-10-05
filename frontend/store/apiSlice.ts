@@ -29,6 +29,7 @@ export const apiSlice = createApi({
     "AdminQuestions",
     "AdminUsers",
     "AdminVideoClips",
+    "AdminHabitRecords",
   ],
   endpoints: () => ({}),
 });

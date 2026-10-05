@@ -82,6 +82,9 @@ export interface HabitOccurrenceDoc {
   date: string;
   status: "pending" | "partial" | "done" | "skipped";
   completed_at?: string | null;
+  /** Admin user id when an admin recorded this day on the user's behalf; cleared when the user records it themselves. */
+  recorded_by?: string | null;
+  recorded_at?: string | null;
 }
 
 export interface QuizQuestionDoc {

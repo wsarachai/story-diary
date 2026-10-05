@@ -98,6 +98,23 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
       <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
     </svg>
   ),
+  "Habit Records": (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ width: "1em", height: "1em", flexShrink: 0 }}
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <polyline points="9 16 11 18 15 14" />
+    </svg>
+  ),
   Home: (
     <svg
       viewBox="0 0 24 24"
@@ -120,6 +137,7 @@ const BASE_NAV_ITEMS = [
   { label: "E-Books", href: "/admin/e-books" },
   { label: "Minigame", href: "/admin/minigame" },
   { label: "Video Clips", href: "/admin/video-clips" },
+  { label: "Habit Records", href: "/admin/habit-records" },
   { label: "Users", href: "/admin/users", rootAdminOnly: true },
   { label: "Home", href: "/home" },
 ];

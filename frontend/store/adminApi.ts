@@ -2,9 +2,20 @@ import { apiSlice } from "./apiSlice";
 import type { Chapter, ChapterSummary, ChapterLockState, ChapterScene } from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, AnswerLetter, QuestionGender } from "@/types/minigame";
-import type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest } from "@/lib/services/adminService";
+import type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest, HabitRecordUser } from "@/lib/services/adminService";
+import type { AdminRecordStatus } from "@/lib/services/habitService";
+import type { HabitOccurrence, TodayHabitEntry } from "@/types/habit";
 
 export type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest };
+export type { HabitRecordUser, AdminRecordStatus };
+
+/** One user-day as seen by the admin "record on behalf" page. */
+export interface HabitRecordDay {
+  date: string;
+  /** The user's own today (their timezone); later dates are not recordable. */
+  today: string;
+  entries: TodayHabitEntry[];
+}
 
 // ── Chapter admin payloads ──────────────────────────────────────────────────
 
@@ -291,6 +302,52 @@ export const adminApi = apiSlice.injectEndpoints({
       },
     }),
 
+    // Habit records on a user's behalf (admin + rootAdmin)
+    getHabitRecordUsers: builder.query<HabitRecordUser[], void>({
+      query: () => "/admin/habit-records/users",
+      transformResponse: (res: { users: HabitRecordUser[] }) => res.users,
+      providesTags: [{ type: "AdminHabitRecords", id: "USERS" }],
+    }),
+    getHabitRecordDay: builder.query<HabitRecordDay, { userId: string; date: string }>({
+      query: ({ userId, date }) => `/admin/habit-records?userId=${encodeURIComponent(userId)}&date=${date}`,
+      providesTags: (result, error, { userId, date }) => [{ type: "AdminHabitRecords", id: `${userId}|${date}` }],
+    }),
+    recordHabitForUser: builder.mutation<
+      HabitOccurrence,
+      { userId: string; date: string; occurrenceId: string; status: AdminRecordStatus }
+    >({
+      query: ({ userId, occurrenceId, status }) => ({
+        url: `/admin/habit-records/${occurrenceId}`,
+        method: "PUT",
+        body: { userId, status },
+      }),
+      transformResponse: (res: { occurrence: HabitOccurrence }) => res.occurrence,
+      // The admin may also be viewing their own tracker in this session.
+      invalidatesTags: (result, error, { userId, date }) => [
+        { type: "AdminHabitRecords", id: `${userId}|${date}` },
+        "HabitToday",
+        "HabitWeekly",
+        "HabitMonthly",
+        "HabitMonthlySummary",
+      ],
+      async onQueryStarted({ userId, date, occurrenceId, status }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          adminApi.util.updateQueryData("getHabitRecordDay", { userId, date }, (draft) => {
+            const entry = draft.entries.find((e) => e.occurrence.id === occurrenceId);
+            if (entry) {
+              entry.occurrence.status = status;
+              entry.occurrence.recordedByAdmin = true;
+            }
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+
     // Users (rootAdmin only)
     getAdminUsers: builder.query<UserSummary[], void>({
       query: () => "/admin/users",
@@ -464,6 +521,9 @@ export const {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
   useGetAdminUsersQuery,
+  useGetHabitRecordUsersQuery,
+  useGetHabitRecordDayQuery,
+  useRecordHabitForUserMutation,
   useChangeUserRoleMutation,
   useGetAdminVideoClipsQuery,
   useCreateVideoClipMutation,

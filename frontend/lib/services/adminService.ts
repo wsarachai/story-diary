@@ -22,6 +22,8 @@ import {
   updateChapterSceneDoc,
   deleteChapterSceneDoc,
   listAllUsers,
+  findUserById,
+  findOccurrenceById,
   updateUserDoc,
   listVideoClipsDocs,
   findVideoClipById,
@@ -34,6 +36,9 @@ import {
   reorderEBookDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { getEntriesForDate, recordOccurrenceOnBehalf, type AdminRecordStatus } from "@/lib/services/habitService";
+import { DEFAULT_TIMEZONE, localDateStr } from "@/lib/utils/date";
+import type { HabitOccurrence, TodayHabitEntry } from "@/types/habit";
 import { resolveRole } from "@/lib/roles";
 import { isSupportedVideoUrl } from "@/lib/videoEmbed";
 import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
@@ -594,4 +599,66 @@ export async function adminChangeUserRole(
     role: updated.role === "admin" ? "admin" : "user",
     createdAt: updated.created_at,
   };
+}
+
+// ── Habit records on a user's behalf (admin + rootAdmin) ────────────────────
+
+export interface HabitRecordUser {
+  id: string;
+  name: string;
+  tel: string;
+}
+
+/** Users an admin can record habits for (no role details — that page is rootAdmin-only). */
+export async function adminListHabitUsers(): Promise<HabitRecordUser[]> {
+  const rows = await listAllUsers();
+  return rows
+    .map((row) => ({ id: row.id, name: row.name, tel: row.tel }))
+    .sort((a, b) => a.name.localeCompare(b.name, "th"));
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ADMIN_RECORD_STATUSES: AdminRecordStatus[] = ["done", "skipped", "pending"];
+
+/** The user's "today" in their own timezone; 404s for unknown users. */
+async function userToday(userId: string): Promise<string> {
+  const user = await findUserById(userId);
+  if (!user) throw Errors.notFound("USER_NOT_FOUND", `User ${userId} not found`);
+  return localDateStr(user.timezone ?? DEFAULT_TIMEZONE);
+}
+
+function assertRecordableDate(date: string, today: string): void {
+  const valid = ISO_DATE.test(date) && !Number.isNaN(new Date(`${date}T00:00:00Z`).getTime())
+    && new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
+  if (!valid) throw Errors.validation("`date` must be a YYYY-MM-DD calendar date");
+  if (date > today) throw Errors.validation("Cannot record habits for a future date");
+}
+
+export async function adminGetHabitDay(
+  userId: string,
+  date: string,
+): Promise<{ date: string; today: string; entries: TodayHabitEntry[] }> {
+  const user = await findUserById(userId);
+  if (!user) throw Errors.notFound("USER_NOT_FOUND", `User ${userId} not found`);
+  const timezone = user.timezone ?? DEFAULT_TIMEZONE;
+  const today = localDateStr(timezone);
+  assertRecordableDate(date, today);
+  const entries = await getEntriesForDate(userId, date, timezone);
+  return { date, today, entries };
+}
+
+export async function adminRecordHabit(
+  adminId: string,
+  userId: string,
+  occurrenceId: string,
+  status: unknown,
+): Promise<HabitOccurrence> {
+  if (!ADMIN_RECORD_STATUSES.includes(status as AdminRecordStatus)) {
+    throw Errors.validation("`status` must be one of done, skipped, pending");
+  }
+  const today = await userToday(userId);
+  const occurrence = await findOccurrenceById(occurrenceId);
+  if (!occurrence) throw Errors.notFound("VALIDATION_ERROR", "Occurrence not found");
+  assertRecordableDate(occurrence.date, today);
+  return recordOccurrenceOnBehalf(adminId, userId, occurrenceId, status as AdminRecordStatus);
 }

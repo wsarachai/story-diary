@@ -198,6 +198,10 @@ export interface HabitOccurrence {
     status: HabitOccurrenceStatus;
     /** Optional checked-in moment. Null when status === "pending". */
     completedAt?: string;
+    /** True when an admin recorded this day on the user's behalf. */
+    recordedByAdmin?: boolean;
+    /** When the admin recorded it (present with recordedByAdmin). */
+    recordedAt?: string;
     /**
      * Per-meal dose progress for medicine and nutrition activities. Drives the
      * X/Y tap counter and background fill on the checklist. Absent for
