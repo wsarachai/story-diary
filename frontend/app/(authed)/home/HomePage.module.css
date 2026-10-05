@@ -28,7 +28,7 @@
   bottom: 10%;
   margin: 0;
   text-align: center;
-  font-size: 56px;
+  font-size: 2.75em;
   font-weight: 500;
   z-index: 1;
 }
@@ -103,7 +103,7 @@
 
 .cardTitle {
   margin: 0;
-  font-size: clamp(2rem, 2.65vw, 2.5rem);
+  font-size: 2em;
   font-weight: 500;
   line-height: 1.05;
 }
