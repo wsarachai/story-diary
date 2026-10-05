@@ -1,12 +1,14 @@
 import { requireAdmin } from "@/lib/api-auth";
 import { adminUpdateScene, adminDeleteScene } from "@/lib/services/adminService";
 import { ok, handleError } from "@/lib/api-response";
+import { validate } from "@/lib/validate";
+import { UpdateSceneSchema } from "@/lib/schemas";
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ sceneId: string }> }) {
   try {
     await requireAdmin(req);
     const { sceneId } = await ctx.params;
-    const body = await req.json();
+    const body = validate(UpdateSceneSchema, await req.json());
     const scene = await adminUpdateScene(sceneId, body);
     return ok(scene);
   } catch (err) {

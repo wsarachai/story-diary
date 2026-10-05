@@ -95,11 +95,12 @@ function SortableRow({
 export default function AdminChaptersPage() {
   const router = useRouter();
   const { data: serverChapters, isLoading } = useGetAdminChaptersQuery();
-  const [createChapter] = useCreateChapterMutation();
+  const [createChapter, { isLoading: saving }] = useCreateChapterMutation();
   const [deleteChapter] = useDeleteChapterMutation();
   const [reorderChapters] = useReorderChaptersMutation();
 
   const [reorderError, setReorderError] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CreateChapterRequest>(EMPTY_FORM);
 
@@ -109,18 +110,26 @@ export default function AdminChaptersPage() {
 
   function openCreate() {
     setForm(EMPTY_FORM);
+    setMutationError(null);
     setShowForm(true);
   }
 
   function closeForm() {
     setShowForm(false);
     setForm(EMPTY_FORM);
+    setMutationError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await createChapter(form);
-    closeForm();
+    if (saving) return;
+    setMutationError(null);
+    try {
+      await createChapter(form).unwrap();
+      closeForm();
+    } catch {
+      setMutationError("บันทึกบทเรียนไม่สำเร็จ ลองอีกครั้ง");
+    }
   }
 
   async function handleDelete(id: number) {
@@ -156,8 +165,14 @@ export default function AdminChaptersPage() {
             </button>
           </div>
 
-          {reorderError && (
-            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+          {(reorderError || mutationError) && (
+            <AdminErrorBanner
+              message={mutationError ?? reorderError ?? ""}
+              onDismiss={() => {
+                setReorderError(null);
+                setMutationError(null);
+              }}
+            />
           )}
 
           {showForm && (
@@ -205,7 +220,7 @@ export default function AdminChaptersPage() {
                 </div>
                 <div className={styles.adminFormActions}>
                   <button type="button" className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={closeForm}>ยกเลิก</button>
-                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>เพิ่ม</button>
+                  <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} disabled={saving}>เพิ่ม</button>
                 </div>
               </form>
             </div>
