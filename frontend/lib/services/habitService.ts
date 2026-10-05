@@ -727,13 +727,29 @@ export async function saveMedicineCheckin(userId: string, data: MedicineCheckin)
     ]);
 }
 
+const NUTRITION_MEALS: MealSlot[] = ["breakfast", "lunch", "dinner"];
+
+/**
+ * Nutrition status follows the per-meal tap counter (spec:
+ * nutrition-meal-tap-counting, decision 6): 3 meals → done, 1–2 → partial,
+ * 0 → pending — mirroring nutritionMealStatus in store/habitsApi.ts. The
+ * checklist taps send mealSlots with empty text fields, so counting text alone
+ * left tapped-complete days "pending" and missing from the weekly/monthly
+ * totals. Requests without mealSlots (older clients) fall back to counting
+ * the filled meal text fields.
+ */
+function nutritionStatus(data: NutritionCheckin): HabitOccurrenceStatus {
+    const count = data.mealSlots !== undefined
+        ? NUTRITION_MEALS.filter((slot) => data.mealSlots!.includes(slot)).length
+        : [data.breakfast, data.lunch, data.dinner].filter((m) => m.trim().length > 0).length;
+    return count === NUTRITION_MEALS.length ? "done" : count > 0 ? "partial" : "pending";
+}
+
 export async function saveNutritionCheckin(userId: string, data: NutritionCheckin): Promise<void> {
     await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
 
-    // Status derives from how many meal text-fields contain non-whitespace content.
-    const filledCount = [data.breakfast, data.lunch, data.dinner].filter((m) => m.trim().length > 0).length;
-    const status: HabitOccurrenceStatus = filledCount === 3 ? "done" : filledCount > 0 ? "partial" : "pending";
+    const status = nutritionStatus(data);
 
     await Promise.all([
         replaceNutritionCheckin({

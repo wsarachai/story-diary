@@ -1025,3 +1025,51 @@ describe("getMonthlySummary", () => {
     expect(result.results.target).toBe(0);
   });
 });
+
+// ────────────────────────────────────────────────────────────────────
+// Nutrition tap counter → weekly / monthly totals (regression)
+// ────────────────────────────────────────────────────────────────────
+describe("nutrition meal taps drive status and period totals", () => {
+  const DAILY_NUTRITION = {
+    category: "nutrition" as const,
+    name: "x",
+    nutritionPreset: "nutrition_5_groups" as const,
+    schedule: { frequency: "daily" as const, weekdays: [] as WeekdayIndex[] },
+    archived: false,
+  };
+  const tap = (occurrenceId: string, mealSlots: ("breakfast" | "lunch" | "dinner")[]) =>
+    saveNutritionCheckin(USER, { occurrenceId, activityName: "x", breakfast: "", lunch: "", dinner: "", mealSlots });
+
+  it("three meal taps with no text mark the day done", async () => {
+    await createActivity(USER, DAILY_NUTRITION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    await tap(entry.occurrence.id, ["breakfast", "lunch", "dinner"]);
+    const [after] = await getTodayEntries(USER, TODAY);
+    expect(after.occurrence.status).toBe("done");
+    expect(after.occurrence.doseProgress).toEqual({ taken: 3, total: 3 });
+  });
+
+  it("fewer than three taps is partial, zero taps is pending", async () => {
+    await createActivity(USER, DAILY_NUTRITION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    await tap(entry.occurrence.id, ["breakfast"]);
+    expect((await getTodayEntries(USER, TODAY))[0].occurrence.status).toBe("partial");
+    await tap(entry.occurrence.id, []);
+    expect((await getTodayEntries(USER, TODAY))[0].occurrence.status).toBe("pending");
+  });
+
+  it("a tapped-complete day counts in the weekly and monthly totals", async () => {
+    await createActivity(USER, DAILY_NUTRITION);
+    const [entry] = await getTodayEntries(USER, TODAY);
+    await tap(entry.occurrence.id, ["breakfast", "lunch", "dinner"]);
+
+    const week = await getWeeklyView(USER, "2026-05-25");
+    expect(week.rowsByActivity[0].done).toBe(1);
+    expect(week.summary.done).toBe(1);
+
+    const month = await getMonthlyView(USER, "2026-05");
+    expect(month.rowsByActivity[0].done).toBe(1);
+    const summary = await getMonthlySummary(USER, "2026-05");
+    expect(summary.results.totalDone).toBe(1);
+  });
+});
