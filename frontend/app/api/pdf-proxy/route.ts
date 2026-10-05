@@ -52,8 +52,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "PDF too large" }, { status: 413 });
     }
 
-    const body = await upstream.arrayBuffer();
-    return new NextResponse(body, {
+    if (!upstream.body) {
+      return new NextResponse(null, { status: 404 });
+    }
+
+    // Stream straight through instead of buffering up to 50 MB per request.
+    // The byte counter enforces the cap for responses without Content-Length;
+    // past that point headers are already sent, so the stream is aborted.
+    let received = 0;
+    const capped = upstream.body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          received += chunk.byteLength;
+          if (received > MAX_PDF_BYTES) {
+            controller.error(new Error("PDF too large"));
+            return;
+          }
+          controller.enqueue(chunk);
+        },
+      })
+    );
+
+    return new NextResponse(capped, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",

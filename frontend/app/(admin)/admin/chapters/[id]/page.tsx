@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import AdminDragHandle from "@/components/AdminDragHandle";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -318,7 +319,7 @@ export default function AdminChapterDetailPage() {
                             className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
                           >
                             {img.value ? (
-                              <img src={img.value} alt={img.label} className={styles.adminImageTileImg} />
+                              <Image src={img.value} alt={img.label} fill sizes="20vw" className={styles.adminImageTileImg} />
                             ) : (
                               <span className={styles.adminImageTileNone}>—</span>
                             )}

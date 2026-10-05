@@ -15,3 +15,6 @@ Dockerfile
 .dockerignore
 docker-compose*.yml
 *.md
+
+# Design source files: gitignored, and must not be baked in or served from /public
+**/*.psd
