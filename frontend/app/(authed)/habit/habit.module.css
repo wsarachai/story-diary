@@ -498,6 +498,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 0.3rem;
+  padding-bottom: 0.8em;
 }
 
 .habitEntries::-webkit-scrollbar {
@@ -1556,6 +1557,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  /* Breathing room after the last card once the list is scrolled to the end. */
+  padding-bottom: 0.8em;
 }
 
 .goalsList::-webkit-scrollbar {
@@ -1866,6 +1869,7 @@
   overflow-x: hidden;
   overscroll-behavior: contain;
   padding-right: 0.3rem;
+  padding-bottom: 0.8em;
 }
 
 .accordionList::-webkit-scrollbar {
