@@ -307,9 +307,29 @@ export async function adminDeleteEBook(id: string): Promise<void> {
     throw Errors.notFound("EBOOK_NOT_FOUND", `EBook ${id} not found`);
 }
 
+/**
+ * Reorder payloads must be exact permutations of the current id set: a
+ * partial list would leave duplicate sort_orders behind (or collide with the
+ * unique (chapter_id, idx) index mid-bulkWrite for scenes).
+ */
+function assertPermutation(orderedIds: unknown[], existingIds: unknown[], what: string): void {
+  const unique = new Set(orderedIds);
+  const isPermutation =
+    orderedIds.length === existingIds.length &&
+    unique.size === orderedIds.length &&
+    existingIds.every((id) => unique.has(id));
+  if (!isPermutation) {
+    throw Errors.validation(
+      `Reorder payload must be a permutation of the ${what} ids`,
+    );
+  }
+}
+
 export async function adminReorderChapters(
   orderedIds: number[],
 ): Promise<void> {
+  const rows = await listChaptersDocs();
+  assertPermutation(orderedIds, rows.map((r) => r.id), "chapter");
   await reorderChapterDocs(orderedIds);
 }
 
@@ -317,10 +337,14 @@ export async function adminReorderChapterScenes(
   chapterId: number,
   orderedIds: string[],
 ): Promise<void> {
+  const scenes = await listChapterScenesByChapterId(chapterId);
+  assertPermutation(orderedIds, scenes.map((s) => s.id), "scene");
   await reorderChapterSceneDocs(chapterId, orderedIds);
 }
 
 export async function adminReorderEBooks(orderedIds: string[]): Promise<void> {
+  const rows = await listEBooksDocs();
+  assertPermutation(orderedIds, rows.map((r) => r.id), "e-book");
   await reorderEBookDocs(orderedIds);
 }
 
@@ -424,17 +448,7 @@ export async function adminReorderQuestions(
 ): Promise<void> {
   assertGender(gender);
   const existing = await listQuizQuestionsByGender(gender);
-  const existingIds = existing.map((q) => q.id);
-  const unique = new Set(orderedIds);
-  const isPermutation =
-    orderedIds.length === existingIds.length &&
-    unique.size === orderedIds.length &&
-    existingIds.every((id) => unique.has(id));
-  if (!isPermutation) {
-    throw Errors.validation(
-      "Reorder payload must be a permutation of the set's question ids",
-    );
-  }
+  assertPermutation(orderedIds, existing.map((q) => q.id), "question");
   await reorderQuizQuestionDocs(orderedIds);
 }
 
@@ -537,6 +551,8 @@ export async function adminDeleteVideoClip(id: string): Promise<void> {
 export async function adminReorderVideoClips(
   orderedIds: string[],
 ): Promise<void> {
+  const rows = await listVideoClipsDocs();
+  assertPermutation(orderedIds, rows.map((r) => r.id), "video clip");
   await reorderVideoClipDocs(orderedIds);
 }
 
