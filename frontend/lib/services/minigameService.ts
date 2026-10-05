@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { insertQuizAttempt, listQuizQuestionsByGender } from "@/lib/db";
 import { getUserById } from "@/lib/services/authService";
+import { quizPoints } from "@/lib/quizScoring";
 import type { Quiz, QuizScore, QuizAnswer, QuestionGender } from "@/types/minigame";
-
-const POINTS_PER_CORRECT = 7;
 
 function quizIdForGender(gender: QuestionGender): string {
   return `quiz-${gender}`;
@@ -54,7 +53,9 @@ export async function submitQuiz(
   }).length;
 
   const total = Object.values(answers).length;
-  const points = correctCount * POINTS_PER_CORRECT;
+  // Scale against the whole set, not the submitted answers, so a partial
+  // submission can't reach full marks.
+  const points = quizPoints(correctCount, questions.length);
   const now = new Date().toISOString();
 
   await insertQuizAttempt({
