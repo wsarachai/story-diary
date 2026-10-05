@@ -393,6 +393,11 @@
   color: #d29922;
 }
 
+.adminBadgeGray {
+  background: rgba(139, 148, 158, 0.15);
+  color: #8b949e;
+}
+
 /* ── Helpers & Overrides ────────────────────────────── */
 .adminLink {
   color: #58a6ff;
@@ -625,4 +630,92 @@
   .adminPageTitle { font-size: 1.05rem; }
   .adminFormActions { justify-content: stretch; }
   .adminFormActions .adminBtn { flex: 1; text-align: center; }
+}
+
+/* ── Habit records on a user's behalf ─────────────────── */
+.adminHint {
+  margin: -0.4rem 0 1.2rem;
+  color: #8b949e;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.adminFilterRow {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(14rem, 1.6fr) minmax(14rem, 1.2fr);
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .adminFilterRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.adminDateRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.adminDateRow .adminBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.adminSubline {
+  margin-top: 0.2rem;
+  color: #8b949e;
+  font-size: 0.78rem;
+}
+
+.adminRecordedTag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1em 0.5em;
+  border: 1px solid #388bfd;
+  border-radius: 4px;
+  color: #58a6ff;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.adminStatusGroup {
+  display: inline-flex;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.adminStatusBtn {
+  background: #161b22;
+  color: #c9d1d9;
+  border: none;
+  border-right: 1px solid #30363d;
+  padding: 0.4em 0.9em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+
+.adminStatusBtn:last-child {
+  border-right: none;
+}
+
+.adminStatusBtn:hover {
+  background: #21262d;
+}
+
+.adminStatusBtn.isActive {
+  background: #1f6feb;
+  color: #fff;
+}
+
+.adminStatusBtn:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: -2px;
 }
