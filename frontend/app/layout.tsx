@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import { Baloo_2, Noto_Sans_Thai } from "next/font/google";
+import { fontVariables } from "./fonts/fonts";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import AuthProbe from "@/components/AuthProbe";
 import { Analytics } from "@vercel/analytics/next";
-
-const baloo2 = Baloo_2({
-  variable: "--font-baloo2",
-  subsets: ["latin"],
-  weight: ["600", "700"],
-});
-
-const notoSansThai = Noto_Sans_Thai({
-  variable: "--font-noto-sans-thai",
-  subsets: ["thai"],
-  weight: ["400", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "Story Diary",
@@ -28,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={`${baloo2.variable} ${notoSansThai.variable}`}>
+    <html lang="th" className={fontVariables}>
       <body suppressHydrationWarning>
         <Providers>
           <AuthProbe />

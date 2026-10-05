@@ -12,6 +12,31 @@
   --field-fill: #edf4eb;
   --ink: #0d1217;
   --shadow: rgba(13, 24, 35, 0.18);
+
+  /* Self-hosted font subsets (app/fonts/fonts.ts) chained back into one stack
+     per family, ending in the size-adjusted fallback below. */
+  --font-noto-sans-thai: var(--font-noto-sans-thai-thai), var(--font-noto-sans-thai-latin-ext), var(--font-noto-sans-thai-latin), "Noto Sans Thai Fallback";
+  --font-baloo2: var(--font-baloo2-devanagari), var(--font-baloo2-vietnamese), var(--font-baloo2-latin-ext), var(--font-baloo2-latin), "Baloo 2 Fallback";
+}
+
+/* Metric-matched Arial fallbacks (values from next/font/google) to limit
+   layout shift while the web fonts load. */
+@font-face {
+  font-family: "Noto Sans Thai Fallback";
+  src: local(Arial);
+  ascent-override: 99.79%;
+  descent-override: 42.32%;
+  line-gap-override: 0%;
+  size-adjust: 106.33%;
+}
+
+@font-face {
+  font-family: "Baloo 2 Fallback";
+  src: local(Arial);
+  ascent-override: 112.55%;
+  descent-override: 54.71%;
+  line-gap-override: 0%;
+  size-adjust: 95.78%;
 }
 
 @theme inline {
@@ -40,7 +65,7 @@ body {
   place-items: center;
   padding: 16px;
   overflow: auto;
-  font-family: "Noto Sans Thai", sans-serif;
+  font-family: var(--font-noto-sans-thai), sans-serif;
   color: var(--ink);
   background:
     radial-gradient(circle at 12% 22%, var(--desk-soft) 0 14%, transparent 15%),
