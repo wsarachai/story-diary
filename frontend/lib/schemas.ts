@@ -210,3 +210,64 @@ export const SubmitQuizSchema = z.object({
 export const ChapterProgressSchema = z.object({
   progress: z.enum(["not-started", "in-progress", "completed"]),
 });
+
+// ──────────────────────────────────────────────────────────────────────────
+// Admin schemas
+// ──────────────────────────────────────────────────────────────────────────
+
+/** At least one updatable field must be present in a PATCH body. */
+function atLeastOneKey<T extends z.ZodTypeAny>(schema: T) {
+  return schema.refine(
+    (value) => Object.keys(value as Record<string, unknown>).length > 0,
+    { message: "REQUIRED" },
+  );
+}
+
+export const CreateChapterSchema = z.object({
+  title: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
+  introTitle: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
+  lockState: z.enum(["unlocked", "locked"]),
+  backgroundImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
+});
+
+export const UpdateChapterSchema = atLeastOneKey(CreateChapterSchema.partial());
+
+export const CreateSceneSchema = z.object({
+  idx: z.number().int().min(0),
+  speakerName: z.string().trim().min(1, "REQUIRED").max(120, "TOO_LONG"),
+  speakerImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
+  text: z.string().trim().min(1, "REQUIRED").max(4000, "TOO_LONG"),
+});
+
+export const UpdateSceneSchema = atLeastOneKey(CreateSceneSchema.partial());
+
+export const CreateEBookSchema = z.object({
+  title: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
+  pdfUrl: z.string().trim().min(1, "REQUIRED").max(2048, "TOO_LONG"),
+});
+
+export const UpdateEBookSchema = atLeastOneKey(CreateEBookSchema.partial());
+
+export const CreateQuestionSchema = z.object({
+  gender: z.enum(["male", "female"]),
+  text: z.string().trim().min(1, "REQUIRED").max(1000, "TOO_LONG"),
+  correctAnswer: z.enum(["A", "B", "C", "D"]),
+  optionA: z.string().trim().min(1, "REQUIRED").max(500, "TOO_LONG"),
+  optionB: z.string().trim().min(1, "REQUIRED").max(500, "TOO_LONG"),
+  optionC: z.string().trim().min(1, "REQUIRED").max(500, "TOO_LONG"),
+  optionD: z.string().trim().min(1, "REQUIRED").max(500, "TOO_LONG"),
+  explanation: z.string().trim().max(1000, "TOO_LONG").optional(),
+});
+
+/** Gender is immutable after creation, mirroring UpdateQuestionRequest. */
+export const UpdateQuestionSchema = atLeastOneKey(
+  CreateQuestionSchema.omit({ gender: true }).partial(),
+);
+
+export const CreateVideoClipSchema = z.object({
+  caption: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
+  sourceUrl: z.string().trim().min(1, "REQUIRED").max(2048, "TOO_LONG"),
+  thumbnailUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
+});
+
+export const UpdateVideoClipSchema = atLeastOneKey(CreateVideoClipSchema.partial());

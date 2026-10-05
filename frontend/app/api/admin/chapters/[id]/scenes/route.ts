@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/api-auth";
 import { adminListScenes, adminCreateScene } from "@/lib/services/adminService";
 import { ok, handleError } from "@/lib/api-response";
+import { validate } from "@/lib/validate";
+import { CreateSceneSchema } from "@/lib/schemas";
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
@@ -17,7 +19,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     await requireAdmin(req);
     const { id } = await ctx.params;
-    const body = await req.json();
+    const body = validate(CreateSceneSchema, await req.json());
     const scene = await adminCreateScene(Number(id), body);
     return ok(scene, 201);
   } catch (err) {

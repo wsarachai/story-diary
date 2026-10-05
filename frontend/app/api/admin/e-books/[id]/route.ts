@@ -1,12 +1,14 @@
 import { requireAdmin } from "@/lib/api-auth";
 import { adminUpdateEBook, adminDeleteEBook } from "@/lib/services/adminService";
 import { ok, handleError } from "@/lib/api-response";
+import { validate } from "@/lib/validate";
+import { UpdateEBookSchema } from "@/lib/schemas";
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin(req);
     const { id } = await ctx.params;
-    const body = await req.json();
+    const body = validate(UpdateEBookSchema, await req.json());
     const ebook = await adminUpdateEBook(id, body);
     return ok(ebook);
   } catch (err) {

@@ -1,6 +1,8 @@
 import { requireAdmin } from "@/lib/api-auth";
 import { adminListChapters, adminCreateChapter } from "@/lib/services/adminService";
 import { ok, handleError } from "@/lib/api-response";
+import { validate } from "@/lib/validate";
+import { CreateChapterSchema } from "@/lib/schemas";
 
 export async function GET(req: Request) {
   try {
@@ -15,7 +17,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     await requireAdmin(req);
-    const body = await req.json();
+    const body = validate(CreateChapterSchema, await req.json());
     const chapter = await adminCreateChapter(body);
     return ok(chapter, 201);
   } catch (err) {
