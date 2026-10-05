@@ -1789,7 +1789,7 @@
 }
 
 .donutPct {
-  font-family: var(--font-baloo-2), sans-serif;
+  font-family: var(--font-baloo2), sans-serif;
   font-size: 2.8em;
   font-weight: 700;
   color: var(--panel-blue-deep);
