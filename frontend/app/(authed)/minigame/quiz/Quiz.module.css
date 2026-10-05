@@ -43,16 +43,25 @@
   padding: 1.9em 2.2em;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   flex: 1;
+  /* Scroll instead of spilling past the page when a question is too long.
+     Centering lives on the text (margin-block: auto) rather than
+     justify-content, which would clip overflow at the unreachable top. */
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .quizQuestionText {
-  margin: 0;
+  margin: auto 0;
   font-size: 1.8em;
   font-weight: 600;
   line-height: 1.32;
   color: #fff;
+}
+
+/* Long scenario questions (see QuestionCard) */
+.quizQuestionTextLong {
+  font-size: 1.4em;
 }
 
 /* Options */
@@ -333,6 +342,8 @@
   display: grid;
   grid-template-rows: auto auto 1fr;
   gap: 1.6em;
+  /* Let the 1fr row shrink to the page so the question card can scroll. */
+  min-height: 0;
 }
 
 .quizPageRight {
@@ -461,6 +472,10 @@
   .quizQuestionText {
     font-size: 1.35em;
     line-height: 1.28;
+  }
+
+  .quizQuestionTextLong {
+    font-size: 1.15em;
   }
 
   .quizOption {
