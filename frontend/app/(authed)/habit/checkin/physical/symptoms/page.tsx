@@ -119,7 +119,7 @@ function SymptomsCheckinInner() {
             }
           </button>
         </header>
-        <div className={checkinStyles.ciCheckList} role="group" aria-label="รายการอาการ" style={{ padding: "0.5rem 1rem" }}>
+        <div className={checkinStyles.ciCheckList} role="group" aria-label="รายการอาการ" style={{ padding: "0.2em 0.6em 0.8em" }}>
           {state.items.map((sym) => (
             <label key={sym.id} className={`${checkinStyles.ciCheckRow} ${sym.checked ? checkinStyles.isChecked : ""}`}>
               <input
@@ -132,7 +132,7 @@ function SymptomsCheckinInner() {
               <div className={checkinStyles.ciCheckCircle}>
                 {sym.checked && <Check />}
               </div>
-              <span className={checkinStyles.ciCheckLabel} style={{ fontSize: "2em" }}>{sym.label}</span>
+              <span className={checkinStyles.ciCheckLabel} style={{ fontSize: "1.15em" }}>{sym.label}</span>
             </label>
           ))}
         </div>

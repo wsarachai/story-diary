@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from "vitest";
-import { clearTestData } from "@/lib/db";
+import { clearTestData, deleteQuizQuestionDoc } from "@/lib/db";
 import { getQuiz, submitQuiz } from "@/lib/services/minigameService";
 import { registerUser } from "@/lib/services/authService";
 import type { AnswerLetter } from "@/types/minigame";
@@ -61,7 +61,7 @@ describe("getQuiz", () => {
 });
 
 describe("submitQuiz", () => {
-  it("scores 7 points per correct answer and records the gender", async () => {
+  it("scores a perfect run as 100 points and records the gender", async () => {
     const quiz = await getQuiz(femaleUserId);
     const answers: Record<string, {
       questionId: string;
@@ -85,7 +85,7 @@ describe("submitQuiz", () => {
     expect(score.correctCount).toBe(13);
     expect(score.wrongCount).toBe(0);
     expect(score.total).toBe(13);
-    expect(score.points).toBe(13 * 7);
+    expect(score.points).toBe(100);
     expect(score.quizId).toBe("quiz-female");
   });
 
@@ -114,6 +114,39 @@ describe("submitQuiz", () => {
     expect(score.correctCount).toBe(0);
     expect(score.wrongCount).toBe(13);
     expect(score.points).toBe(0);
+  });
+
+  it("still scores 100 when an admin has removed a question (12-question set)", async () => {
+    await deleteQuizQuestionDoc("q13");
+    const quiz = await getQuiz(maleUserId);
+    expect(quiz.questions).toHaveLength(12);
+    const answers = Object.fromEntries(quiz.questions.map((q) => [q.id, {
+      questionId: q.id,
+      selected: q.correctAnswer,
+      correct: q.correctAnswer,
+      isCorrect: true,
+      answeredAt: new Date().toISOString(),
+    }]));
+
+    const score = await submitQuiz(maleUserId, quiz.id, answers);
+    expect(score.correctCount).toBe(12);
+    expect(score.points).toBe(100);
+  });
+
+  it("scales partial credit against the whole set, not the submitted answers", async () => {
+    const quiz = await getQuiz(maleUserId);
+    const firstQ = quiz.questions[0];
+    const score = await submitQuiz(maleUserId, quiz.id, {
+      [firstQ.id]: {
+        questionId: firstQ.id,
+        selected: firstQ.correctAnswer,
+        correct: firstQ.correctAnswer,
+        isCorrect: true,
+        answeredAt: new Date().toISOString(),
+      },
+    });
+    // 1 of 13 correct → 100 / 13 ≈ 7.7 → 8, never 100 from a one-answer submit.
+    expect(score.points).toBe(8);
   });
 
   it("total equals the number of submitted answers", async () => {

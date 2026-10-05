@@ -105,7 +105,7 @@
   position: relative;
   z-index: 1;
   margin: 0;
-  font-size: 3em;
+  font-size: 2.2em;
   font-weight: 700;
   color: var(--ink);
   text-align: center;
@@ -116,7 +116,7 @@
   position: relative;
   z-index: 1;
   display: inline-block;
-  font-size: 1.4em;
+  font-size: 1em;
   font-weight: 600;
   padding: 0.25em 1.2em;
   border-radius: 999px;
@@ -143,20 +143,20 @@
 }
 
 .profHeader {
-  margin-bottom: 2.4em;
+  margin-bottom: 1.4em;
 }
 
 .profTitle {
-  margin: 0 0 0.4em;
-  font-size: 3.2em;
+  margin: 0 0 0.35em;
+  font-size: 1.8em;
   font-weight: 700;
   line-height: 1.05;
   color: var(--ink);
 }
 
 .profTitleRule {
-  width: 3.2em;
-  height: 5px;
+  width: 3em;
+  height: 4px;
   background: #e74c3c;
   border-radius: 3px;
 }
@@ -170,10 +170,10 @@
 
 .profLineField {
   display: grid;
-  grid-template-columns: 9em minmax(0, 1fr);
+  grid-template-columns: 8em minmax(0, 1fr);
   align-items: end;
   column-gap: 0.8em;
-  padding: 1em 0;
+  padding: 0.75em 0;
   border-bottom: 1.5px solid rgba(13,18,23,0.1);
 }
 
@@ -182,7 +182,7 @@
 }
 
 .profLineLabel {
-  font-size: 1.6em;
+  font-size: 1.05em;
   font-weight: 600;
   color: rgba(13,18,23,0.5);
   white-space: nowrap;
@@ -192,11 +192,11 @@
 
 .profLineInput {
   font-family: inherit;
-  font-size: 1.9em;
+  font-size: 1.2em;
   color: var(--ink);
   background: transparent;
   border: 0;
-  border-bottom: 4px solid var(--ink);
+  border-bottom: 3px solid var(--ink);
   outline: none;
   padding: 0.1em 0.15em;
   line-height: 1.3;
@@ -209,7 +209,7 @@
 
 .profLineStatic {
   margin: 0;
-  font-size: 1.9em;
+  font-size: 1.2em;
   color: rgba(13,18,23,0.45);
   line-height: 1.3;
   padding-bottom: 0.05em;
@@ -224,9 +224,9 @@
 
 .profGenderOpt {
   font-family: inherit;
-  font-size: 1.7em;
+  font-size: 1.05em;
   font-weight: 600;
-  padding: 0.3em 1.4em;
+  padding: 0.35em 1.3em;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.16s, color 0.16s, border-color 0.16s;
@@ -258,7 +258,7 @@
 
 .profFeedback {
   margin: 0.8em 0 0;
-  font-size: 1.5em;
+  font-size: 0.95em;
   padding: 0.45em 0.9em;
   border-radius: 10px;
 }
@@ -283,7 +283,7 @@
 
 .profFooter {
   margin-top: auto;
-  padding-top: 1.6em;
+  padding-top: 1.2em;
   display: flex;
   flex-direction: column;
   gap: 0.75em;
@@ -296,7 +296,7 @@
 }
 
 .profBtnSave {
-  font-size: 1.9em;
+  font-size: 1.15em;
   font-weight: 700;
   padding: 0.65em 1.4em;
   background: var(--panel-blue-deep);
@@ -316,7 +316,7 @@
 }
 
 .profBtnCancel {
-  font-size: 1.9em;
+  font-size: 1.15em;
   padding: 0.65em 1.4em;
   background: rgba(13,18,23,0.07);
   color: rgba(13,18,23,0.65);
@@ -328,7 +328,7 @@
 }
 
 .profBtnLogout {
-  font-size: 1.9em;
+  font-size: 1.15em;
   padding: 0.65em 1.4em;
   background: #c0392b;
   color: #fff;

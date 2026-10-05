@@ -58,7 +58,7 @@
 
 .chapterDiamond h1 {
   margin: 0;
-  font-size: 3em;
+  font-size: 2.4em;
   font-weight: 500;
   line-height: 1;
   color: #17334f;
@@ -145,9 +145,11 @@
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  /* Sit in the open space right of the doorway art, not on top of it. */
+  place-items: center end;
+  padding-right: 12%;
   z-index: 1;
-  font-size: 3.3em;
+  font-size: 2.6em;
   font-weight: 600;
   line-height: 0.95;
   color: #0d233a;
@@ -179,7 +181,7 @@
 
 .chapterTitle {
   margin: 0;
-  font-size: 2.1em;
+  font-size: 1.8em;
   font-weight: 500;
   line-height: 1;
 }
@@ -236,7 +238,7 @@
   background: #fbf3e6;
   display: grid;
   place-items: center;
-  font-size: 1.85em;
+  font-size: 1.5em;
   line-height: 1;
   color: #ff3131;
   font-weight: 500;
@@ -288,13 +290,17 @@
 }
 
 .chapterPillText {
-  font-size: 1.9em;
-  line-height: 1;
-  white-space: nowrap;
+  font-size: 1.35em;
+  line-height: 1.25;
+  /* Wrap long titles onto a second line instead of truncating them. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
   min-width: 0;
   flex: 1 1 0;
+  padding: 0.35em 0;
 }
 
 .lockIcon {
@@ -357,8 +363,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 16%;
-  bottom: 22%;
+  top: 24%;
+  bottom: 28%;
   background: rgba(239, 246, 249, 0.78);
   display: grid;
   place-items: center;
@@ -373,7 +379,8 @@
 
 .chapterExplainPanel h1 {
   margin: 0;
-  font-size: 4.35em;
+  padding: 0 1em;
+  font-size: 2.8em;
   font-weight: 500;
   line-height: 1;
   color: #101419;
@@ -382,13 +389,14 @@
 .chapterExplainNext {
   position: absolute;
   left: 50%;
-  bottom: 3.4rem;
+  bottom: 3.4em;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 46px solid transparent;
-  border-right: 46px solid transparent;
-  border-top: 72px solid #efb364;
+  /* em (not px) so the arrow scales with the book like the heading. */
+  border-left: 2em solid transparent;
+  border-right: 2em solid transparent;
+  border-top: 3.1em solid #efb364;
   filter: drop-shadow(0 8px 10px rgba(55, 40, 20, 0.16));
 }
 
@@ -399,6 +407,10 @@
 
 /* ── Chapter explain / scene: mobile fixes ── */
 @media (max-width: 900px) {
+  .chapterPillText {
+    font-size: 1.1em;
+  }
+
   /* Give the full-bleed explain/scene screens a real height on mobile.
      BookShellLayout.screen sets height:auto which wins by source order —
      double the class to raise specificity and beat it.
@@ -411,9 +423,11 @@
 
   /* Intro page: reduce title and shift center above the triangle indicator */
   .chapterExplainPanel h1 {
-    font-size: 2.6em;
+    font-size: 2em;
   }
   .chapterExplainPanel {
+    top: 16%;
+    bottom: 22%;
     padding-bottom: 5rem;
   }
 

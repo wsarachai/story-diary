@@ -110,8 +110,8 @@ export interface QuizScore {
     wrongCount: number;
     /**
      * Aggregate point value displayed in the s019 .score-box-value
-     * (wireframe shows "91 แต้ม"). Default scoring rule: 7 points / correct,
-     * but the rule is server-owned — UI should not derive it client-side.
+     * (wireframe shows "91 แต้ม"). Scaled to 100 for a perfect run via
+     * quizPoints() in lib/quizScoring.ts; the server's value is authoritative.
      */
     points: number;
 }

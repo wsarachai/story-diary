@@ -8,6 +8,7 @@ import type { AnswerLetter } from "@/types/minigame";
 import styles from "./Quiz.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
+import QuestionCard from "./QuestionCard";
 
 function QuizInner() {
   const router = useRouter();
@@ -79,14 +80,7 @@ function QuizInner() {
           <div className={styles.quizProgressFill} style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
-      <p className={styles.quizQuestionLabel}>โจทย์</p>
-      <div className={styles.quizQuestionCard} aria-live="polite">
-        <p className={styles.quizQuestionText}>
-          {question.text.split("\n").map((line, i) => (
-            <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
-          ))}
-        </p>
-      </div>
+      <QuestionCard text={question.text} live />
     </div>
   );
 

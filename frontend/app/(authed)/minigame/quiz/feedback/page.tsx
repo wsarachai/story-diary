@@ -8,6 +8,7 @@ import { useQuiz } from "../../QuizProvider";
 import type { AnswerLetter } from "@/types/minigame";
 import styles from "../Quiz.module.css";
 import BookShellLayout from "@/components/BookShellLayout";
+import QuestionCard from "../QuestionCard";
 
 function FeedbackInner() {
   const router = useRouter();
@@ -61,14 +62,7 @@ function FeedbackInner() {
           <div className={styles.quizProgressFill} style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
-      <p className={styles.quizQuestionLabel}>โจทย์</p>
-      <div className={styles.quizQuestionCard}>
-        <p className={styles.quizQuestionText}>
-          {question.text.split("\n").map((line, i) => (
-            <span key={i}>{line}{i < question.text.split("\n").length - 1 && <br />}</span>
-          ))}
-        </p>
-      </div>
+      <QuestionCard text={question.text} />
     </div>
   );
 

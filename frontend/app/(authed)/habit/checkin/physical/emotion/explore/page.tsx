@@ -139,10 +139,10 @@ function ExploreEmotionInner() {
           </button>
         </header>
 
-        <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{ padding: "0.2em 0.6em 0.8em", display: "flex", flexDirection: "column", gap: "1em" }}>
           {notePreset ? (
             <>
-              <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555", textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: "1.2em", fontWeight: 600, color: "#555", textAlign: "center" }}>
                 {notePreset.question}
               </p>
               {notePreset.inputType === "number" ? (
@@ -159,7 +159,7 @@ function ExploreEmotionInner() {
                     dispatchLocal({ type: "SET_NOTE", note: clamped });
                   }}
                   style={{
-                    fontSize: "2em",
+                    fontSize: "1.3em",
                     textAlign: "center",
                     border: "2px solid #d1d5db",
                     borderRadius: "0.5rem",
@@ -175,7 +175,7 @@ function ExploreEmotionInner() {
                   rows={4}
                   onChange={(e) => dispatchLocal({ type: "SET_NOTE", note: e.target.value })}
                   style={{
-                    fontSize: "1.4em",
+                    fontSize: "1.05em",
                     border: "2px solid #d1d5db",
                     borderRadius: "0.5rem",
                     padding: "0.5rem",
@@ -189,8 +189,8 @@ function ExploreEmotionInner() {
             </>
           ) : (
             <>
-              <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555", textAlign: "center" }}>วันนี้คุณรู้สึกอย่างไร?</p>
-              <div className={checkinStyles.ciMoodRow} role="radiogroup" aria-label="ระดับอารมณ์">
+              <p style={{ margin: 0, fontSize: "1.2em", fontWeight: 600, color: "#555", textAlign: "center" }}>วันนี้คุณรู้สึกอย่างไร?</p>
+              <div className={checkinStyles.ciMoodRow} style={{ fontSize: "1.4em" }} role="radiogroup" aria-label="ระดับอารมณ์">
                 {MOOD_LEVELS.map(({ level, Face, color, label }) => (
                   <button
                     key={level}

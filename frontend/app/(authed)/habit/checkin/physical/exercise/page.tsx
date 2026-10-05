@@ -103,9 +103,9 @@ function ExerciseCheckinInner() {
           </button>
         </header>
 
-        <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555" }}>
+        <div style={{ padding: "0.2em 0.6em 0.8em", display: "flex", flexDirection: "column", gap: "1.2em" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.45em" }}>
+            <p style={{ margin: 0, fontSize: "1.2em", fontWeight: 600, color: "#555" }}>
               วันนี้ออกกำลังกายอะไรไปนะ?
             </p>
             <textarea
@@ -114,7 +114,7 @@ function ExerciseCheckinInner() {
               rows={3}
               onChange={(e) => dispatchLocal({ type: "SET_ACTIVITY_NAME", value: e.target.value })}
               style={{
-                fontSize: "1.4em",
+                fontSize: "1.05em",
                 border: "2px solid #d1d5db",
                 borderRadius: "0.5rem",
                 padding: "0.5rem",
@@ -126,8 +126,8 @@ function ExerciseCheckinInner() {
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <p style={{ margin: 0, fontSize: "2.1em", fontWeight: 600, color: "#555" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.45em" }}>
+            <p style={{ margin: 0, fontSize: "1.2em", fontWeight: 600, color: "#555" }}>
               ออกนานกี่นาที?
             </p>
             <input
@@ -143,7 +143,7 @@ function ExerciseCheckinInner() {
                 dispatchLocal({ type: "SET_DURATION", value: clamped });
               }}
               style={{
-                fontSize: "2em",
+                fontSize: "1.3em",
                 textAlign: "center",
                 border: "2px solid #d1d5db",
                 borderRadius: "0.5rem",

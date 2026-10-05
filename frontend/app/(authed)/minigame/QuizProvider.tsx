@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from "react";
 import { useGetQuizQuery, useSubmitQuizAttemptMutation } from "@/store/quizApi";
+import { quizPoints } from "@/lib/quizScoring";
 import type { Quiz, QuizAttempt, QuizScore, AnswerLetter, QuizQuestion } from "@/types/minigame";
 
 interface QuizContextValue {
@@ -140,7 +141,7 @@ export function QuizProvider({ children }: { children: React.ReactNode }) {
         total: quiz.questions.length,
         correctCount,
         wrongCount: quiz.questions.length - correctCount,
-        points: correctCount * 7,
+        points: quizPoints(correctCount, quiz.questions.length),
       };
 
       setScore(null);
