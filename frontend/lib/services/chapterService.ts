@@ -1,6 +1,7 @@
 import {
     findChapterById,
     getChapterProgressDoc,
+    listChapterProgressByUser,
     listChapterScenesByChapterId,
     listChaptersDocs,
     upsertChapterProgress,
@@ -30,11 +31,15 @@ function deriveLockState(
 }
 
 export async function listChapters(userId: string): Promise<ChapterSummary[]> {
-    const rows = (await listChaptersDocs()).slice().sort((a, b) => a.sort_order - b.sort_order);
-    const progressById = new Map<number, ChapterProgressState>();
-    for (const row of rows) {
-        progressById.set(row.id, await getProgress(userId, row.id));
-    }
+    const [chapterRows, progressRows] = await Promise.all([
+        listChaptersDocs(),
+        listChapterProgressByUser(userId),
+    ]);
+    const rows = chapterRows.slice().sort((a, b) => a.sort_order - b.sort_order);
+    const storedProgress = new Map(progressRows.map((p) => [p.chapter_id, p.progress]));
+    const progressById = new Map<number, ChapterProgressState>(
+        rows.map((row) => [row.id, storedProgress.get(row.id) ?? "not-started"])
+    );
 
     return rows.map((row, index) => ({
         id: row.id,
@@ -51,10 +56,14 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
         throw Errors.notFound("CHAPTER_NOT_FOUND", `Chapter ${chapterId} not found`);
     }
 
-    const scenes = await listChapterScenesByChapterId(chapterId);
+    const [scenes, chapterRows, progress] = await Promise.all([
+        listChapterScenesByChapterId(chapterId),
+        listChaptersDocs(),
+        getProgress(userId, row.id),
+    ]);
 
     let lockState = row.lock_state;
-    const rows = (await listChaptersDocs()).slice().sort((a, b) => a.sort_order - b.sort_order);
+    const rows = chapterRows.slice().sort((a, b) => a.sort_order - b.sort_order);
     const index = rows.findIndex((r) => r.id === row.id);
     if (index > 0) {
         const prevProgress = await getProgress(userId, rows[index - 1].id);
@@ -67,7 +76,7 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
         introTitle: row.intro_title,
         ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
         lockState,
-        progress: await getProgress(userId, row.id),
+        progress,
         scenes: scenes.map((scene) => ({
             id: scene.id,
             index: scene.idx,

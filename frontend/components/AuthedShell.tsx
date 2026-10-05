@@ -19,7 +19,9 @@ export default function AuthedShell({ children }: { children: React.ReactNode })
   const isUnauthorized =
     (status === "fulfilled" && !user) ||
     (status === "rejected" && error != null && "status" in error && error.status === 401);
-  const isLoading = status === "pending" || isFetching;
+  // Only block on the first probe. Background refetches (focus/reconnect) keep
+  // the cached user, so unmounting here would wipe page state on every tab focus.
+  const isLoading = user === undefined && (status === "pending" || isFetching);
 
   useEffect(() => {
     if (isUnauthorized) {

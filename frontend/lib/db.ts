@@ -417,6 +417,8 @@ async function dropStaleIndexes(): Promise<void> {
   }
 }
 
+const MONGO_INDEXES_VERSION = 1;
+
 async function ensureMongoIndexes(): Promise<void> {
   await dropStaleIndexes();
   await Promise.all([
@@ -428,6 +430,9 @@ async function ensureMongoIndexes(): Promise<void> {
     chapterProgressCollection().createIndex({ user_id: 1, chapter_id: 1 }, { unique: true }),
     habitActivitiesCollection().createIndex({ id: 1 }, { unique: true }),
     habitActivitiesCollection().createIndex({ user_id: 1, name_normalized: 1, archived: 1 }),
+    // Serves listHabitActivitiesByUser ({user_id, archived} sorted by created_at) without an in-memory sort.
+    habitActivitiesCollection().createIndex({ user_id: 1, archived: 1, created_at: 1 }),
+    chaptersCollection().createIndex({ sort_order: 1 }),
     habitOccurrencesCollection().createIndex({ id: 1 }, { unique: true }),
     habitOccurrencesCollection().createIndex({ activity_id: 1, date: 1 }, { unique: true }),
     quizQuestionsCollection().createIndex({ id: 1 }, { unique: true }),
@@ -545,6 +550,56 @@ async function backfillQuizQuestionGenders(): Promise<void> {
   await col.insertMany(clones);
 }
 
+interface MongoConnection {
+  client: MongoClient;
+  db: Db;
+}
+
+/**
+ * Connection setup is shared by every caller: concurrent requests during a
+ * cold start await the same promise instead of each opening (and leaking) its
+ * own MongoClient. Cached on globalThis so dev HMR module reloads reuse it.
+ */
+const globalForMongo = globalThis as typeof globalThis & {
+  __storyDiaryMongo?: Promise<MongoConnection>;
+};
+
+/**
+ * dns.setServers is process-wide (it also affects e.g. the pdf-proxy lookups),
+ * so it is configurable: MONGODB_DNS_SERVERS="none" keeps the system resolver.
+ * Default stays on public resolvers, which fixes Atlas SRV lookups on some
+ * local networks.
+ */
+function applyDnsOverride(): void {
+  const configured = process.env.MONGODB_DNS_SERVERS?.trim();
+  if (configured === "none") return;
+  const servers = configured
+    ? configured.split(",").map((s) => s.trim()).filter(Boolean)
+    : ["8.8.8.8", "1.1.1.1"];
+  dns.setServers(servers);
+}
+
+async function connectMongo(): Promise<MongoConnection> {
+  applyDnsOverride();
+  const client = new MongoClient(buildMongoUri(), {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  });
+
+  await client.connect();
+  mongoClient = client;
+  mongoDb = client.db(getMongoDatabaseName());
+  // Bump the version whenever ensureMongoIndexes changes so existing
+  // databases pick up the new indexes on the next cold start.
+  await runOncePerDatabase(`indexes-${MONGO_INDEXES_VERSION}`, ensureMongoIndexes);
+  await runOncePerDatabase("reference-data", seedMongoReferenceData);
+  await runOncePerDatabase("quiz-gender-backfill", backfillQuizQuestionGenders);
+  return { client, db: mongoDb };
+}
+
 export async function initializeDatabase(): Promise<void> {
   if (initialized) {
     return;
@@ -556,26 +611,23 @@ export async function initializeDatabase(): Promise<void> {
     return;
   }
 
-  dns.setServers(["8.8.8.8", "1.1.1.1"]);
-  mongoClient = new MongoClient(buildMongoUri(), {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    },
+  globalForMongo.__storyDiaryMongo ??= connectMongo().catch((err) => {
+    // Let the next request retry instead of caching the failure forever.
+    globalForMongo.__storyDiaryMongo = undefined;
+    throw err;
   });
-
-  await mongoClient.connect();
-  mongoDb = mongoClient.db(getMongoDatabaseName());
-  await ensureMongoIndexes();
-  await runOncePerDatabase("reference-data", seedMongoReferenceData);
-  await runOncePerDatabase("quiz-gender-backfill", backfillQuizQuestionGenders);
+  const connection = await globalForMongo.__storyDiaryMongo;
+  mongoClient = connection.client;
+  mongoDb = connection.db;
   initialized = true;
 }
 
 export async function closeDatabase(): Promise<void> {
-  if (mongoClient) {
-    await mongoClient.close();
+  const pending = globalForMongo.__storyDiaryMongo;
+  globalForMongo.__storyDiaryMongo = undefined;
+  const client = mongoClient ?? (pending ? (await pending.catch(() => null))?.client : null);
+  if (client) {
+    await client.close();
   }
   mongoClient = null;
   mongoDb = null;
@@ -667,12 +719,17 @@ export async function updateUserDoc(id: string, patch: Partial<UserDoc>): Promis
   return result ?? undefined;
 }
 
-export async function listAllUsers(): Promise<UserDoc[]> {
+export type UserListRow = Pick<UserDoc, "id" | "name" | "tel" | "role" | "created_at">;
+
+/** Admin user list: projected so password hashes never leave the database. */
+export async function listAllUsers(): Promise<UserListRow[]> {
   await initializeDatabase();
   if (mode === "memory") {
-    return [...memoryStore.users];
+    return memoryStore.users.map(({ id, name, tel, role, created_at }) => ({ id, name, tel, role, created_at }));
   }
-  return usersCollection().find({}).toArray();
+  return usersCollection()
+    .find({}, { projection: { _id: 0, id: 1, name: 1, tel: 1, role: 1, created_at: 1 } })
+    .toArray() as Promise<UserListRow[]>;
 }
 
 export async function listChaptersDocs(): Promise<ChapterDoc[]> {
@@ -707,6 +764,14 @@ export async function getChapterProgressDoc(userId: string, chapterId: number): 
     return memoryStore.chapterProgress.find((progress) => progress.user_id === userId && progress.chapter_id === chapterId);
   }
   return (await chapterProgressCollection().findOne({ user_id: userId, chapter_id: chapterId })) ?? undefined;
+}
+
+export async function listChapterProgressByUser(userId: string): Promise<ChapterProgressDoc[]> {
+  await initializeDatabase();
+  if (mode === "memory") {
+    return memoryStore.chapterProgress.filter((progress) => progress.user_id === userId);
+  }
+  return chapterProgressCollection().find({ user_id: userId }).toArray();
 }
 
 export async function upsertChapterProgress(userId: string, chapterId: number, progress: ChapterProgressDoc["progress"]): Promise<void> {

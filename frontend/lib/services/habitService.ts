@@ -5,7 +5,6 @@ import {
     findHabitActivityConflictByName,
     findOccurrenceById,
     listHabitActivitiesByUser,
-    listOccurrencesByActivityAndDateRange,
     listOccurrencesByActivitiesAndDateRange,
     ensureOccurrencesBatch,
     findMedicineCheckinsByOccurrenceIds,
@@ -179,7 +178,10 @@ function buildSubline(activity: HabitActivity): string {
     return parts.join(" · ");
 }
 
-async function getOwnedOccurrenceDoc(userId: string, occurrenceId: string): Promise<HabitOccurrenceDoc> {
+async function getOwnedOccurrenceDoc(
+    userId: string,
+    occurrenceId: string
+): Promise<{ occurrence: HabitOccurrenceDoc; activity: HabitActivityDoc }> {
     const occurrence = await findOccurrenceById(occurrenceId);
     if (!occurrence) {
         throw Errors.notFound("VALIDATION_ERROR", "Occurrence not found");
@@ -190,7 +192,7 @@ async function getOwnedOccurrenceDoc(userId: string, occurrenceId: string): Prom
         throw Errors.notFound("VALIDATION_ERROR", "Occurrence not found");
     }
 
-    return occurrence;
+    return { occurrence, activity };
 }
 
 function weekDates(weekStart: string): string[] {
@@ -244,7 +246,7 @@ async function buildGridRows(
     userId: string,
     dates: string[],
     period: "week" | "month"
-): Promise<{ rowsByActivity: HabitGridRow[]; summary: PeriodSummary }> {
+): Promise<{ rowsByActivity: HabitGridRow[]; summary: PeriodSummary; allActivities: HabitActivity[] }> {
     const allActivities = await getActivities(userId);
     const rangeStart = dates[0];
     const rangeEnd = dates[dates.length - 1];
@@ -261,9 +263,13 @@ async function buildGridRows(
     let totalDone = 0;
     let totalTarget = 0;
 
-    const rows = await Promise.all(activities.map(async (activity): Promise<HabitGridRow | null> => {
-        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, rangeStart, rangeEnd);
-        const byDate = new Map(occurrenceRows.map((row) => [row.date, rowToOccurrence(row)]));
+    // One range query for every activity instead of one per activity.
+    const occurrencesByActivity = groupOccurrencesByActivity(
+        await listOccurrencesByActivitiesAndDateRange(activities.map((a) => a.id), rangeStart, rangeEnd)
+    );
+
+    const rows = activities.map((activity): HabitGridRow | null => {
+        const byDate = occurrencesByActivity.get(activity.id) ?? new Map<string, HabitOccurrence>();
 
         if (isAppointmentActivity(activity)) {
             const apptDate = activity.appointmentDate;
@@ -308,11 +314,25 @@ async function buildGridRows(
             done,
             target,
         };
-    }));
+    });
 
     const rowsByActivity = rows.filter((row): row is HabitGridRow => row !== null);
 
-    return { rowsByActivity, summary: { done: totalDone, target: totalTarget } };
+    return { rowsByActivity, summary: { done: totalDone, target: totalTarget }, allActivities };
+}
+
+/** activity_id → (date → occurrence) lookup over a flat occurrence list. */
+function groupOccurrencesByActivity(docs: HabitOccurrenceDoc[]): Map<string, Map<string, HabitOccurrence>> {
+    const grouped = new Map<string, Map<string, HabitOccurrence>>();
+    for (const doc of docs) {
+        let byDate = grouped.get(doc.activity_id);
+        if (!byDate) {
+            byDate = new Map();
+            grouped.set(doc.activity_id, byDate);
+        }
+        byDate.set(doc.date, rowToOccurrence(doc));
+    }
+    return grouped;
 }
 
 /** Physical/plain weekly & monthly activities track progress by days-per-period. */
@@ -676,23 +696,8 @@ export async function getMoodCheckin(userId: string, occurrenceId: string): Prom
 }
 
 export async function saveMedicineCheckin(userId: string, data: MedicineCheckin): Promise<void> {
-    const occurrence = await getOwnedOccurrenceDoc(userId, data.occurrenceId);
-    const activityDoc = await findHabitActivityById(occurrence.activity_id);
-    if (!activityDoc) {
-        throw Errors.notFound("VALIDATION_ERROR", "Activity not found");
-    }
+    const { activity: activityDoc } = await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
-
-    await replaceMedicineCheckin({
-        id: uuidv4(),
-        occurrence_id: data.occurrenceId,
-        medicine_name: data.medicineName,
-        meal_relation: data.mealRelation,
-        meal_slots_json: JSON.stringify(data.mealSlots),
-        side_effects_json: JSON.stringify(data.sideEffects),
-        side_effect_note: data.sideEffectNote ?? null,
-        created_at: now,
-    });
 
     const configSlots: MealSlot[] = activityDoc.meal_slots_json ? JSON.parse(activityDoc.meal_slots_json) : [];
 
@@ -704,64 +709,80 @@ export async function saveMedicineCheckin(userId: string, data: MedicineCheckin)
         status = allChecked ? "done" : someChecked ? "partial" : "pending";
     }
 
-    await updateOccurrence(data.occurrenceId, {
-        status,
-        completed_at: status === "done" ? now : null,
-    });
+    await Promise.all([
+        replaceMedicineCheckin({
+            id: uuidv4(),
+            occurrence_id: data.occurrenceId,
+            medicine_name: data.medicineName,
+            meal_relation: data.mealRelation,
+            meal_slots_json: JSON.stringify(data.mealSlots),
+            side_effects_json: JSON.stringify(data.sideEffects),
+            side_effect_note: data.sideEffectNote ?? null,
+            created_at: now,
+        }),
+        updateOccurrence(data.occurrenceId, {
+            status,
+            completed_at: status === "done" ? now : null,
+        }),
+    ]);
 }
 
 export async function saveNutritionCheckin(userId: string, data: NutritionCheckin): Promise<void> {
     await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
 
-    await replaceNutritionCheckin({
-        id: uuidv4(),
-        occurrence_id: data.occurrenceId,
-        activity_name: data.activityName,
-        breakfast: data.breakfast,
-        lunch: data.lunch,
-        dinner: data.dinner,
-        meal_slots_json: JSON.stringify(data.mealSlots ?? []),
-        created_at: now,
-    });
-
     // Status derives from how many meal text-fields contain non-whitespace content.
     const filledCount = [data.breakfast, data.lunch, data.dinner].filter((m) => m.trim().length > 0).length;
     const status: HabitOccurrenceStatus = filledCount === 3 ? "done" : filledCount > 0 ? "partial" : "pending";
-    await updateOccurrence(data.occurrenceId, {
-        status,
-        completed_at: status === "done" ? now : null,
-    });
+
+    await Promise.all([
+        replaceNutritionCheckin({
+            id: uuidv4(),
+            occurrence_id: data.occurrenceId,
+            activity_name: data.activityName,
+            breakfast: data.breakfast,
+            lunch: data.lunch,
+            dinner: data.dinner,
+            meal_slots_json: JSON.stringify(data.mealSlots ?? []),
+            created_at: now,
+        }),
+        updateOccurrence(data.occurrenceId, {
+            status,
+            completed_at: status === "done" ? now : null,
+        }),
+    ]);
 }
 
 export async function saveSymptomsCheckin(userId: string, data: UnusualSymptomsCheckin): Promise<void> {
     await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
 
-    await replaceSymptomsCheckin({
-        id: uuidv4(),
-        occurrence_id: data.occurrenceId,
-        items_json: JSON.stringify(data.items),
-        created_at: now,
-    });
-
-    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+    await Promise.all([
+        replaceSymptomsCheckin({
+            id: uuidv4(),
+            occurrence_id: data.occurrenceId,
+            items_json: JSON.stringify(data.items),
+            created_at: now,
+        }),
+        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+    ]);
 }
 
 export async function saveMoodCheckin(userId: string, data: MoodCheckin): Promise<void> {
     await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
 
-    await replaceMoodCheckin({
-        id: uuidv4(),
-        occurrence_id: data.occurrenceId,
-        mood: data.mood ?? null,
-        slider_value: data.sliderValue ?? null,
-        note: data.note ?? null,
-        created_at: now,
-    });
-
-    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+    await Promise.all([
+        replaceMoodCheckin({
+            id: uuidv4(),
+            occurrence_id: data.occurrenceId,
+            mood: data.mood ?? null,
+            slider_value: data.sliderValue ?? null,
+            note: data.note ?? null,
+            created_at: now,
+        }),
+        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+    ]);
 }
 
 export async function getExerciseCheckin(userId: string, occurrenceId: string): Promise<ExerciseCheckin | null> {
@@ -779,15 +800,16 @@ export async function saveExerciseCheckin(userId: string, data: ExerciseCheckin)
     await getOwnedOccurrenceDoc(userId, data.occurrenceId);
     const now = new Date().toISOString();
 
-    await replaceExerciseCheckin({
-        id: uuidv4(),
-        occurrence_id: data.occurrenceId,
-        activity_name: data.activityName ?? null,
-        duration_minutes: data.durationMinutes ?? null,
-        created_at: now,
-    });
-
-    await updateOccurrence(data.occurrenceId, { status: "done", completed_at: now });
+    await Promise.all([
+        replaceExerciseCheckin({
+            id: uuidv4(),
+            occurrence_id: data.occurrenceId,
+            activity_name: data.activityName ?? null,
+            duration_minutes: data.durationMinutes ?? null,
+            created_at: now,
+        }),
+        updateOccurrence(data.occurrenceId, { status: "done", completed_at: now }),
+    ]);
 }
 
 export async function getWeeklyView(
@@ -804,12 +826,11 @@ export async function getMonthlyView(
     month: string
 ): Promise<{ month: string; rowsByActivity: HabitGridRow[]; summary: PeriodSummary; maxAppointmentMonth: string | null }> {
     const dates = monthDates(month);
-    const { rowsByActivity, summary } = await buildGridRows(userId, dates, "month");
+    const { rowsByActivity, summary, allActivities } = await buildGridRows(userId, dates, "month");
 
     // The furthest month that holds an appointment, so the monthly page can
     // enable forward navigation past the current month up to that point.
-    const activities = await getActivities(userId);
-    const appointmentMonths = activities
+    const appointmentMonths = allActivities
         .filter((a) => isAppointmentActivity(a) && a.appointmentDate)
         .map((a) => a.appointmentDate!.slice(0, 7));
     const maxAppointmentMonth = appointmentMonths.length > 0
@@ -841,9 +862,14 @@ export async function getMonthlySummary(
         dayTotalCount[date] = 0;
     }
 
+    // One range query for every activity instead of one awaited query per activity.
+    const occurrencesByActivity = groupOccurrencesByActivity(
+        await listOccurrencesByActivitiesAndDateRange(activities.map((a) => a.id), dates[0], dates[totalDays - 1])
+    );
+
     for (const activity of activities) {
-        const occurrenceRows = await listOccurrencesByActivityAndDateRange(activity.id, dates[0], dates[totalDays - 1]);
-        const occurrences = occurrenceRows.map(rowToOccurrence);
+        const byDate = occurrencesByActivity.get(activity.id) ?? new Map<string, HabitOccurrence>();
+        const occurrences = [...byDate.values()];
         const done = occurrences.filter((occurrence) => occurrence.status === "done").length;
         const skipped = occurrences.filter((occurrence) => occurrence.status === "skipped").length;
         const target = periodTarget(activity, dates, "month");
@@ -858,8 +884,7 @@ export async function getMonthlySummary(
             for (const date of dates) {
                 if (!isScheduledOnDate(activity, date)) continue;
                 dayTotalCount[date]++;
-                const occurrence = occurrences.find((item) => item.date === date);
-                if (occurrence?.status === "done") {
+                if (byDate.get(date)?.status === "done") {
                     dayDoneCount[date]++;
                 }
             }
