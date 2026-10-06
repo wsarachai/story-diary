@@ -10,6 +10,11 @@ import { MAX_EBOOK_PDF_BYTES } from "@/lib/ebook";
  * (bypassing the 4.5 MB function body limit). The completion callback from
  * Blob's servers hits this same route and is verified by `handleUpload`
  * itself, so only the token request is admin-gated.
+ *
+ * `onUploadCompleted` is intentionally omitted: the client receives the blob
+ * URL directly and persists it via the e-book form. Registering the callback
+ * makes Blob's storage hold the upload response until the callback round-trip
+ * succeeds — if that inbound POST is ever blocked, uploads hang forever.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -27,10 +32,6 @@ export async function POST(req: NextRequest) {
         // e-books that already reference the old URL.
         addRandomSuffix: true,
       }),
-      onUploadCompleted: async () => {
-        // Nothing to persist: the client receives blob.url and still submits
-        // the e-book form, so the admin can review before saving.
-      },
     });
     return NextResponse.json(json);
   } catch (err) {
