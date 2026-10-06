@@ -4,7 +4,7 @@
 
 @media (min-width: 901px) {
   .registerGenderFigure {
-    width: clamp(65px, 7vh, 110px);
+    width: clamp(80px, 12vh, 150px);
   }
 }
 
@@ -167,8 +167,7 @@
 
 /* Figures */
 .figureWrap {
-  aspect-ratio: 0.55 / 1;
-  position: relative;
+  display: block;
   transition:
     filter 0.18s ease,
     transform 0.18s ease;
@@ -179,10 +178,15 @@
   transform: translateY(-2px);
 }
 
-.figurePart {
-  position: absolute;
+.characterFigureImg {
   display: block;
-  background: currentColor;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.characterFigureImgFlipped {
+  transform: scaleX(-1);
 }
 
 /* ── Lucide icon support (June 2026 UX refresh) ───────────── */

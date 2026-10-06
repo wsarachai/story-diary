@@ -429,8 +429,9 @@ export default function RegisterPage() {
                       pointerEvents: "none",
                     }}
                   />
-                  <MaleFigure
+                  <CharacterFigure
                     selected={form.gender === "male"}
+                    flipped
                     className={styles.registerGenderFigure}
                   />
                   <span className={styles.genderOptionLabel}>ชาย</span>
@@ -454,7 +455,7 @@ export default function RegisterPage() {
                       pointerEvents: "none",
                     }}
                   />
-                  <FemaleFigure
+                  <CharacterFigure
                     selected={form.gender === "female"}
                     className={styles.registerGenderFigure}
                   />
@@ -489,14 +490,16 @@ export default function RegisterPage() {
 }
 
 // ──────────────────────────────────────────────────────────
-// Figure sub-components
+// Figure sub-component
 // ──────────────────────────────────────────────────────────
 
-function MaleFigure({
+function CharacterFigure({
   selected,
+  flipped = false,
   className,
 }: {
   selected: boolean;
+  flipped?: boolean;
   className?: string;
 }) {
   return (
@@ -504,169 +507,11 @@ function MaleFigure({
       aria-hidden="true"
       className={`${styles.figureWrap} ${selected ? styles.figureWrapSelected : ""} ${className}`}
     >
-      <span
-        className={styles.figurePart}
-        style={{
-          left: "50%",
-          top: 0,
-          width: "26%",
-          aspectRatio: "1",
-          borderRadius: "50%",
-          transform: "translateX(-50%)",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          left: "50%",
-          top: "18%",
-          width: "36%",
-          height: "44%",
-          borderRadius: "24px",
-          transform: "translateX(-50%)",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "10%",
-          height: "32%",
-          top: "22%",
-          left: "17%",
-          borderRadius: "999px",
-          transform: "rotate(17deg)",
-          transformOrigin: "top center",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "10%",
-          height: "32%",
-          top: "22%",
-          right: "17%",
-          borderRadius: "999px",
-          transform: "rotate(-17deg)",
-          transformOrigin: "top center",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "11%",
-          height: "37%",
-          bottom: 0,
-          left: "39%",
-          borderRadius: "999px",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "11%",
-          height: "37%",
-          bottom: 0,
-          right: "39%",
-          borderRadius: "999px",
-        }}
-      />
-    </span>
-  );
-}
-
-function FemaleFigure({
-  selected,
-  className,
-}: {
-  selected: boolean;
-  className?: string;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`${styles.figureWrap} ${selected ? styles.figureWrapSelected : ""} ${className}`}
-    >
-      {/* Head */}
-      <span
-        className={styles.figurePart}
-        style={{
-          left: "50%",
-          top: 0,
-          width: "26%",
-          aspectRatio: "1",
-          borderRadius: "50%",
-          transform: "translateX(-50%)",
-        }}
-      />
-      {/* Torso (dress top) — clip-path triangle scales with figure */}
-      <span
-        className={styles.figurePart}
-        style={{
-          left: "50%",
-          top: "18%",
-          width: "36%",
-          height: "44%",
-          clipPath: "polygon(50% 0, 0% 100%, 100% 100%)",
-          transform: "translateX(-50%)",
-        }}
-      />
-      {/* Skirt */}
-      <span
-        className={styles.figurePart}
-        style={{
-          left: "50%",
-          top: "33%",
-          width: "42%",
-          height: "20%",
-          clipPath: "polygon(18% 0, 82% 0, 100% 100%, 0 100%)",
-          transform: "translateX(-50%)",
-        }}
-      />
-      {/* Arms */}
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "10%",
-          height: "32%",
-          top: "22%",
-          left: "17%",
-          borderRadius: "999px",
-          transform: "rotate(17deg)",
-          transformOrigin: "top center",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "10%",
-          height: "32%",
-          top: "22%",
-          right: "17%",
-          borderRadius: "999px",
-          transform: "rotate(-17deg)",
-          transformOrigin: "top center",
-        }}
-      />
-      {/* Legs */}
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "11%",
-          height: "31%",
-          bottom: 0,
-          left: "41%",
-          borderRadius: "999px",
-        }}
-      />
-      <span
-        className={styles.figurePart}
-        style={{
-          width: "11%",
-          height: "31%",
-          bottom: 0,
-          right: "41%",
-          borderRadius: "999px",
-        }}
+      <img
+        src="/images/register-character-normal-466x760.png"
+        alt=""
+        draggable={false}
+        className={`${styles.characterFigureImg} ${flipped ? styles.characterFigureImgFlipped : ""}`}
       />
     </span>
   );
