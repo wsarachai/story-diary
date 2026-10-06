@@ -34,11 +34,16 @@ import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateEBookRequest = { title: "", pdfUrl: "" };
 
-/** Map a failed Blob client-upload to actionable Thai copy. */
+/**
+ * Map a failed Blob client-upload to actionable Thai copy. The SDK throws a
+ * generic "Failed to retrieve the client token" for ANY server-side failure
+ * of the token request (expired session or missing Blob env), so that case
+ * names both likely causes.
+ */
 function uploadErrorMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : "";
-  if (/token|access/i.test(msg)) {
-    return "ยังไม่ได้เชื่อมต่อ Vercel Blob — ต้องสร้าง Blob store และเชื่อมกับโปรเจกต์ในหน้า dashboard ก่อน";
+  if (/retrieve the client token|presigned url/i.test(msg)) {
+    return "อัปโหลดไม่สำเร็จ — เซสชันอาจหมดอายุ (ลองเข้าสู่ระบบใหม่) หรือเซิร์ฟเวอร์ยังไม่ได้เชื่อมต่อ Vercel Blob";
   }
   if (/large|size|413/i.test(msg)) {
     return "ไฟล์ใหญ่เกิน 50 MB";
@@ -175,11 +180,19 @@ export default function AdminEBooksPage() {
     setIsUploading(true);
     setUploadError(null);
     try {
+      // The SDK's token request carries no cookies, so the admin JWT must be
+      // attached explicitly for the upload route's requireAdmin guard.
+      const jwt = localStorage.getItem("auth_token");
+      if (!jwt) {
+        setUploadError("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+        return;
+      }
       // Spaces/unicode in filenames are collapsed to keep Blob pathnames safe.
       const safeName = file.name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
       const blob = await upload(`ebooks/${safeName || "ebook.pdf"}`, file, {
         access: "public",
         handleUploadUrl: "/api/admin/e-books/upload",
+        headers: { Authorization: `Bearer ${jwt}` },
       });
       setForm((f) => ({ ...f, pdfUrl: blob.url }));
       setPdfUrlError(null);
