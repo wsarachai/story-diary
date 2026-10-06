@@ -5,7 +5,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
 import AdminDragHandle from "@/components/AdminDragHandle";
 import { upload } from "@vercel/blob/client";
-import { MAX_EBOOK_PDF_BYTES } from "@/lib/ebook";
+import { MAX_EBOOK_PDF_BYTES, isPrivateBlobUrl } from "@/lib/ebook";
 import {
   useGetAdminEBooksQuery,
   useCreateEBookMutation,
@@ -35,6 +35,14 @@ import styles from "@/components/Admin.module.css";
 const EMPTY_FORM: CreateEBookRequest = { title: "", pdfUrl: "" };
 
 /**
+ * Abort an upload once no bytes have moved for this long. The Blob SDK
+ * retries network-level failures (including error responses that lack CORS
+ * headers) ~10 times with exponential backoff, which otherwise leaves the
+ * button stuck on "กำลังอัปโหลด…" for many minutes.
+ */
+const UPLOAD_STALL_MS = 30_000;
+
+/**
  * Map a failed Blob client-upload to actionable Thai copy. The SDK throws a
  * generic "Failed to retrieve the client token" for ANY server-side failure
  * of the token request (expired session or missing Blob env), so that case
@@ -42,6 +50,9 @@ const EMPTY_FORM: CreateEBookRequest = { title: "", pdfUrl: "" };
  */
 function uploadErrorMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : "";
+  if (err instanceof Error && (err.name === "BlobRequestAbortedError" || /aborted/i.test(msg))) {
+    return "อัปโหลดไม่สำเร็จ — การเชื่อมต่อกับ Vercel Blob ไม่ตอบสนอง ลองอีกครั้ง";
+  }
   if (/retrieve the client token|presigned url/i.test(msg)) {
     return "อัปโหลดไม่สำเร็จ — เซสชันอาจหมดอายุ (ลองเข้าสู่ระบบใหม่) หรือเซิร์ฟเวอร์ยังไม่ได้เชื่อมต่อ Vercel Blob";
   }
@@ -52,6 +63,14 @@ function uploadErrorMessage(err: unknown): string {
     return "รองรับเฉพาะไฟล์ PDF";
   }
   return `อัปโหลดไม่สำเร็จ${msg ? ` (${msg})` : " ลองอีกครั้ง"}`;
+}
+
+/** Private-store blob URLs 403 when opened directly; route them through the
+ *  authenticated PDF proxy the reader page uses. */
+function pdfViewHref(pdfUrl: string): string {
+  if (!isPrivateBlobUrl(pdfUrl)) return pdfUrl;
+  const token = typeof window !== "undefined" ? (localStorage.getItem("auth_token") ?? "") : "";
+  return `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}&token=${encodeURIComponent(token)}`;
 }
 
 function SortableRow({
@@ -85,7 +104,7 @@ function SortableRow({
       <td>{ebook.title}</td>
       <td>
         <a
-          href={ebook.pdfUrl}
+          href={pdfViewHref(ebook.pdfUrl)}
           target="_blank"
           rel="noopener noreferrer"
           className={styles.adminLink}
@@ -179,6 +198,17 @@ export default function AdminEBooksPage() {
 
     setIsUploading(true);
     setUploadError(null);
+    const controller = new AbortController();
+    let stallTimer = setTimeout(() => controller.abort(), UPLOAD_STALL_MS);
+    // SDK retries re-send the body from byte 0, so only progress past the
+    // furthest point reached counts as the upload being alive.
+    let maxLoaded = 0;
+    const resetStallTimer = ({ loaded }: { loaded: number }) => {
+      if (loaded <= maxLoaded) return;
+      maxLoaded = loaded;
+      clearTimeout(stallTimer);
+      stallTimer = setTimeout(() => controller.abort(), UPLOAD_STALL_MS);
+    };
     try {
       // The SDK's token request carries no cookies, so the admin JWT must be
       // attached explicitly for the upload route's requireAdmin guard.
@@ -189,16 +219,22 @@ export default function AdminEBooksPage() {
       }
       // Spaces/unicode in filenames are collapsed to keep Blob pathnames safe.
       const safeName = file.name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      // The story-diary-blob store is private: a "public" PUT is answered with
+      // a CORS-less 503 that the SDK retries silently. Readers get the PDF
+      // through /api/pdf-proxy, which fetches private blobs with the server token.
       const blob = await upload(`ebooks/${safeName || "ebook.pdf"}`, file, {
-        access: "public",
+        access: "private",
         handleUploadUrl: "/api/admin/e-books/upload",
         headers: { Authorization: `Bearer ${jwt}` },
+        abortSignal: controller.signal,
+        onUploadProgress: resetStallTimer,
       });
       setForm((f) => ({ ...f, pdfUrl: blob.url }));
       setPdfUrlError(null);
     } catch (err) {
       setUploadError(uploadErrorMessage(err));
     } finally {
+      clearTimeout(stallTimer);
       setIsUploading(false);
     }
   }

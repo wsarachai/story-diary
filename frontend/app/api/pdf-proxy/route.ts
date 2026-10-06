@@ -4,8 +4,8 @@ import { isIP } from "net";
 import { requireAuth } from "@/lib/api-auth";
 import { handleError } from "@/lib/api-response";
 import { Errors } from "@/lib/errors";
-
-const MAX_PDF_BYTES = 50 * 1024 * 1024; // 50 MB
+import { MAX_EBOOK_PDF_BYTES as MAX_PDF_BYTES, isPrivateBlobUrl } from "@/lib/ebook";
+import { get } from "@vercel/blob";
 
 /**
  * Block requests to internal/private targets so an authenticated user cannot
@@ -73,42 +73,63 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Only http/https URLs are allowed" }, { status: 400 });
     }
 
-    await assertTargetIsPublic(parsed.hostname);
+    let body: ReadableStream<Uint8Array>;
+    if (isPrivateBlobUrl(targetUrl)) {
+      // Private-store PDFs (admin uploads) need the server Blob token; an
+      // anonymous fetch is rejected with 403.
+      const result = await get(targetUrl, {
+        access: "private",
+        abortSignal: AbortSignal.timeout(15_000),
+      }).catch(() => null);
+      if (!result || result.statusCode !== 200) {
+        return new NextResponse(null, { status: 404 });
+      }
+      if (!result.blob.contentType.includes("pdf")) {
+        return new NextResponse(null, { status: 404 });
+      }
+      if (result.blob.size > MAX_PDF_BYTES) {
+        return NextResponse.json({ error: "PDF too large" }, { status: 413 });
+      }
+      body = result.stream;
+    } else {
+      await assertTargetIsPublic(parsed.hostname);
 
-    // redirect: "error" — a redirect could otherwise bypass the private-target
-    // check above by hopping to an internal address.
-    const upstream = await fetch(targetUrl, {
-      headers: {
-        Accept: "application/pdf,*/*",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      },
-      redirect: "error",
-      signal: AbortSignal.timeout(15_000),
-    });
+      // redirect: "error" — a redirect could otherwise bypass the private-target
+      // check above by hopping to an internal address.
+      const upstream = await fetch(targetUrl, {
+        headers: {
+          Accept: "application/pdf,*/*",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(15_000),
+      });
 
-    if (!upstream.ok) {
-      return new NextResponse(null, { status: 404 });
-    }
+      if (!upstream.ok) {
+        return new NextResponse(null, { status: 404 });
+      }
 
-    const contentType = upstream.headers.get("content-type") ?? "";
-    if (!contentType.includes("pdf")) {
-      return new NextResponse(null, { status: 404 });
-    }
+      const contentType = upstream.headers.get("content-type") ?? "";
+      if (!contentType.includes("pdf")) {
+        return new NextResponse(null, { status: 404 });
+      }
 
-    const contentLength = upstream.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > MAX_PDF_BYTES) {
-      return NextResponse.json({ error: "PDF too large" }, { status: 413 });
-    }
+      const contentLength = upstream.headers.get("content-length");
+      if (contentLength && parseInt(contentLength, 10) > MAX_PDF_BYTES) {
+        return NextResponse.json({ error: "PDF too large" }, { status: 413 });
+      }
 
-    if (!upstream.body) {
-      return new NextResponse(null, { status: 404 });
+      if (!upstream.body) {
+        return new NextResponse(null, { status: 404 });
+      }
+      body = upstream.body;
     }
 
     // Stream straight through instead of buffering up to 50 MB per request.
     // The byte counter enforces the cap for responses without Content-Length;
     // past that point headers are already sent, so the stream is aborted.
     let received = 0;
-    const capped = upstream.body.pipeThrough(
+    const capped = body.pipeThrough(
       new TransformStream<Uint8Array, Uint8Array>({
         transform(chunk, controller) {
           received += chunk.byteLength;
