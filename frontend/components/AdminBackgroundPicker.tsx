@@ -47,7 +47,7 @@ export default function AdminBackgroundPicker({
           </button>
         ))}
       </div>
-      <div style={{ marginTop: "0.4rem", fontSize: "0.85rem", opacity: 0.75 }}>
+      <div className={styles.adminPickerStatus}>
         {value === ""
           ? "ไม่ได้เลือกภาพพื้นหลัง"
           : current
