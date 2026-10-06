@@ -6,6 +6,7 @@ import AdminDragHandle from "@/components/AdminDragHandle";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
+import AdminBackgroundPicker from "@/components/AdminBackgroundPicker";
 import {
   useGetAdminChapterQuery,
   useUpdateChapterMutation,
@@ -315,12 +316,11 @@ export default function AdminChapterDetailPage() {
                     <option value="locked">locked</option>
                   </select>
                 </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Background Image URL (optional)</label>
-                  <input
-                    className={styles.adminInput}
+                <div className={`${styles.adminFormField} ${styles.full}`}>
+                  <label className={styles.adminLabel}>Background Image (optional)</label>
+                  <AdminBackgroundPicker
                     value={chapterForm.backgroundImageUrl}
-                    onChange={(e) => setChapterForm({ ...chapterForm, backgroundImageUrl: e.target.value })}
+                    onChange={(url) => setChapterForm({ ...chapterForm, backgroundImageUrl: url })}
                   />
                 </div>
               </div>
