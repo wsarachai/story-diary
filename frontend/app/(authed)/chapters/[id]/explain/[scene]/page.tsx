@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ScrollText, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,12 +8,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/chaptersApi";
 import { useGetMeQuery } from "@/store/authApi";
 import { MAIN_ACTOR_SPEAKER_NAME, mainActorImageUrl } from "@/lib/character";
+import TypewriterScene from "@/components/TypewriterScene";
 import PageSpinner from "@/components/PageSpinner";
 import styles from "../../../chapters.module.css";
 import layoutStyles from "@/components/BookShellLayout.module.css";
 
-/** Milliseconds between each revealed character — tuned to natural speech pace. */
-const TYPEWRITER_SPEED_MS = 60;
 
 function SpeakerPlaceholder() {
   return (
@@ -27,63 +26,6 @@ function SpeakerPlaceholder() {
       <ellipse cx="100" cy="80" rx="55" ry="60" fill="rgba(0,0,0,0.12)" />
       <rect x="45" y="140" width="110" height="180" rx="20" fill="rgba(0,0,0,0.1)" />
     </svg>
-  );
-}
-
-/**
- * Self-contained typewriter for a single scene.
- * Remounted via `key={sceneIndex}` so state resets automatically on scene change.
- */
-function TypewriterScene({
-  fullText,
-  onTypingDone,
-}: {
-  fullText: string;
-  onTypingDone: () => void;
-}) {
-  const [visibleCount, setVisibleCount] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isTypingDone = visibleCount >= fullText.length;
-
-  useEffect(() => {
-    if (isTypingDone) {
-      onTypingDone();
-      return;
-    }
-    timerRef.current = setTimeout(() => {
-      setVisibleCount((n) => Math.min(n + 1, fullText.length));
-    }, TYPEWRITER_SPEED_MS);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  // onTypingDone is stable (defined inline at callsite) — exclude to avoid re-runs
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleCount, isTypingDone, fullText]);
-
-  const visible = fullText.slice(0, visibleCount);
-  const hidden = fullText.slice(visibleCount);
-  const visibleLines = visible.split("\n");
-  const hiddenLines = hidden.split("\n");
-
-  return (
-    <>
-      {visibleLines.map((line, i) => (
-        <span key={`v${i}`}>
-          {line}
-          {i === visibleLines.length - 1 ? (
-            <span style={{ visibility: "hidden" }}>{hiddenLines[0]}</span>
-          ) : (
-            <br />
-          )}
-        </span>
-      ))}
-      {hiddenLines.slice(1).map((line, i) => (
-        <span key={`h${i}`} style={{ visibility: "hidden" }}>
-          {line}
-          {i < hiddenLines.length - 2 && <br />}
-        </span>
-      ))}
-    </>
   );
 }
 
