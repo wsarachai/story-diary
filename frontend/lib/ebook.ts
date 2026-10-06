@@ -18,3 +18,18 @@ export function isPrivateBlobUrl(url: string): boolean {
     return false;
   }
 }
+
+/**
+ * Blob pathname for an uploaded PDF. Non-ASCII runs (e.g. Thai titles) are
+ * collapsed, so a name like "หนังสือ.pdf" would reduce to ".pdf" — a dotfile
+ * with no extension, which Blob can't type as a PDF. Fall back to "ebook" for
+ * the base name and always force the ".pdf" extension.
+ */
+export function ebookBlobPathname(fileName: string): string {
+  const base = fileName
+    .replace(/\.pdf$/i, "")
+    .replace(/[^\w-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `ebooks/${base || "ebook"}.pdf`;
+}

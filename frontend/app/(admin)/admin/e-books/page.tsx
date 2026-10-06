@@ -5,7 +5,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
 import AdminDragHandle from "@/components/AdminDragHandle";
 import { upload } from "@vercel/blob/client";
-import { MAX_EBOOK_PDF_BYTES, isPrivateBlobUrl } from "@/lib/ebook";
+import { MAX_EBOOK_PDF_BYTES, ebookBlobPathname, isPrivateBlobUrl } from "@/lib/ebook";
 import {
   useGetAdminEBooksQuery,
   useCreateEBookMutation,
@@ -46,20 +46,22 @@ const UPLOAD_STALL_MS = 30_000;
  * Map a failed Blob client-upload to actionable Thai copy. The SDK throws a
  * generic "Failed to retrieve the client token" for ANY server-side failure
  * of the token request (expired session or missing Blob env), so that case
- * names both likely causes.
+ * names both likely causes. Matches the SDK's exact message prefixes — its
+ * error classes aren't exported from the client entry, and loose patterns
+ * (e.g. /pdf/) also match messages that merely quote the pathname.
  */
 function uploadErrorMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : "";
-  if (err instanceof Error && (err.name === "BlobRequestAbortedError" || /aborted/i.test(msg))) {
+  if (/The request was aborted/i.test(msg)) {
     return "อัปโหลดไม่สำเร็จ — การเชื่อมต่อกับ Vercel Blob ไม่ตอบสนอง ลองอีกครั้ง";
   }
   if (/retrieve the client token|presigned url/i.test(msg)) {
     return "อัปโหลดไม่สำเร็จ — เซสชันอาจหมดอายุ (ลองเข้าสู่ระบบใหม่) หรือเซิร์ฟเวอร์ยังไม่ได้เชื่อมต่อ Vercel Blob";
   }
-  if (/large|size|413/i.test(msg)) {
+  if (/File is too large/i.test(msg)) {
     return "ไฟล์ใหญ่เกิน 50 MB";
   }
-  if (/content[- ]type|pdf/i.test(msg)) {
+  if (/Content type mismatch/i.test(msg)) {
     return "รองรับเฉพาะไฟล์ PDF";
   }
   return `อัปโหลดไม่สำเร็จ${msg ? ` (${msg})` : " ลองอีกครั้ง"}`;
@@ -217,13 +219,14 @@ export default function AdminEBooksPage() {
         setUploadError("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
         return;
       }
-      // Spaces/unicode in filenames are collapsed to keep Blob pathnames safe.
-      const safeName = file.name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
       // The story-diary-blob store is private: a "public" PUT is answered with
       // a CORS-less 503 that the SDK retries silently. Readers get the PDF
       // through /api/pdf-proxy, which fetches private blobs with the server token.
-      const blob = await upload(`ebooks/${safeName || "ebook.pdf"}`, file, {
+      const blob = await upload(ebookBlobPathname(file.name), file, {
         access: "private",
+        // Explicit, so Blob never has to infer the type from the pathname or
+        // an OS-reported MIME such as "" or "application/x-pdf".
+        contentType: "application/pdf",
         handleUploadUrl: "/api/admin/e-books/upload",
         headers: { Authorization: `Bearer ${jwt}` },
         abortSignal: controller.signal,
