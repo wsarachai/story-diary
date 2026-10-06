@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { ChevronLeft, ChevronRight, ExternalLink, Eye, FileText, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
 import AdminDragHandle from "@/components/AdminDragHandle";
@@ -75,13 +76,41 @@ function pdfViewHref(pdfUrl: string): string {
   return `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}&token=${encodeURIComponent(token)}`;
 }
 
-function SortableRow({
+/** Validation copy for a PDF URL, or null when it's acceptable. */
+function pdfUrlProblem(url: string): string | null {
+  if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("/")) {
+    return "URL ต้องขึ้นต้นด้วย http://, https:// หรือ /";
+  }
+  try {
+    const pathname = new URL(url, window.location.origin).pathname;
+    if (!pathname.toLowerCase().endsWith(".pdf")) return "ต้องเป็นลิงก์ไฟล์ PDF เท่านั้น";
+  } catch {
+    return "URL ไม่ถูกต้อง";
+  }
+  return null;
+}
+
+/** Last path segment of a PDF URL, decoded — readable in cards and the editor. */
+function pdfFileName(url: string): string {
+  try {
+    const name = new URL(url, "https://x.invalid").pathname.split("/").filter(Boolean).pop() ?? url;
+    return decodeURIComponent(name);
+  } catch {
+    return url;
+  }
+}
+
+function SortableEBookCard({
   ebook,
-  onEdit,
+  position,
+  selected,
+  onSelect,
   onDelete,
 }: {
   ebook: EBookChapter;
-  onEdit: (ebook: EBookChapter) => void;
+  position: number;
+  selected: boolean;
+  onSelect: (ebook: EBookChapter) => void;
   onDelete: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -91,46 +120,79 @@ function SortableRow({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.95 : 1,
-    background: isDragging ? "#21262d" : undefined,
-    boxShadow: isDragging ? "0 2px 10px rgba(0,0,0,0.6)" : undefined,
+    boxShadow: isDragging ? "0 4px 14px rgba(0,0,0,0.6)" : undefined,
+    zIndex: isDragging ? 1 : undefined,
+    position: "relative",
   };
+  const uploaded = isPrivateBlobUrl(ebook.pdfUrl);
 
   return (
-    <tr ref={setNodeRef} style={style}>
-      <td>
-        <span {...attributes} {...listeners} style={{ display: "inline-flex", alignItems: "center", padding: "0 4px" }}>
-          <AdminDragHandle />
+    <li
+      ref={setNodeRef}
+      style={style}
+      data-item-id={ebook.id}
+      role="button"
+      tabIndex={0}
+      aria-current={selected ? "true" : undefined}
+      aria-label={`E-Book ${ebook.title}`}
+      className={`${styles.sceneCard} ${styles.ebookCard} ${selected ? styles.sceneCardSelected : ""}`}
+      onClick={() => onSelect(ebook)}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(ebook);
+        }
+      }}
+    >
+      <span
+        {...attributes}
+        {...listeners}
+        className={styles.sceneDragHandle}
+        title="ลากเพื่อเรียงลำดับ"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <AdminDragHandle />
+      </span>
+      <span className={styles.sceneIdx}>{position}</span>
+      <span className={styles.ebookIcon}>
+        <FileText size={20} aria-hidden="true" />
+      </span>
+      <span className={styles.sceneCardBody}>
+        <span className={styles.sceneCardText} style={{ WebkitLineClamp: 1 }}>{ebook.title}</span>
+        <span className={styles.quizCardAnswer}>
+          <span className={`${styles.adminBadge} ${uploaded ? styles.sceneBadgeBlue : styles.adminBadgeGray}`}>
+            {uploaded ? "ไฟล์อัปโหลด" : "ลิงก์ภายนอก"}
+          </span>
+          <span className={styles.quizCardAnswerText}>{pdfFileName(ebook.pdfUrl)}</span>
         </span>
-      </td>
-      <td>{ebook.id}</td>
-      <td>{ebook.title}</td>
-      <td>
+      </span>
+      <span style={{ display: "inline-flex" }}>
         <a
+          className={styles.sceneIconBtn}
           href={pdfViewHref(ebook.pdfUrl)}
           target="_blank"
           rel="noopener noreferrer"
-          className={styles.adminLink}
+          title="เปิด PDF"
+          aria-label={`เปิด PDF ${ebook.title}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          {ebook.pdfUrl}
+          <ExternalLink size={16} aria-hidden="true" />
         </a>
-      </td>
-      <td>
-        <div className={styles.adminTableActions}>
-          <button
-            className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
-            onClick={() => onEdit(ebook)}
-          >
-            Edit
-          </button>
-          <button
-            className={`${styles.adminBtn} ${styles.adminBtnDanger}`}
-            onClick={() => onDelete(ebook.id)}
-          >
-            Delete
-          </button>
-        </div>
-      </td>
-    </tr>
+        <button
+          type="button"
+          className={`${styles.sceneIconBtn} ${styles.sceneIconBtnDanger}`}
+          title="ลบ E-Book"
+          aria-label={`ลบ E-Book ${ebook.title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(ebook.id);
+          }}
+        >
+          <Trash2 size={16} aria-hidden="true" />
+        </button>
+      </span>
+    </li>
   );
 }
 
@@ -142,53 +204,90 @@ export default function AdminEBooksPage() {
   const [reorderEBooks] = useReorderEBooksMutation();
 
   const [reorderError, setReorderError] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateEBookRequest>(EMPTY_FORM);
+  /** Snapshot the editor opened with — compared against `form` for unsaved changes. */
+  const [baseline, setBaseline] = useState<CreateEBookRequest>(EMPTY_FORM);
   const [pdfUrlError, setPdfUrlError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const formRef = useRef<HTMLDivElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const ebooks = serverEBooks ?? [];
+  const isDirty = JSON.stringify(form) !== JSON.stringify(baseline);
+  const editIndex = editId === null ? -1 : ebooks.findIndex((e) => e.id === editId);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  useEffect(() => {
-    if (showForm) {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const confirmDiscard = useCallback(() => {
+    if (isUploading) {
+      return window.confirm("กำลังอัปโหลดไฟล์อยู่ ต้องการออกจากการแก้ไขหรือไม่?");
     }
-  }, [showForm]);
+    return !isDirty || window.confirm("มีการแก้ไขที่ยังไม่บันทึก ต้องการทิ้งการแก้ไขหรือไม่?");
+  }, [isDirty, isUploading]);
+
+  function scrollCardIntoView(id: string) {
+    requestAnimationFrame(() =>
+      document
+        .querySelector(`[data-item-id="${window.CSS.escape(id)}"]`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
+    );
+  }
+
+  function loadForm(id: string | null, next: CreateEBookRequest) {
+    setEditId(id);
+    setForm(next);
+    setBaseline(next);
+    setPdfUrlError(null);
+    setUploadError(null);
+    setMutationError(null);
+    setShowPreview(false);
+    setSaved(false);
+    setShowForm(true);
+  }
 
   function openCreate() {
-    setEditId(null);
-    setForm(EMPTY_FORM);
-    setShowForm(true);
+    if (!confirmDiscard()) return;
+    loadForm(null, EMPTY_FORM);
   }
 
-  function openEdit(eb: EBookChapter) {
-    setEditId(eb.id);
-    setForm({ title: eb.title, pdfUrl: eb.pdfUrl });
-    setShowForm(true);
+  function selectEBook(eb: EBookChapter) {
+    if (eb.id === editId && showForm) return;
+    if (!confirmDiscard()) return;
+    loadForm(eb.id, { title: eb.title, pdfUrl: eb.pdfUrl });
   }
 
-  function closeForm() {
+  function stepEBook(delta: -1 | 1) {
+    const target = ebooks[editIndex + delta];
+    if (!target || !confirmDiscard()) return;
+    loadForm(target.id, { title: target.title, pdfUrl: target.pdfUrl });
+    scrollCardIntoView(target.id);
+  }
+
+  const closeForm = useCallback(() => {
+    if (!confirmDiscard()) return;
     setShowForm(false);
     setEditId(null);
     setForm(EMPTY_FORM);
+    setBaseline(EMPTY_FORM);
     setPdfUrlError(null);
-    setIsUploading(false);
     setUploadError(null);
-  }
+    setMutationError(null);
+    setShowPreview(false);
+    setSaved(false);
+  }, [confirmDiscard]);
 
-  /** Upload the picked PDF straight from the browser to Vercel Blob, then
-   *  fill the URL field with the resulting blob URL. */
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
+  /** Upload the picked/dropped PDF straight from the browser to Vercel Blob,
+   *  then fill the URL field with the resulting blob URL. */
+  async function uploadPdf(file: File) {
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       setUploadError("เลือกไฟล์ PDF เท่านั้น");
       return;
@@ -199,13 +298,15 @@ export default function AdminEBooksPage() {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     setUploadError(null);
     const controller = new AbortController();
     let stallTimer = setTimeout(() => controller.abort(), UPLOAD_STALL_MS);
     // SDK retries re-send the body from byte 0, so only progress past the
     // furthest point reached counts as the upload being alive.
     let maxLoaded = 0;
-    const resetStallTimer = ({ loaded }: { loaded: number }) => {
+    const onProgress = ({ loaded, percentage }: { loaded: number; percentage: number }) => {
+      setUploadProgress(percentage);
       if (loaded <= maxLoaded) return;
       maxLoaded = loaded;
       clearTimeout(stallTimer);
@@ -230,46 +331,82 @@ export default function AdminEBooksPage() {
         handleUploadUrl: "/api/admin/e-books/upload",
         headers: { Authorization: `Bearer ${jwt}` },
         abortSignal: controller.signal,
-        onUploadProgress: resetStallTimer,
+        onUploadProgress: onProgress,
       });
-      setForm((f) => ({ ...f, pdfUrl: blob.url }));
+      setForm((f) => ({
+        ...f,
+        pdfUrl: blob.url,
+        // New books get a starting title from the file name.
+        title: f.title || file.name.replace(/\.pdf$/i, ""),
+      }));
       setPdfUrlError(null);
+      setShowPreview(false);
     } catch (err) {
       setUploadError(uploadErrorMessage(err));
     } finally {
       clearTimeout(stallTimer);
       setIsUploading(false);
+      setUploadProgress(null);
     }
   }
 
-  function validatePdfUrl(url: string): boolean {
-    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("/")) {
-      setPdfUrlError("URL ต้องขึ้นต้นด้วย http://, https:// หรือ /");
-      return false;
-    }
-    const pathname = new URL(url, window.location.origin).pathname;
-    if (!pathname.toLowerCase().endsWith(".pdf")) {
-      setPdfUrlError("ต้องเป็นลิงก์ไฟล์ PDF เท่านั้น");
-      return false;
-    }
-    setPdfUrlError(null);
-    return true;
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void uploadPdf(file);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (isUploading) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file) void uploadPdf(file);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validatePdfUrl(form.pdfUrl)) return;
-    if (editId !== null) {
-      await updateEBook({ id: editId, body: form });
-    } else {
-      await createEBook(form);
+    if (saving || isUploading) return;
+    const problem = pdfUrlProblem(form.pdfUrl);
+    if (problem) {
+      setPdfUrlError(problem);
+      return;
     }
-    closeForm();
+    setSaving(true);
+    setMutationError(null);
+    try {
+      if (editId !== null) {
+        await updateEBook({ id: editId, body: form }).unwrap();
+      } else {
+        const created = await createEBook(form).unwrap();
+        // Keep editing the new book in place and bring its card into view.
+        if (created?.id) {
+          setEditId(created.id);
+          scrollCardIntoView(created.id);
+        }
+      }
+      setBaseline(form);
+      setSaved(true);
+    } catch {
+      setMutationError("บันทึก E-Book ไม่สำเร็จ ลองอีกครั้ง");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
     if (!window.confirm("ลบ E-Book นี้หรือไม่?")) return;
-    await deleteEBook(id);
+    try {
+      await deleteEBook(id).unwrap();
+      if (id === editId) {
+        setShowForm(false);
+        setEditId(null);
+        setForm(EMPTY_FORM);
+        setBaseline(EMPTY_FORM);
+      }
+    } catch {
+      setReorderError("ลบ E-Book ไม่สำเร็จ ลองอีกครั้ง");
+    }
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -288,118 +425,249 @@ export default function AdminEBooksPage() {
     }
   }
 
+  // Esc closes the editor; Ctrl/⌘+Enter saves it.
+  useEffect(() => {
+    if (!showForm) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeForm();
+      } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showForm, closeForm]);
+
+  const hasPdf = form.pdfUrl !== "" && !pdfUrlProblem(form.pdfUrl);
+
   return (
     <div className={styles.adminLayout}>
       <AdminSidebar />
       <div className={styles.adminMainWrapper}>
-      <main className={styles.adminMain}>
-        <div className={styles.adminPageHeader}>
-          <h1 className={styles.adminPageTitle}>E-Books</h1>
-          <button className={`${styles.adminBtn} ${styles.adminBtnPrimary}`} onClick={openCreate}>
-            + เพิ่ม E-Book
-          </button>
-        </div>
+        <main className={styles.adminMain}>
+          <div className={styles.adminPageHeader}>
+            <h1 className={styles.adminPageTitle}>E-Books</h1>
+          </div>
 
-        {reorderError && (
-          <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
-        )}
+          {reorderError && (
+            <AdminErrorBanner message={reorderError} onDismiss={() => setReorderError(null)} />
+          )}
 
-        {showForm && (
-          <div className={styles.adminFormCard} ref={formRef}>
-            <h2>{editId !== null ? "แก้ไข E-Book" : "เพิ่ม E-Book ใหม่"}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.adminFormGrid}>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>Title</label>
-                  <input
-                    className={styles.adminInput}
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className={`${styles.adminFormField} ${styles.full}`}>
-                  <label className={styles.adminLabel}>PDF</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="application/pdf,.pdf"
-                      style={{ display: "none" }}
-                      onChange={handleFileChange}
-                    />
-                    <button
-                      type="button"
-                      className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
-                      disabled={isUploading}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {isUploading ? "กำลังอัปโหลด…" : "อัปโหลดไฟล์ PDF"}
-                    </button>
-                    <span style={{ opacity: 0.65 }}>หรือวาง URL ด้านล่าง (สูงสุด 50 MB)</span>
-                  </div>
-                  {uploadError && <span className={styles.adminFieldError}>{uploadError}</span>}
-                  <input
-                    className={`${styles.adminInput} ${pdfUrlError ? styles.adminInputError : ""}`}
-                    value={form.pdfUrl}
-                    placeholder="https://example.com/book.pdf"
-                    onChange={(e) => {
-                      setForm({ ...form, pdfUrl: e.target.value });
-                      if (pdfUrlError) validatePdfUrl(e.target.value);
-                    }}
-                    required
-                  />
-                  {pdfUrlError && <span className={styles.adminFieldError}>{pdfUrlError}</span>}
-                </div>
-              </div>
-              <div className={styles.adminFormActions}>
+          <div className={styles.sceneWorkspace}>
+            <section aria-label="E-Books">
+              <div className={styles.sceneListHeader}>
+                <h2 className={styles.sceneListTitle}>
+                  หนังสือทั้งหมด<span className={styles.sceneListCount}>({ebooks.length})</span>
+                </h2>
                 <button
-                  type="button"
-                  className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
-                  onClick={closeForm}
+                  className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+                  onClick={openCreate}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
                 >
-                  ยกเลิก
-                </button>
-                <button type="submit" className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}>
-                  {editId !== null ? "บันทึก" : "เพิ่ม"}
+                  <Plus size={16} aria-hidden="true" /> เพิ่ม E-Book
                 </button>
               </div>
-            </form>
-          </div>
-        )}
 
-        {isLoading ? (
-          <div className={styles.adminSpinner} />
-        ) : (
-          <div className={styles.adminTableWrap}>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th style={{ width: "2rem" }} />
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>PDF URL</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <SortableContext items={ebooks.map((e) => e.id)} strategy={verticalListSortingStrategy}>
-                  <tbody>
-                    {ebooks.map((eb) => (
-                      <SortableRow
-                        key={eb.id}
-                        ebook={eb}
-                        onEdit={openEdit}
-                        onDelete={handleDelete}
-                      />
-                    ))}
-                  </tbody>
-                </SortableContext>
-              </table>
-            </DndContext>
+              {isLoading ? (
+                <div className={styles.adminSpinner} />
+              ) : ebooks.length === 0 ? (
+                <div className={styles.adminEmpty}>ยังไม่มี E-Book — กด “เพิ่ม E-Book” เพื่อเริ่ม</div>
+              ) : (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={ebooks.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+                    <ul className={styles.sceneList}>
+                      {ebooks.map((eb, i) => (
+                        <SortableEBookCard
+                          key={eb.id}
+                          ebook={eb}
+                          position={i + 1}
+                          selected={showForm && eb.id === editId}
+                          onSelect={selectEBook}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </ul>
+                  </SortableContext>
+                </DndContext>
+              )}
+            </section>
+
+            {showForm ? (
+              <>
+                <div className={styles.sceneBackdrop} onClick={closeForm} aria-hidden="true" />
+                <aside className={styles.sceneEditor} aria-label="E-Book editor">
+                  <div className={styles.sceneEditorHeader}>
+                    <h2 className={styles.sceneEditorTitle}>
+                      {editId !== null ? `แก้ไข E-Book เล่มที่ ${editIndex >= 0 ? editIndex + 1 : ""}` : "เพิ่ม E-Book ใหม่"}
+                      {isDirty && <span style={{ color: "#d29922", marginLeft: "0.4rem" }} title="ยังไม่บันทึก">●</span>}
+                    </h2>
+                    {editId !== null && (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.sceneIconBtn}
+                          title="เล่มก่อนหน้า"
+                          aria-label="เล่มก่อนหน้า"
+                          disabled={editIndex <= 0}
+                          onClick={() => stepEBook(-1)}
+                        >
+                          <ChevronLeft size={18} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.sceneIconBtn}
+                          title="เล่มถัดไป"
+                          aria-label="เล่มถัดไป"
+                          disabled={editIndex < 0 || editIndex >= ebooks.length - 1}
+                          onClick={() => stepEBook(1)}
+                        >
+                          <ChevronRight size={18} aria-hidden="true" />
+                        </button>
+                      </>
+                    )}
+                    <button type="button" className={styles.sceneIconBtn} title="ปิด (Esc)" aria-label="ปิด" onClick={closeForm}>
+                      <X size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                  <form ref={formRef} onSubmit={handleSubmit} style={{ display: "contents" }}>
+                    <div className={styles.sceneEditorBody}>
+                      {mutationError && (
+                        <AdminErrorBanner message={mutationError} onDismiss={() => setMutationError(null)} />
+                      )}
+                      <div className={styles.adminFormGrid}>
+                        <div className={`${styles.adminFormField} ${styles.full}`}>
+                          <label className={styles.adminLabel} htmlFor="ebook-title">ชื่อหนังสือ (Title)</label>
+                          <input
+                            id="ebook-title"
+                            className={styles.adminInput}
+                            value={form.title}
+                            onChange={(e) => setForm({ ...form, title: e.target.value })}
+                            required
+                          />
+                        </div>
+
+                        <div className={`${styles.adminFormField} ${styles.full}`}>
+                          <span className={styles.adminLabel}>ไฟล์ PDF</span>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="application/pdf,.pdf"
+                            style={{ display: "none" }}
+                            onChange={handleFileChange}
+                          />
+                          <button
+                            type="button"
+                            className={`${styles.ebookDropzone} ${isDragOver ? styles.ebookDropzoneActive : ""}`}
+                            disabled={isUploading}
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              if (!isUploading) setIsDragOver(true);
+                            }}
+                            onDragLeave={() => setIsDragOver(false)}
+                            onDrop={handleDrop}
+                          >
+                            <UploadCloud size={22} aria-hidden="true" />
+                            {isUploading ? (
+                              <span>
+                                กำลังอัปโหลด… {uploadProgress !== null ? `${Math.round(uploadProgress)}%` : ""}
+                                <span className={styles.ebookProgress}>
+                                  <span style={{ width: `${uploadProgress ?? 0}%` }} />
+                                </span>
+                              </span>
+                            ) : (
+                              <span>
+                                <strong>{form.pdfUrl ? "อัปโหลดไฟล์ใหม่แทน" : "อัปโหลดไฟล์ PDF"}</strong>
+                                <br />
+                                <span className={styles.ebookDropzoneHint}>คลิกเพื่อเลือก หรือลากไฟล์มาวางที่นี่ · สูงสุด 50 MB</span>
+                              </span>
+                            )}
+                          </button>
+                          {uploadError && <span className={styles.adminFieldError}>{uploadError}</span>}
+                        </div>
+
+                        <div className={`${styles.adminFormField} ${styles.full}`}>
+                          <label className={styles.adminLabel} htmlFor="ebook-url">หรือวางลิงก์ PDF</label>
+                          <input
+                            id="ebook-url"
+                            className={`${styles.adminInput} ${pdfUrlError ? styles.adminInputError : ""}`}
+                            value={form.pdfUrl}
+                            placeholder="https://example.com/book.pdf"
+                            onChange={(e) => {
+                              setForm({ ...form, pdfUrl: e.target.value });
+                              setShowPreview(false);
+                              if (pdfUrlError) setPdfUrlError(pdfUrlProblem(e.target.value));
+                            }}
+                            onBlur={() => {
+                              if (form.pdfUrl) setPdfUrlError(pdfUrlProblem(form.pdfUrl));
+                            }}
+                            required
+                          />
+                          {pdfUrlError ? (
+                            <span className={styles.adminFieldError}>{pdfUrlError}</span>
+                          ) : hasPdf ? (
+                            <div className={styles.clipSourceRow}>
+                              <span className={`${styles.adminBadge} ${isPrivateBlobUrl(form.pdfUrl) ? styles.sceneBadgeBlue : styles.adminBadgeGray}`}>
+                                {isPrivateBlobUrl(form.pdfUrl) ? "ไฟล์อัปโหลด" : "ลิงก์ภายนอก"}
+                              </span>
+                              <span className={styles.quizCardAnswerText} style={{ fontSize: "0.8rem", color: "#8b949e" }}>
+                                {pdfFileName(form.pdfUrl)}
+                              </span>
+                              <button
+                                type="button"
+                                className={styles.clipLinkBtn}
+                                onClick={() => setShowPreview((v) => !v)}
+                                aria-expanded={showPreview}
+                              >
+                                <Eye size={13} aria-hidden="true" /> {showPreview ? "ซ่อนตัวอย่าง" : "ดูตัวอย่าง"}
+                              </button>
+                              <a className={styles.clipLinkBtn} href={pdfViewHref(form.pdfUrl)} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink size={13} aria-hidden="true" /> เปิดในแท็บใหม่
+                              </a>
+                            </div>
+                          ) : null}
+                          {showPreview && hasPdf && (
+                            <div className={styles.ebookPreview}>
+                              <iframe src={pdfViewHref(form.pdfUrl)} title="ตัวอย่าง PDF" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.sceneEditorFooter}>
+                      {saved && !isDirty ? (
+                        <span className={styles.sceneSavedNote}>บันทึกแล้ว ✓</span>
+                      ) : (
+                        <span className={styles.sceneEditorHint}>Ctrl+Enter บันทึก · Esc ปิด</span>
+                      )}
+                      <button type="button" className={`${styles.adminBtn} ${styles.adminBtnSecondary}`} onClick={closeForm}>
+                        ปิด
+                      </button>
+                      <button
+                        type="submit"
+                        className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
+                        disabled={saving || isUploading || (editId !== null && !isDirty)}
+                      >
+                        {saving ? "กำลังบันทึก…" : editId !== null ? "บันทึก" : "เพิ่ม"}
+                      </button>
+                    </div>
+                  </form>
+                </aside>
+              </>
+            ) : (
+              <aside className={`${styles.sceneEditor} ${styles.sceneEditorIdle}`} aria-label="E-Book editor">
+                <div className={styles.sceneEditorEmpty}>
+                  เลือกหนังสือทางซ้ายเพื่อแก้ไข
+                  <br />
+                  หรือกด “เพิ่ม E-Book” เพื่อสร้างใหม่
+                </div>
+              </aside>
+            )}
           </div>
-        )}
-      </main>
+        </main>
       </div>
     </div>
   );
