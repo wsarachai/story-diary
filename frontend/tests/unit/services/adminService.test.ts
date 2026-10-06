@@ -698,6 +698,23 @@ describe("adminUpdateVideoClip", () => {
     expect(updated.thumbnailUrl).toBe("https://new.com/t.jpg");
   });
 
+  it("clears thumbnailUrl when sent as an empty string (the admin form's 'emptied' value)", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    await adminUpdateVideoClip(id, { thumbnailUrl: "https://new.com/t.jpg" });
+    const cleared = await adminUpdateVideoClip(id, { thumbnailUrl: "" });
+    expect(cleared.thumbnailUrl).toBeUndefined();
+    expect((await adminListVideoClips()).find((c) => c.id === id)?.thumbnailUrl).toBeUndefined();
+  });
+
+  it("leaves thumbnailUrl untouched when the key is absent", async () => {
+    const clips = await adminListVideoClips();
+    const id = clips[0].id;
+    await adminUpdateVideoClip(id, { thumbnailUrl: "https://new.com/keep.jpg" });
+    const updated = await adminUpdateVideoClip(id, { caption: "เปลี่ยนแค่ชื่อ" });
+    expect(updated.thumbnailUrl).toBe("https://new.com/keep.jpg");
+  });
+
   it("throws 404 for non-existent clip id", async () => {
     await expect(
       adminUpdateVideoClip("no-such-id", { caption: "X" }),

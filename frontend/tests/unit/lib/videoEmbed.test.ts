@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toEmbedUrl, isSupportedVideoUrl } from "@/lib/videoEmbed";
+import { toEmbedUrl, isSupportedVideoUrl, clipThumbnailUrl, youtubeVideoId } from "@/lib/videoEmbed";
 
 describe("toEmbedUrl — YouTube", () => {
   it("converts youtu.be short links", () => {
@@ -60,5 +60,38 @@ describe("toEmbedUrl — rejects", () => {
   it("drives isSupportedVideoUrl", () => {
     expect(isSupportedVideoUrl("https://www.youtube.com/shorts/x")).toBe(true);
     expect(isSupportedVideoUrl("https://vimeo.com/12345")).toBe(false);
+  });
+});
+
+describe("clipThumbnailUrl", () => {
+  const yt = "https://www.youtube.com/watch?v=abc123";
+
+  it("uses YouTube's still when no thumbnail is set", () => {
+    expect(clipThumbnailUrl(undefined, yt)).toBe("https://i.ytimg.com/vi/abc123/hqdefault.jpg");
+    expect(clipThumbnailUrl("", "https://youtube.com/shorts/CtQ_drx6RUQ?si=x")).toBe(
+      "https://i.ytimg.com/vi/CtQ_drx6RUQ/hqdefault.jpg",
+    );
+  });
+
+  it("prefers an explicit image URL", () => {
+    expect(clipThumbnailUrl("https://cdn.example.com/a.jpg", yt)).toBe("https://cdn.example.com/a.jpg");
+  });
+
+  it("ignores a video link pasted as the thumbnail", () => {
+    expect(clipThumbnailUrl(yt, yt)).toBe("https://i.ytimg.com/vi/abc123/hqdefault.jpg");
+  });
+
+  it("returns undefined for Drive videos without an explicit thumbnail", () => {
+    expect(clipThumbnailUrl(undefined, "https://drive.google.com/file/d/xyz/view")).toBeUndefined();
+  });
+});
+
+describe("youtubeVideoId", () => {
+  it("extracts ids from every supported YouTube form and rejects others", () => {
+    expect(youtubeVideoId("https://youtu.be/Ktxam4bHrTo")).toBe("Ktxam4bHrTo");
+    expect(youtubeVideoId("https://m.youtube.com/watch?v=abc")).toBe("abc");
+    expect(youtubeVideoId("https://www.youtube.com/live/liveId")).toBe("liveId");
+    expect(youtubeVideoId("https://drive.google.com/file/d/xyz/view")).toBeNull();
+    expect(youtubeVideoId("not a url")).toBeNull();
   });
 });

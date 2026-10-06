@@ -31,7 +31,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { isSupportedVideoUrl, toEmbedUrl } from "@/lib/videoEmbed";
+import { clipThumbnailUrl, isSupportedVideoUrl, toEmbedUrl } from "@/lib/videoEmbed";
 import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateVideoClipRequest = {
@@ -47,6 +47,13 @@ function sourceKind(url: string): string | null {
   const embed = toEmbedUrl(url);
   if (!embed) return null;
   return embed.includes("youtube.com") ? "YouTube" : "Google Drive";
+}
+
+/** Placeholder for the thumbnail field: say when YouTube fills it in. */
+function youtubeHint(sourceUrl: string): string {
+  return sourceKind(sourceUrl) === "YouTube"
+    ? "เว้นว่าง = ใช้ภาพจาก YouTube อัตโนมัติ"
+    : "https://... (ลิงก์ไฟล์รูป)";
 }
 
 /** Embed URL for the editor preview — never autoplays. */
@@ -132,7 +139,7 @@ function SortableClipCard({
       </span>
       <span className={styles.sceneIdx}>{position}</span>
       <span className={styles.clipThumb}>
-        <ClipThumbImage src={clip.thumbnailUrl} size={18} />
+        <ClipThumbImage src={clipThumbnailUrl(clip.thumbnailUrl, clip.sourceUrl)} size={18} />
       </span>
       <span className={styles.sceneCardBody}>
         <span className={styles.sceneCardText} style={{ WebkitLineClamp: 1 }}>{clip.caption}</span>
@@ -252,7 +259,13 @@ export default function AdminVideoClipsPage() {
       setSourceUrlError(SOURCE_URL_ERROR);
       return;
     }
-    const payload = { ...form, thumbnailUrl: form.thumbnailUrl || undefined };
+    // PATCH only touches keys present in the body, and JSON drops `undefined`,
+    // so an emptied thumbnail must be sent as "" (the server stores null) or
+    // the old value silently survives the save.
+    const payload =
+      editId !== null
+        ? { ...form, thumbnailUrl: form.thumbnailUrl ?? "" }
+        : { ...form, thumbnailUrl: form.thumbnailUrl || undefined };
     setSaving(true);
     setMutationError(null);
     try {
@@ -473,22 +486,22 @@ export default function AdminVideoClipsPage() {
                           )}
                         </div>
                         <div className={`${styles.adminFormField} ${styles.full}`}>
-                          <label className={styles.adminLabel} htmlFor="clip-thumb">ภาพหน้าปก — Thumbnail URL (ไม่บังคับ)</label>
+                          <label className={styles.adminLabel} htmlFor="clip-thumb">ภาพหน้าปก — Thumbnail URL (ไม่บังคับ — คลิป YouTube ใช้ภาพจาก YouTube ได้เอง)</label>
                           <div className={styles.clipThumbRow}>
                             <span className={`${styles.clipThumb} ${styles.clipThumbLarge}`}>
-                              <ClipThumbImage src={form.thumbnailUrl} size={20} />
+                              <ClipThumbImage src={clipThumbnailUrl(form.thumbnailUrl, form.sourceUrl)} size={20} />
                             </span>
                             <input
                               id="clip-thumb"
                               className={styles.adminInput}
                               value={form.thumbnailUrl ?? ""}
                               onChange={(e) => setForm({ ...form, thumbnailUrl: e.target.value })}
-                              placeholder="https://..."
+                              placeholder={youtubeHint(form.sourceUrl)}
                             />
                           </div>
                           {form.thumbnailUrl && isSupportedVideoUrl(form.thumbnailUrl) && (
                             <span className={styles.adminFieldError}>
-                              นี่เป็นลิงก์วิดีโอ ไม่ใช่ลิงก์รูปภาพ — ใส่ลิงก์ไฟล์รูป (.jpg/.png/.webp) หรือเว้นว่างไว้
+                              นี่เป็นลิงก์วิดีโอ ไม่ใช่ลิงก์รูปภาพ — ใส่ลิงก์ไฟล์รูป (.jpg/.png/.webp) หรือเว้นว่างไว้{sourceKind(form.sourceUrl) === "YouTube" ? " (จะใช้ภาพจาก YouTube อัตโนมัติ)" : ""}
                             </span>
                           )}
                         </div>
