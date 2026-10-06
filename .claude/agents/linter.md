@@ -1,10 +1,10 @@
-# linter.md — ใช้ Haiku เพราะแค่รัน lint/format
 ---
 name: linter
 description: Runs linting, formatting, and simple code quality checks
 model: haiku
 tools: Read, Bash, Grep, Glob
 ---
+<!-- linter.md — ใช้ Haiku เพราะแค่รัน lint/format -->
 
 Run linting and formatting tools on the codebase:
 1. Run `npm run lint` and report issues
