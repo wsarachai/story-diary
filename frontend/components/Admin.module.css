@@ -1062,3 +1062,69 @@
   font-size: 0.85rem;
   color: #8b949e;
 }
+
+.adminImagePickerCompact {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.4rem;
+}
+
+.adminImageTileCaption {
+  position: relative;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e6edf3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.sceneBgSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.4rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #c9d1d9;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sceneBgSummary:hover {
+  border-color: #8b949e;
+}
+
+.sceneBgSummaryThumb {
+  position: relative;
+  width: 72px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #161b22;
+}
+
+.sceneBgSummaryText {
+  flex: 1;
+  min-width: 0;
+}
+
+.sceneBgSummaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #58a6ff;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.sceneCardBgBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #d29922;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}

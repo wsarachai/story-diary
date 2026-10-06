@@ -95,7 +95,8 @@ export default function ChapterScenePage() {
   const scene = chapter.scenes[sceneIndex];
   if (!scene) return null;
 
-  const bgUrl = chapter.backgroundImageUrl;
+  // A scene's own background overrides the chapter background.
+  const bgUrl = scene.backgroundImageUrl || chapter.backgroundImageUrl;
   const isSystemScene = scene.type === "system";
   const isMainActor = scene.type === "actor" && scene.actorKind === "main";
   const speakerImageUrl = isMainActor

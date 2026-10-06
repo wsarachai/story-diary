@@ -43,6 +43,13 @@ describe("CreateSceneSchema", () => {
     expect(result.speakerName).toBeUndefined();
   });
 
+  it("keeps an optional per-scene background (stripped keys would silently drop it)", () => {
+    const bg = "/images/backgrounds/bg-02-village-1920x1080.webp";
+    const result = validate(CreateSceneSchema, { type: "system", idx: 0, text: "x", backgroundImageUrl: bg });
+    expect(result.backgroundImageUrl).toBe(bg);
+    expect(validate(CreateSceneSchema, { type: "system", idx: 0, text: "x" }).backgroundImageUrl).toBeUndefined();
+  });
+
   it("accepts an actor/main scene and defaults legacy payloads to actor/other", () => {
     const main = validate(CreateSceneSchema, {
       type: "actor",

@@ -43,6 +43,8 @@ export interface CreateSceneRequest {
   idx: number;
   speakerName?: string;
   speakerImageUrl?: string;
+  /** Empty/omitted = use the chapter background. */
+  backgroundImageUrl?: string;
   text: string;
 }
 

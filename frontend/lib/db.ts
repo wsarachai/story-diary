@@ -50,6 +50,8 @@ export interface ChapterSceneDoc {
   actor_kind?: "main" | "other" | null;
   speaker_name: string;
   speaker_image_url?: string | null;
+  /** Optional per-scene background; overrides the chapter background when set. */
+  background_image_url?: string | null;
   text: string;
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus, ScrollText, Trash2, UserRound, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ImageIcon, Plus, ScrollText, Trash2, UserRound, X } from "lucide-react";
 import AdminDragHandle from "@/components/AdminDragHandle";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -52,6 +52,7 @@ const EMPTY_SCENE: CreateSceneRequest = {
   idx: 0,
   speakerName: MAIN_ACTOR_SPEAKER_NAME,
   speakerImageUrl: "",
+  backgroundImageUrl: "",
   text: "",
 };
 
@@ -77,6 +78,7 @@ function sceneToForm(scene: ChapterScene): CreateSceneRequest {
     idx: scene.index,
     speakerName: scene.speakerName,
     speakerImageUrl: scene.speakerImageUrl ?? "",
+    backgroundImageUrl: scene.backgroundImageUrl ?? "",
     text: scene.text,
   };
 }
@@ -150,6 +152,15 @@ function SortableSceneCard({
           {scene.type !== "system" && scene.actorKind !== "main" && scene.speakerName && (
             <span className={styles.sceneCardSpeaker}>{scene.speakerName}</span>
           )}
+          {scene.backgroundImageUrl && (
+            <span
+              className={styles.sceneCardBgBadge}
+              title={`พื้นหลังเฉพาะ scene: ${findChapterBackground(scene.backgroundImageUrl)?.label ?? scene.backgroundImageUrl}`}
+            >
+              <ImageIcon size={13} aria-hidden="true" />
+              {findChapterBackground(scene.backgroundImageUrl)?.label ?? "พื้นหลัง"}
+            </span>
+          )}
         </span>
         <span className={styles.sceneCardText}>{scene.text || "—"}</span>
       </span>
@@ -212,6 +223,7 @@ export default function AdminChapterDetailPage() {
   const [characterKey, setCharacterKey] = useState("main");
   const [sceneSaving, setSceneSaving] = useState(false);
   const [sceneSaved, setSceneSaved] = useState(false);
+  const [showSceneBgPicker, setShowSceneBgPicker] = useState(false);
   const sceneFormRef = useRef<HTMLFormElement>(null);
 
   const sceneList = scenes ?? [];
@@ -274,6 +286,7 @@ export default function AdminChapterDetailPage() {
         : guessCharacterKey(scene.speakerName, scene.speakerImageUrl),
     );
     setSceneSaved(false);
+    setShowSceneBgPicker(false);
     setShowSceneForm(true);
   }
 
@@ -286,6 +299,7 @@ export default function AdminChapterDetailPage() {
     setSceneFormBaseline(form);
     setCharacterKey("main");
     setSceneSaved(false);
+    setShowSceneBgPicker(false);
     setShowSceneForm(true);
   }
 
@@ -312,6 +326,7 @@ export default function AdminChapterDetailPage() {
     setSceneFormBaseline(EMPTY_SCENE);
     setCharacterKey("main");
     setSceneSaved(false);
+    setShowSceneBgPicker(false);
   }, [confirmDiscard]);
 
   async function handleSubmitScene(e: React.FormEvent) {
@@ -324,6 +339,7 @@ export default function AdminChapterDetailPage() {
       ...sceneForm,
       speakerName: sceneForm.speakerName ?? "",
       speakerImageUrl: sceneForm.speakerImageUrl || undefined,
+      backgroundImageUrl: sceneForm.backgroundImageUrl || undefined,
     };
     setSceneSaving(true);
     try {
@@ -727,6 +743,45 @@ export default function AdminChapterDetailPage() {
                             </div>
                           </>
                         )}
+                        <div className={`${styles.adminFormField} ${styles.full}`}>
+                          <label className={styles.adminLabel}>พื้นหลังของ Scene (ไม่บังคับ — ถ้าเลือกจะใช้แทนพื้นหลังของบท)</label>
+                          {(() => {
+                            const ownBg = sceneForm.backgroundImageUrl ?? "";
+                            const effective = ownBg || chapter?.backgroundImageUrl || "";
+                            const label = ownBg
+                              ? findChapterBackground(ownBg)?.label ?? ownBg
+                              : `ใช้พื้นหลังของบท${background ? ` (${background.label})` : ""}`;
+                            return (
+                              <button
+                                type="button"
+                                className={styles.sceneBgSummary}
+                                aria-expanded={showSceneBgPicker}
+                                onClick={() => setShowSceneBgPicker((v) => !v)}
+                              >
+                                <span className={styles.sceneBgSummaryThumb}>
+                                  {effective && (
+                                    <Image src={effective} alt="" fill sizes="72px" style={{ objectFit: "cover", opacity: ownBg ? 1 : 0.5 }} />
+                                  )}
+                                </span>
+                                <span className={styles.sceneBgSummaryText}>{label}</span>
+                                <span className={styles.sceneBgSummaryAction}>
+                                  {showSceneBgPicker ? "ซ่อน" : "เปลี่ยน"}
+                                  {showSceneBgPicker ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+                                </span>
+                              </button>
+                            );
+                          })()}
+                          {showSceneBgPicker && (
+                            <div style={{ marginTop: "0.5rem" }}>
+                              <AdminBackgroundPicker
+                                compact
+                                value={sceneForm.backgroundImageUrl ?? ""}
+                                inheritUrl={chapter?.backgroundImageUrl ?? ""}
+                                onChange={(url) => setSceneForm({ ...sceneForm, backgroundImageUrl: url })}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.sceneEditorFooter}>

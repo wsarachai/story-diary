@@ -248,6 +248,7 @@ export const CreateSceneSchema = z
     idx: z.number().int().min(0),
     speakerName: z.string().trim().max(120, "TOO_LONG").optional(),
     speakerImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
+    backgroundImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
     text: z.string().trim().min(1, "REQUIRED").max(4000, "TOO_LONG"),
   })
   .superRefine((value, ctx) => {

@@ -481,6 +481,23 @@ describe("adminCreateScene", () => {
     expect(after.length).toBe(before.length + 1);
   });
 
+  it("keeps a per-scene background on any scene type", async () => {
+    const bg = "/images/backgrounds/bg-17-castle-flash-1920x1080.webp";
+    const scene = await adminCreateScene(1, {
+      type: "actor",
+      actorKind: "main",
+      idx: 96,
+      text: "แสงวาบ!",
+      backgroundImageUrl: bg,
+    });
+    expect(scene.backgroundImageUrl).toBe(bg);
+  });
+
+  it("omits the background when none is chosen", async () => {
+    const scene = await adminCreateScene(1, { type: "system", idx: 95, text: "ไม่มีพื้นหลัง" });
+    expect(scene.backgroundImageUrl).toBeUndefined();
+  });
+
   it("throws 404 for non-existent chapter", async () => {
     await expect(
       adminCreateScene(9999, {
@@ -520,6 +537,20 @@ describe("adminUpdateScene", () => {
     expect(updated.actorKind).toBeUndefined();
     expect(updated.speakerName).toBe("");
     expect(updated.speakerImageUrl).toBeUndefined();
+  });
+
+  it("stores a per-scene background and clears it when omitted", async () => {
+    const scenes = await adminListScenes(1);
+    const target = scenes.find((s) => s.type === "system")!;
+    const base = { type: "system" as const, idx: target.index, speakerName: "", text: target.text };
+    const bg = "/images/backgrounds/bg-11-castle-corridor-1920x1080.webp";
+
+    const withBg = await adminUpdateScene(target.id, { ...base, backgroundImageUrl: bg });
+    expect(withBg.backgroundImageUrl).toBe(bg);
+    expect((await adminListScenes(1)).find((s) => s.id === target.id)?.backgroundImageUrl).toBe(bg);
+
+    const cleared = await adminUpdateScene(target.id, { ...base, backgroundImageUrl: "" });
+    expect(cleared.backgroundImageUrl).toBeUndefined();
   });
 
   it("throws 404 for missing scene", async () => {

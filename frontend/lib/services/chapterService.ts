@@ -86,6 +86,7 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
                 : {}),
             speakerName: scene.speaker_name,
             ...(scene.speaker_image_url ? { speakerImageUrl: scene.speaker_image_url } : {}),
+            ...(scene.background_image_url ? { backgroundImageUrl: scene.background_image_url } : {}),
             text: scene.text,
         })),
     };

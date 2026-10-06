@@ -177,6 +177,9 @@ function sceneDocToModel(doc: ChapterSceneDoc): ChapterScene {
     ...(doc.speaker_image_url
       ? { speakerImageUrl: doc.speaker_image_url }
       : {}),
+    ...(doc.background_image_url
+      ? { backgroundImageUrl: doc.background_image_url }
+      : {}),
     text: doc.text,
   };
 }
@@ -194,6 +197,8 @@ export interface CreateSceneRequest {
   idx: number;
   speakerName?: string;
   speakerImageUrl?: string;
+  /** Empty/omitted clears the override (scene uses the chapter background). */
+  backgroundImageUrl?: string;
   text: string;
 }
 
@@ -247,6 +252,7 @@ export async function adminCreateScene(
     chapter_id: chapterId,
     idx: body.idx,
     ...normalizeSceneBody(body),
+    background_image_url: body.backgroundImageUrl || null,
     text: body.text,
   };
   await insertChapterSceneDoc(doc);
@@ -260,6 +266,7 @@ export async function adminUpdateScene(
   const updated = await updateChapterSceneDoc(sceneId, {
     idx: body.idx,
     ...normalizeSceneBody(body),
+    background_image_url: body.backgroundImageUrl || null,
     text: body.text,
   });
   if (!updated)

@@ -94,6 +94,8 @@ export interface ChapterScene {
      * Main-actor scenes resolve their figure at render time instead.
      */
     speakerImageUrl?: string;
+    /** Optional scene background; overrides the chapter's `backgroundImageUrl`. */
+    backgroundImageUrl?: string;
     /** Body copy shown in the dialog panel. May contain `\n` for line breaks. */
     text: string;
 }

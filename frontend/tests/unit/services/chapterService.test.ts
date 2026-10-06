@@ -8,6 +8,7 @@ import {
   getVideoClips,
   getEBooks,
 } from "@/lib/services/chapterService";
+import { adminUpdateScene } from "@/lib/services/adminService";
 
 const USER = "user-chapter-test";
 
@@ -85,6 +86,16 @@ describe("getChapter", () => {
     const system = chapter.scenes.find((s) => s.type === "system");
     expect(system?.speakerName).toBe("");
     expect(system?.speakerImageUrl).toBeUndefined();
+  });
+
+  it("exposes a scene's own background for the reader to override the chapter's", async () => {
+    const before = await getChapter(USER, 1);
+    const target = before.scenes[1];
+    const bg = "/images/backgrounds/bg-09-forest-mist-1920x1080.webp";
+    await adminUpdateScene(target.id, { type: "system", idx: target.index, speakerName: "", text: target.text, backgroundImageUrl: bg });
+    const after = await getChapter(USER, 1);
+    expect(after.scenes.find((s) => s.id === target.id)?.backgroundImageUrl).toBe(bg);
+    expect(after.scenes.find((s) => s.id !== target.id && s.backgroundImageUrl)).toBeUndefined();
   });
 
   it("throws CHAPTER_NOT_FOUND for unknown chapter id", async () => {
