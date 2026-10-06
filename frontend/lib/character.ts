@@ -4,7 +4,8 @@
  *
  * Two special cases live here as well:
  *  - The protagonist ("ตัวละครหลัก") resolves name and art from the reader's
- *    registration data at render time; nothing per-scene is stored.
+ *    registration data at render time; a scene stores only an optional
+ *    expression key, shown in the reader's gender.
  *  - "custom" is the free-form entry: an authored speaker name plus any image
  *    from the registry gallery.
  *
@@ -16,15 +17,62 @@ import type { Gender } from "@/types/auth";
 /** Fixed speaker name shown for main-actor scenes. */
 export const MAIN_ACTOR_SPEAKER_NAME = "ผู้กล้า";
 
-/** Registration character art per chosen gender (kept at /images root). */
+/** Protagonist expressions; every key has both a male and a female image. */
+export type MainActorExpression =
+  | "normal"
+  | "sick"
+  | "curious"
+  | "smile"
+  | "excited"
+  | "determined"
+  | "shocked"
+  | "scared";
+
+const heroImage = (gender: Gender, expression: MainActorExpression): string =>
+  // The female "shocked" art is wider to fit its "!!!" marks.
+  `/images/characters/main-${gender}-${expression}-${gender === "female" && expression === "shocked" ? "673" : "593"}x720.png`;
+
+export const MAIN_ACTOR_EXPRESSIONS: readonly {
+  key: MainActorExpression;
+  label: string;
+  images: Record<Gender, string>;
+}[] = (
+  [
+    ["normal", "ปกติ"],
+    ["sick", "ป่วย / เหนื่อย"],
+    ["curious", "สงสัย"],
+    ["smile", "ยิ้ม"],
+    ["excited", "ตื่นเต้น"],
+    ["determined", "มุ่งมั่น"],
+    ["shocked", "ตกใจ"],
+    ["scared", "กลัว / กังวล"],
+  ] as const
+).map(([key, label]) => ({
+  key,
+  label,
+  images: { male: heroImage("male", key), female: heroImage("female", key) },
+}));
+
+export function isMainActorExpression(value: unknown): value is MainActorExpression {
+  return MAIN_ACTOR_EXPRESSIONS.some((e) => e.key === value);
+}
+
+/** Registration character art per chosen gender (the "normal" expression). */
 export const MAIN_ACTOR_IMAGE_URLS: Record<Gender, string> = {
-  male: "/images/register-character-normal-466x760.png",
-  female: "/images/characters/main-female-normal-593x720.png",
+  male: heroImage("male", "normal"),
+  female: heroImage("female", "normal"),
 };
 
-/** Figure art for main-actor scenes, falling back to the female set. */
-export function mainActorImageUrl(gender: Gender | undefined): string {
-  return MAIN_ACTOR_IMAGE_URLS[gender ?? "female"];
+/**
+ * Figure art for main-actor scenes: the scene's expression (default "normal")
+ * in the reader's gender, falling back to the female set.
+ */
+export function mainActorImageUrl(
+  gender: Gender | undefined,
+  expression?: string | null,
+): string {
+  const key: MainActorExpression = isMainActorExpression(expression) ? expression : "normal";
+  return heroImage(gender ?? "female", key);
 }
 
 /** One selectable character in the admin scene editor. */
@@ -42,7 +90,8 @@ export interface CharacterPreset {
   images: string[];
 }
 
-const MAIN_MALE_IMAGE = MAIN_ACTOR_IMAGE_URLS.male;
+/** Shadow-in-the-mist version of the fairy, used while it is still "???". */
+export const FAIRY_UNKNOWN_IMAGE = "/images/characters/fairy-unknown-560x720.png";
 
 export const CHARACTER_PRESETS: CharacterPreset[] = [
   { key: "main", label: "ตัวละครหลัก (ผู้กล้า)", kind: "main", images: [] },
@@ -55,7 +104,15 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
       "/images/characters/villager-a-sick-522x720.png",
     ],
   },
-  { key: "villager-b", label: "ชาวบ้าน B", kind: "preset", images: [] },
+  {
+    key: "villager-b",
+    label: "ชาวบ้าน B",
+    kind: "preset",
+    images: [
+      "/images/characters/villager-b-normal-540x720.png",
+      "/images/characters/villager-b-sick-540x720.png",
+    ],
+  },
   {
     key: "goddess-good",
     label: "เทพี-ดี",
@@ -72,7 +129,12 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
     kind: "preset",
     images: ["/images/characters/goddess-evil-normal-638x720.png"],
   },
-  { key: "main-male", label: "ผู้กล้า-ชาย", kind: "preset", images: [MAIN_MALE_IMAGE] },
+  {
+    key: "main-male",
+    label: "ผู้กล้า-ชาย",
+    kind: "preset",
+    images: MAIN_ACTOR_EXPRESSIONS.map((e) => e.images.male),
+  },
   {
     key: "main-female",
     label: "ผู้กล้า-หญิง",
@@ -85,6 +147,7 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
       "/images/characters/main-female-excited-593x720.png",
       "/images/characters/main-female-determined-593x720.png",
       "/images/characters/main-female-shocked-673x720.png",
+      "/images/characters/main-female-scared-593x720.png",
     ],
   },
   {
@@ -97,7 +160,21 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
       "/images/characters/wizard-smirk-650x720.png",
     ],
   },
-  { key: "fairy", label: "ภูติน้อย", kind: "preset", images: [] },
+  {
+    key: "fairy",
+    label: "ภูติน้อย",
+    kind: "preset",
+    images: [
+      "/images/characters/fairy-normal-560x720.png",
+      "/images/characters/fairy-shocked-560x720.png",
+      "/images/characters/fairy-confused-560x720.png",
+      "/images/characters/fairy-worried-560x720.png",
+      "/images/characters/fairy-determined-560x720.png",
+      "/images/characters/fairy-happy-560x720.png",
+      // Mist-veiled silhouette for scenes before the fairy is named ("???").
+      FAIRY_UNKNOWN_IMAGE,
+    ],
+  },
   {
     key: "blue-flame",
     label: "ลูกไฟสีฟ้า",

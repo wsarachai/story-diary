@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useGetMeQuery, useRegisterMutation } from "@/store/authApi";
 import type { Gender } from "@/types/auth";
+import { MAIN_ACTOR_IMAGE_URLS } from "@/lib/character";
 import type { ApiErrorCode } from "@/types/error";
 import layoutStyles from "@/components/BookShellLayout.module.css";
 import sharedStyles from "@/components/Shared.module.css";
@@ -430,8 +431,8 @@ export default function RegisterPage() {
                     }}
                   />
                   <CharacterFigure
+                    gender="male"
                     selected={form.gender === "male"}
-                    flipped
                     className={styles.registerGenderFigure}
                   />
                   <span className={styles.genderOptionLabel}>ชาย</span>
@@ -456,6 +457,7 @@ export default function RegisterPage() {
                     }}
                   />
                   <CharacterFigure
+                    gender="female"
                     selected={form.gender === "female"}
                     className={styles.registerGenderFigure}
                   />
@@ -494,12 +496,12 @@ export default function RegisterPage() {
 // ──────────────────────────────────────────────────────────
 
 function CharacterFigure({
+  gender,
   selected,
-  flipped = false,
   className,
 }: {
+  gender: Gender;
   selected: boolean;
-  flipped?: boolean;
   className?: string;
 }) {
   return (
@@ -508,10 +510,10 @@ function CharacterFigure({
       className={`${styles.figureWrap} ${selected ? styles.figureWrapSelected : ""} ${className}`}
     >
       <img
-        src="/images/register-character-normal-466x760.png"
+        src={MAIN_ACTOR_IMAGE_URLS[gender]}
         alt=""
         draggable={false}
-        className={`${styles.characterFigureImg} ${flipped ? styles.characterFigureImgFlipped : ""}`}
+        className={styles.characterFigureImg}
       />
     </span>
   );

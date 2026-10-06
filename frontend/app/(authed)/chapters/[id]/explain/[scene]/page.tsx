@@ -9,6 +9,9 @@ import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/ch
 import { useGetMeQuery } from "@/store/authApi";
 import { MAIN_ACTOR_SPEAKER_NAME, mainActorImageUrl } from "@/lib/character";
 import TypewriterScene from "@/components/TypewriterScene";
+import SoundToggleButton from "@/components/SoundToggleButton";
+import { sceneAudio } from "@/lib/audio/sceneAudio";
+import { resolveSceneMusic } from "@/lib/sounds";
 import PageSpinner from "@/components/PageSpinner";
 import styles from "../../../chapters.module.css";
 import layoutStyles from "@/components/BookShellLayout.module.css";
@@ -67,6 +70,27 @@ export default function ChapterScenePage() {
     }
   }, [detailStatus, chapter, sceneIndex, router]);
 
+  const currentScene = chapter?.scenes[sceneIndex];
+  const musicUrl = currentScene
+    ? resolveSceneMusic(currentScene.backgroundMusicUrl, chapter?.backgroundMusicUrl)
+    : undefined;
+  const effectUrl = currentScene?.soundEffectUrl ?? null;
+  const nextScene = chapter?.scenes[sceneIndex + 1];
+
+  // Music continues across scenes that share a track (cross-fades otherwise);
+  // the scene's effect plays once per visit, including when revisiting.
+  useEffect(() => {
+    if (musicUrl === undefined) return;
+    sceneAudio.setMusic(musicUrl);
+    sceneAudio.playEffect(effectUrl);
+  }, [sceneIndex, musicUrl, effectUrl]);
+
+  useEffect(() => {
+    if (!nextScene) return;
+    sceneAudio.preload(nextScene.soundEffectUrl);
+    sceneAudio.preload(resolveSceneMusic(nextScene.backgroundMusicUrl, chapter?.backgroundMusicUrl));
+  }, [nextScene, chapter?.backgroundMusicUrl]);
+
   const handleAdvance = () => {
     if (!chapter) return;
     if (!typingDone) {
@@ -100,7 +124,7 @@ export default function ChapterScenePage() {
   const isSystemScene = scene.type === "system";
   const isMainActor = scene.type === "actor" && scene.actorKind === "main";
   const speakerImageUrl = isMainActor
-    ? mainActorImageUrl(currentUser?.gender)
+    ? mainActorImageUrl(currentUser?.gender, scene.actorExpression)
     : scene.speakerImageUrl;
   const speakerDisplayName = isMainActor
     ? MAIN_ACTOR_SPEAKER_NAME
@@ -122,16 +146,23 @@ export default function ChapterScenePage() {
         <span className={styles.chapterSceneExitLabel}>กลับ</span>
       </Link>
 
-      <button
-        className={styles.transcriptButton}
-        onClick={() => setShowTranscript(true)}
-        aria-label="ดูบทสนทนาทั้งหมด"
-      >
-        <span className={styles.chapterSceneExitLabel}>บทสนทนา</span>
-        <span className={styles.chapterSceneExitIcon} aria-hidden="true">
-          <ScrollText />
-        </span>
-      </button>
+      <div className={styles.sceneTopActions}>
+        <SoundToggleButton
+          className={`${styles.transcriptButton} ${styles.soundToggleButton}`}
+          iconClassName={styles.chapterSceneExitIcon}
+          labelClassName={styles.chapterSceneExitLabel}
+        />
+        <button
+          className={styles.transcriptButton}
+          onClick={() => setShowTranscript(true)}
+          aria-label="ดูบทสนทนาทั้งหมด"
+        >
+          <span className={styles.chapterSceneExitLabel}>บทสนทนา</span>
+          <span className={styles.chapterSceneExitIcon} aria-hidden="true">
+            <ScrollText />
+          </span>
+        </button>
+      </div>
 
       {bgUrl ? (
         <Image

@@ -87,6 +87,8 @@ export interface ChapterScene {
     type: SceneType;
     /** Required when type is "actor"; ignored for "system". */
     actorKind?: SceneActorKind;
+    /** Main-actor expression key ("normal" when absent); art follows the reader's gender. */
+    actorExpression?: string;
     /** Speaker display name shown in the orange .speaker-name pill ("" for system). */
     speakerName: string;
     /**
@@ -96,6 +98,10 @@ export interface ChapterScene {
     speakerImageUrl?: string;
     /** Optional scene background; overrides the chapter's `backgroundImageUrl`. */
     backgroundImageUrl?: string;
+    /** Scene music override; `"none"` = silence, absent = chapter music. */
+    backgroundMusicUrl?: string;
+    /** One-shot effect played when the scene starts. */
+    soundEffectUrl?: string;
     /** Body copy shown in the dialog panel. May contain `\n` for line breaks. */
     text: string;
 }
@@ -110,6 +116,8 @@ export interface Chapter {
     introTitle: string;
     /** Optional bg image URL used by s009/s010 .chapter-explain-bg. */
     backgroundImageUrl?: string;
+    /** Default background music for every scene (scenes may override). */
+    backgroundMusicUrl?: string;
     lockState: ChapterLockState;
     progress: ChapterProgressState;
     /** Ordered scene flow; fixtures should typically provide 5-6 scenes. */

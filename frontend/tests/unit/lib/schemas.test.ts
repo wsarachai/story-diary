@@ -43,6 +43,23 @@ describe("CreateSceneSchema", () => {
     expect(result.speakerName).toBeUndefined();
   });
 
+  it("accepts known main-actor expressions and rejects unknown ones", () => {
+    expect(validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "scared", idx: 0, text: "x" }).actorExpression).toBe("scared");
+    expect(() => validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "angry", idx: 0, text: "x" })).toThrow();
+  });
+
+  it("keeps scene music and effect fields (stripped keys would silently drop them)", () => {
+    const result = validate(CreateSceneSchema, {
+      type: "system",
+      idx: 0,
+      text: "x",
+      backgroundMusicUrl: "none",
+      soundEffectUrl: "/sounds/sfx/chime.mp3",
+    });
+    expect(result.backgroundMusicUrl).toBe("none");
+    expect(result.soundEffectUrl).toBe("/sounds/sfx/chime.mp3");
+  });
+
   it("keeps an optional per-scene background (stripped keys would silently drop it)", () => {
     const bg = "/images/backgrounds/bg-02-village-1920x1080.webp";
     const result = validate(CreateSceneSchema, { type: "system", idx: 0, text: "x", backgroundImageUrl: bg });

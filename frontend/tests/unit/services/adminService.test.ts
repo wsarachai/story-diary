@@ -117,6 +117,14 @@ describe("adminUpdateChapter", () => {
     expect(updated.lockState).toBe("locked");
   });
 
+  it("sets, keeps and clears the chapter's background music", async () => {
+    const track = "/sounds/bgm/mist-mystery.mp3";
+    expect((await adminUpdateChapter(1, { backgroundMusicUrl: track })).backgroundMusicUrl).toBe(track);
+    // A patch that doesn't mention music leaves it alone.
+    expect((await adminUpdateChapter(1, { title: "ชื่อใหม่" })).backgroundMusicUrl).toBe(track);
+    expect((await adminUpdateChapter(1, { backgroundMusicUrl: "" })).backgroundMusicUrl).toBeUndefined();
+  });
+
   it("throws 404 for non-existent chapter id", async () => {
     await expect(
       adminUpdateChapter(9999, { title: "X" }),
@@ -452,6 +460,31 @@ describe("adminCreateScene", () => {
     expect(scene.speakerImageUrl).toBeUndefined();
   });
 
+  it("stores a main-actor expression, but not the default or on other actors", async () => {
+    const shocked = await adminCreateScene(1, { type: "actor", actorKind: "main", actorExpression: "shocked", idx: 94, text: "เอ๊ะ!?" });
+    expect(shocked.actorExpression).toBe("shocked");
+
+    const normal = await adminCreateScene(1, { type: "actor", actorKind: "main", actorExpression: "normal", idx: 93, text: "ปกติ" });
+    expect(normal.actorExpression).toBeUndefined();
+
+    const other = await adminCreateScene(1, {
+      type: "actor",
+      actorKind: "other",
+      actorExpression: "shocked",
+      idx: 92,
+      speakerName: "ภูติน้อย",
+      speakerImageUrl: "/images/characters/fairy-shocked-560x720.png",
+      text: "อ๊ะ!?",
+    });
+    expect(other.actorExpression).toBeUndefined();
+  });
+
+  it("clears the expression when a main-actor scene is retyped to system", async () => {
+    const created = await adminCreateScene(1, { type: "actor", actorKind: "main", actorExpression: "scared", idx: 91, text: "กลัว" });
+    const updated = await adminUpdateScene(created.id, { type: "system", idx: 91, speakerName: "", text: "กลัว" });
+    expect(updated.actorExpression).toBeUndefined();
+  });
+
   it("forces main-actor scenes to the ผู้กล้า name and drops stored art", async () => {
     const scene = await adminCreateScene(1, {
       type: "actor",
@@ -537,6 +570,24 @@ describe("adminUpdateScene", () => {
     expect(updated.actorKind).toBeUndefined();
     expect(updated.speakerName).toBe("");
     expect(updated.speakerImageUrl).toBeUndefined();
+  });
+
+  it("stores scene music (including the silence marker) and an effect, clearing both when omitted", async () => {
+    const scenes = await adminListScenes(1);
+    const target = scenes.find((s) => s.type === "system")!;
+    const base = { type: "system" as const, idx: target.index, speakerName: "", text: target.text };
+
+    const withSound = await adminUpdateScene(target.id, {
+      ...base,
+      backgroundMusicUrl: "none",
+      soundEffectUrl: "/sounds/sfx/heartbeat.mp3",
+    });
+    expect(withSound.backgroundMusicUrl).toBe("none");
+    expect(withSound.soundEffectUrl).toBe("/sounds/sfx/heartbeat.mp3");
+
+    const cleared = await adminUpdateScene(target.id, base);
+    expect(cleared.backgroundMusicUrl).toBeUndefined();
+    expect(cleared.soundEffectUrl).toBeUndefined();
   });
 
   it("stores a per-scene background and clears it when omitted", async () => {

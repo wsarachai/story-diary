@@ -185,10 +185,6 @@
   user-select: none;
 }
 
-.characterFigureImgFlipped {
-  transform: scaleX(-1);
-}
-
 /* ── Lucide icon support (June 2026 UX refresh) ───────────── */
 .passwordWrap {
   position: relative;

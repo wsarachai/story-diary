@@ -31,6 +31,8 @@ export interface CreateChapterRequest {
   introTitle: string;
   lockState: ChapterLockState;
   backgroundImageUrl?: string;
+  /** Empty clears the chapter music. */
+  backgroundMusicUrl?: string;
 }
 
 export type UpdateChapterRequest = Partial<CreateChapterRequest>;
@@ -40,11 +42,17 @@ export type UpdateChapterRequest = Partial<CreateChapterRequest>;
 export interface CreateSceneRequest {
   type: SceneType;
   actorKind?: SceneActorKind;
+  /** Main-actor scenes only; empty/omitted = "normal". */
+  actorExpression?: string;
   idx: number;
   speakerName?: string;
   speakerImageUrl?: string;
   /** Empty/omitted = use the chapter background. */
   backgroundImageUrl?: string;
+  /** Empty/omitted = chapter music; "none" = silence. */
+  backgroundMusicUrl?: string;
+  /** Empty/omitted = no effect. */
+  soundEffectUrl?: string;
   text: string;
 }
 

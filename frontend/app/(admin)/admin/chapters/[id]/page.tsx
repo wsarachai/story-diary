@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ImageIcon, Plus, ScrollText, Trash2, UserRound, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ImageIcon, Music, Plus, ScrollText, Trash2, UserRound, Volume2, X } from "lucide-react";
 import AdminDragHandle from "@/components/AdminDragHandle";
 import { useParams, useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -23,12 +23,40 @@ import {
   CHARACTER_IMAGE_GROUPS,
   CHARACTER_PRESETS,
   MAIN_ACTOR_SPEAKER_NAME,
-  MAIN_ACTOR_IMAGE_URLS,
+  MAIN_ACTOR_EXPRESSIONS,
   findCharacterPreset,
   guessCharacterKey,
   mainActorImageUrl,
 } from "@/lib/character";
 import { findChapterBackground } from "@/lib/backgrounds";
+import AdminSoundField, { type SoundOption } from "@/components/AdminSoundField";
+import {
+  BGM_TRACKS,
+  SOUND_EFFECTS,
+  SCENE_MUSIC_SILENCE,
+  findBgmTrack,
+  findSoundEffect,
+} from "@/lib/sounds";
+
+const CHAPTER_MUSIC_OPTIONS: SoundOption[] = [
+  { value: "", label: "ไม่มีเพลง" },
+  ...BGM_TRACKS.map((t) => ({ value: t.url, label: t.label, previewUrl: t.url })),
+];
+
+const EFFECT_OPTIONS: SoundOption[] = [
+  { value: "", label: "ไม่มีเสียงประกอบ" },
+  ...SOUND_EFFECTS.map((t) => ({ value: t.url, label: t.label, previewUrl: t.url })),
+];
+
+/** Scene music choices; the first row names the chapter track it inherits. */
+function sceneMusicOptions(chapterMusicUrl: string | undefined): SoundOption[] {
+  const inherited = findBgmTrack(chapterMusicUrl);
+  return [
+    { value: "", label: `ใช้เพลงของบท${inherited ? ` (${inherited.label})` : " (บทนี้ไม่มีเพลง)"}` },
+    { value: SCENE_MUSIC_SILENCE, label: "เงียบ (ไม่มีเพลงใน scene นี้)" },
+    ...BGM_TRACKS.map((t) => ({ value: t.url, label: t.label, previewUrl: t.url })),
+  ];
+}
 import styles from "@/components/Admin.module.css";
 import {
   DndContext,
@@ -49,24 +77,31 @@ import { CSS } from "@dnd-kit/utilities";
 const EMPTY_SCENE: CreateSceneRequest = {
   type: "actor",
   actorKind: "main",
+  actorExpression: "normal",
   idx: 0,
   speakerName: MAIN_ACTOR_SPEAKER_NAME,
   speakerImageUrl: "",
   backgroundImageUrl: "",
+  backgroundMusicUrl: "",
+  soundEffectUrl: "",
   text: "",
 };
 
 /** Short label + badge colour for a scene's type. */
 function sceneTypeBadge(scene: ChapterScene): { label: string; className: string } {
   if (scene.type === "system") return { label: "System", className: styles.adminBadgeGray };
-  if (scene.actorKind === "main") return { label: "ผู้กล้า", className: styles.sceneBadgeBlue };
+  if (scene.actorKind === "main") {
+    const expr = MAIN_ACTOR_EXPRESSIONS.find((e) => e.key === (scene.actorExpression ?? "normal"));
+    const label = expr && expr.key !== "normal" ? `ผู้กล้า · ${expr.label}` : "ผู้กล้า";
+    return { label, className: styles.sceneBadgeBlue };
+  }
   return { label: "ตัวละคร", className: styles.adminBadgeGreen };
 }
 
 /** Thumbnail art for a scene card (main-actor scenes resolve per reader gender). */
 function sceneAvatarUrl(scene: ChapterScene): string | null {
   if (scene.type === "system") return null;
-  if (scene.actorKind === "main") return mainActorImageUrl(undefined);
+  if (scene.actorKind === "main") return mainActorImageUrl(undefined, scene.actorExpression);
   return scene.speakerImageUrl || null;
 }
 
@@ -75,10 +110,13 @@ function sceneToForm(scene: ChapterScene): CreateSceneRequest {
   return {
     type: scene.type ?? "actor",
     actorKind: scene.actorKind ?? "other",
+    actorExpression: scene.actorExpression ?? "normal",
     idx: scene.index,
     speakerName: scene.speakerName,
     speakerImageUrl: scene.speakerImageUrl ?? "",
     backgroundImageUrl: scene.backgroundImageUrl ?? "",
+    backgroundMusicUrl: scene.backgroundMusicUrl ?? "",
+    soundEffectUrl: scene.soundEffectUrl ?? "",
     text: scene.text,
   };
 }
@@ -161,6 +199,20 @@ function SortableSceneCard({
               {findChapterBackground(scene.backgroundImageUrl)?.label ?? "พื้นหลัง"}
             </span>
           )}
+          {scene.backgroundMusicUrl && (
+            <span className={styles.sceneCardSoundBadge} title="เปลี่ยนเพลงใน scene นี้">
+              <Music size={13} aria-hidden="true" />
+              {scene.backgroundMusicUrl === SCENE_MUSIC_SILENCE
+                ? "เงียบ"
+                : findBgmTrack(scene.backgroundMusicUrl)?.label ?? "เพลง"}
+            </span>
+          )}
+          {scene.soundEffectUrl && (
+            <span className={styles.sceneCardSoundBadge} title="เสียงประกอบ">
+              <Volume2 size={13} aria-hidden="true" />
+              {findSoundEffect(scene.soundEffectUrl)?.label ?? "เสียงประกอบ"}
+            </span>
+          )}
         </span>
         <span className={styles.sceneCardText}>{scene.text || "—"}</span>
       </span>
@@ -200,6 +252,7 @@ export default function AdminChapterDetailPage() {
     introTitle: "",
     lockState: "unlocked" as "unlocked" | "locked",
     backgroundImageUrl: "",
+    backgroundMusicUrl: "",
   });
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [chapterSaved, setChapterSaved] = useState(false);
@@ -211,6 +264,7 @@ export default function AdminChapterDetailPage() {
         introTitle: chapter.introTitle,
         lockState: chapter.lockState,
         backgroundImageUrl: chapter.backgroundImageUrl ?? "",
+        backgroundMusicUrl: chapter.backgroundMusicUrl ?? "",
       });
     }
   }, [chapter]);
@@ -340,6 +394,8 @@ export default function AdminChapterDetailPage() {
       speakerName: sceneForm.speakerName ?? "",
       speakerImageUrl: sceneForm.speakerImageUrl || undefined,
       backgroundImageUrl: sceneForm.backgroundImageUrl || undefined,
+      backgroundMusicUrl: sceneForm.backgroundMusicUrl || undefined,
+      soundEffectUrl: sceneForm.soundEffectUrl || undefined,
     };
     setSceneSaving(true);
     try {
@@ -459,6 +515,7 @@ export default function AdminChapterDetailPage() {
               <div className={styles.chapterSummarySub}>
                 {chapter?.introTitle || "—"}
                 {background ? ` · พื้นหลัง: ${background.label}` : ""}
+                {findBgmTrack(chapter?.backgroundMusicUrl) ? ` · 🎵 ${findBgmTrack(chapter?.backgroundMusicUrl)!.label}` : ""}
               </div>
             </div>
             <button
@@ -516,6 +573,13 @@ export default function AdminChapterDetailPage() {
                       onChange={(url) => setChapterForm({ ...chapterForm, backgroundImageUrl: url })}
                     />
                   </div>
+                  <AdminSoundField
+                    label="เพลงประกอบของบท (เล่นในทุก scene ยกเว้น scene ที่ตั้งเพลงเอง)"
+                    kind="music"
+                    value={chapterForm.backgroundMusicUrl}
+                    options={CHAPTER_MUSIC_OPTIONS}
+                    onChange={(url) => setChapterForm({ ...chapterForm, backgroundMusicUrl: url })}
+                  />
                 </div>
                 <div className={styles.adminFormActions}>
                   {chapterSaved && <span className={styles.sceneSavedNote}>บันทึกแล้ว ✓</span>}
@@ -662,29 +726,39 @@ export default function AdminChapterDetailPage() {
                               <input className={styles.adminInput} value={MAIN_ACTOR_SPEAKER_NAME} disabled />
                             </div>
                             <div className={`${styles.adminFormField} ${styles.full}`}>
-                              <label className={styles.adminLabel}>
-                                รูปตัวละคร — ใช้รูปจากหน้าลงทะเบียน (แสดงตามเพศที่ผู้ใช้เลือก)
-                              </label>
-                              <div style={{ display: "flex", gap: "1.5rem" }}>
-                                {(
-                                  [
-                                    ["ชาย", MAIN_ACTOR_IMAGE_URLS.male],
-                                    ["หญิง", MAIN_ACTOR_IMAGE_URLS.female],
-                                  ] as const
-                                ).map(([label, src]) => (
-                                  <figure key={label} style={{ margin: 0, textAlign: "center" }}>
-                                    <Image
-                                      src={src}
-                                      alt={`ตัวละครหลัก (${label})`}
-                                      width={73}
-                                      height={110}
-                                      style={{ height: "110px", width: "auto", objectFit: "contain" }}
-                                    />
-                                    <figcaption style={{ fontSize: "0.85rem", marginTop: "0.25rem", color: "#8b949e" }}>
-                                      {label}
-                                    </figcaption>
-                                  </figure>
-                                ))}
+                              <span className={styles.adminLabel}>
+                                สีหน้า — ผู้อ่านจะเห็นรูปตามเพศที่เลือกตอนลงทะเบียน
+                              </span>
+                              <div className={styles.heroExprGrid} role="radiogroup" aria-label="สีหน้าของผู้กล้า">
+                                {MAIN_ACTOR_EXPRESSIONS.map((expr) => {
+                                  const selected = (sceneForm.actorExpression || "normal") === expr.key;
+                                  return (
+                                    <button
+                                      key={expr.key}
+                                      type="button"
+                                      role="radio"
+                                      aria-checked={selected}
+                                      title={expr.label}
+                                      onClick={() => setSceneForm({ ...sceneForm, actorExpression: expr.key })}
+                                      className={`${styles.heroExprTile} ${selected ? styles.adminImageTileSelected : ""}`}
+                                    >
+                                      <span className={styles.heroExprPair}>
+                                        {(["male", "female"] as const).map((g) => (
+                                          <span key={g} className={styles.heroExprImg}>
+                                            <Image
+                                              src={expr.images[g]}
+                                              alt={`${expr.label} (${g === "male" ? "ชาย" : "หญิง"})`}
+                                              fill
+                                              sizes="64px"
+                                              style={{ objectFit: "cover", objectPosition: "50% 8%" }}
+                                            />
+                                          </span>
+                                        ))}
+                                      </span>
+                                      <span className={styles.heroExprLabel}>{expr.label}</span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
                           </>
@@ -782,6 +856,22 @@ export default function AdminChapterDetailPage() {
                             </div>
                           )}
                         </div>
+                        <AdminSoundField
+                          key={`music-${editSceneId ?? "new"}`}
+                          label="เพลงของ Scene (ไม่บังคับ — ถ้าเลือกจะใช้แทนเพลงของบท)"
+                          kind="music"
+                          value={sceneForm.backgroundMusicUrl ?? ""}
+                          options={sceneMusicOptions(chapter?.backgroundMusicUrl)}
+                          onChange={(url) => setSceneForm({ ...sceneForm, backgroundMusicUrl: url })}
+                        />
+                        <AdminSoundField
+                          key={`sfx-${editSceneId ?? "new"}`}
+                          label="เสียงประกอบ (เล่นครั้งเดียวเมื่อเข้า scene)"
+                          kind="effect"
+                          value={sceneForm.soundEffectUrl ?? ""}
+                          options={EFFECT_OPTIONS}
+                          onChange={(url) => setSceneForm({ ...sceneForm, soundEffectUrl: url })}
+                        />
                       </div>
                     </div>
                     <div className={styles.sceneEditorFooter}>

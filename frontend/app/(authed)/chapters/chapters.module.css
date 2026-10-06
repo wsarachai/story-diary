@@ -715,6 +715,30 @@
   background: #fff7ec;
 }
 
+/* Top-right group: sound toggle + transcript. */
+.sceneTopActions {
+  position: absolute;
+  top: 1.35rem;
+  right: 1.35rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sceneTopActions .transcriptButton {
+  position: static;
+}
+
+/* Icon-only unless it's showing the "tap to enable" hint. */
+.soundToggleButton {
+  padding: 0.45rem;
+}
+
+.soundToggleButton:has(.chapterSceneExitLabel) {
+  padding-left: 0.8rem;
+}
+
 /* ── Transcript overlay ── */
 .transcriptOverlay {
   position: absolute;

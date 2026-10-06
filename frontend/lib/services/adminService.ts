@@ -84,6 +84,9 @@ function chapterDocToModel(
     ...(row.background_image_url
       ? { backgroundImageUrl: row.background_image_url }
       : {}),
+    ...(row.background_music_url
+      ? { backgroundMusicUrl: row.background_music_url }
+      : {}),
     lockState: row.lock_state,
     progress: "not-started",
     scenes: [],
@@ -106,6 +109,7 @@ export async function adminCreateChapter(
     intro_title: body.introTitle,
     lock_state: body.lockState,
     background_image_url: body.backgroundImageUrl ?? null,
+    background_music_url: body.backgroundMusicUrl || null,
     sort_order: sortOrder,
   });
 
@@ -127,6 +131,8 @@ export async function adminUpdateChapter(
   if (body.lockState !== undefined) patch.lock_state = body.lockState;
   if (body.backgroundImageUrl !== undefined)
     patch.background_image_url = body.backgroundImageUrl || null;
+  if (body.backgroundMusicUrl !== undefined)
+    patch.background_music_url = body.backgroundMusicUrl || null;
 
   const updated = await updateChapterDoc(
     id,
@@ -159,6 +165,9 @@ export async function adminGetChapter(id: number): Promise<Chapter> {
     ...(row.background_image_url
       ? { backgroundImageUrl: row.background_image_url }
       : {}),
+    ...(row.background_music_url
+      ? { backgroundMusicUrl: row.background_music_url }
+      : {}),
     lockState: row.lock_state,
     progress: "not-started",
     scenes: [],
@@ -173,12 +182,21 @@ function sceneDocToModel(doc: ChapterSceneDoc): ChapterScene {
     ...((doc.type ?? "actor") === "actor"
       ? { actorKind: doc.actor_kind ?? "other" }
       : {}),
+    ...(doc.actor_kind === "main" && doc.actor_expression
+      ? { actorExpression: doc.actor_expression }
+      : {}),
     speakerName: doc.speaker_name,
     ...(doc.speaker_image_url
       ? { speakerImageUrl: doc.speaker_image_url }
       : {}),
     ...(doc.background_image_url
       ? { backgroundImageUrl: doc.background_image_url }
+      : {}),
+    ...(doc.background_music_url
+      ? { backgroundMusicUrl: doc.background_music_url }
+      : {}),
+    ...(doc.sound_effect_url
+      ? { soundEffectUrl: doc.sound_effect_url }
       : {}),
     text: doc.text,
   };
@@ -194,11 +212,17 @@ export async function adminListScenes(
 export interface CreateSceneRequest {
   type: SceneType;
   actorKind?: SceneActorKind;
+  /** Main-actor scenes only; empty/omitted = "normal". */
+  actorExpression?: string;
   idx: number;
   speakerName?: string;
   speakerImageUrl?: string;
   /** Empty/omitted clears the override (scene uses the chapter background). */
   backgroundImageUrl?: string;
+  /** Empty/omitted = chapter music; "none" = silence. */
+  backgroundMusicUrl?: string;
+  /** Empty/omitted = no effect. */
+  soundEffectUrl?: string;
   text: string;
 }
 
@@ -213,16 +237,20 @@ export type UpdateSceneRequest = CreateSceneRequest;
 function normalizeSceneBody(body: CreateSceneRequest): {
   type: "system" | "actor";
   actor_kind: "main" | "other" | null;
+  actor_expression: string | null;
   speaker_name: string;
   speaker_image_url: string | null;
 } {
   if (body.type === "system") {
-    return { type: "system", actor_kind: null, speaker_name: "", speaker_image_url: null };
+    return { type: "system", actor_kind: null, actor_expression: null, speaker_name: "", speaker_image_url: null };
   }
   if (body.actorKind === "main") {
     return {
       type: "actor",
       actor_kind: "main",
+      // "normal" is the default, so it isn't stored.
+      actor_expression:
+        body.actorExpression && body.actorExpression !== "normal" ? body.actorExpression : null,
       speaker_name: MAIN_ACTOR_SPEAKER_NAME,
       speaker_image_url: null,
     };
@@ -230,6 +258,7 @@ function normalizeSceneBody(body: CreateSceneRequest): {
   return {
     type: "actor",
     actor_kind: "other",
+    actor_expression: null,
     speaker_name: (body.speakerName ?? "").trim(),
     speaker_image_url: body.speakerImageUrl ?? null,
   };
@@ -253,6 +282,8 @@ export async function adminCreateScene(
     idx: body.idx,
     ...normalizeSceneBody(body),
     background_image_url: body.backgroundImageUrl || null,
+    background_music_url: body.backgroundMusicUrl || null,
+    sound_effect_url: body.soundEffectUrl || null,
     text: body.text,
   };
   await insertChapterSceneDoc(doc);
@@ -267,6 +298,8 @@ export async function adminUpdateScene(
     idx: body.idx,
     ...normalizeSceneBody(body),
     background_image_url: body.backgroundImageUrl || null,
+    background_music_url: body.backgroundMusicUrl || null,
+    sound_effect_url: body.soundEffectUrl || null,
     text: body.text,
   });
   if (!updated)

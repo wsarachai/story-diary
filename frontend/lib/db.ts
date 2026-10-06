@@ -36,6 +36,8 @@ export interface ChapterDoc {
   title: string;
   intro_title: string;
   background_image_url?: string | null;
+  /** Default background music for the chapter's scenes. */
+  background_music_url?: string | null;
   lock_state: "unlocked" | "locked";
   sort_order: number;
 }
@@ -48,10 +50,16 @@ export interface ChapterSceneDoc {
   type: "system" | "actor";
   /** For type "actor": "main" resolves name/art from the registration character. */
   actor_kind?: "main" | "other" | null;
+  /** Main-actor expression key (see MAIN_ACTOR_EXPRESSIONS); null = "normal". */
+  actor_expression?: string | null;
   speaker_name: string;
   speaker_image_url?: string | null;
   /** Optional per-scene background; overrides the chapter background when set. */
   background_image_url?: string | null;
+  /** Scene music override: a track URL, "none" for silence, null = chapter music. */
+  background_music_url?: string | null;
+  /** One-shot effect played when the scene starts. */
+  sound_effect_url?: string | null;
   text: string;
 }
 

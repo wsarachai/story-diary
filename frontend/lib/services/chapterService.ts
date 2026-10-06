@@ -75,6 +75,7 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
         title: row.title,
         introTitle: row.intro_title,
         ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
+        ...(row.background_music_url ? { backgroundMusicUrl: row.background_music_url } : {}),
         lockState,
         progress,
         scenes: scenes.map((scene) => ({
@@ -84,9 +85,14 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
             ...((scene.type ?? "actor") === "actor"
                 ? { actorKind: scene.actor_kind ?? "other" }
                 : {}),
+            ...(scene.actor_kind === "main" && scene.actor_expression
+                ? { actorExpression: scene.actor_expression }
+                : {}),
             speakerName: scene.speaker_name,
             ...(scene.speaker_image_url ? { speakerImageUrl: scene.speaker_image_url } : {}),
             ...(scene.background_image_url ? { backgroundImageUrl: scene.background_image_url } : {}),
+            ...(scene.background_music_url ? { backgroundMusicUrl: scene.background_music_url } : {}),
+            ...(scene.sound_effect_url ? { soundEffectUrl: scene.sound_effect_url } : {}),
             text: scene.text,
         })),
     };

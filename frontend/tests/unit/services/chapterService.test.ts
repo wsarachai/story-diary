@@ -8,7 +8,7 @@ import {
   getVideoClips,
   getEBooks,
 } from "@/lib/services/chapterService";
-import { adminUpdateScene } from "@/lib/services/adminService";
+import { adminUpdateChapter, adminUpdateScene } from "@/lib/services/adminService";
 
 const USER = "user-chapter-test";
 
@@ -96,6 +96,25 @@ describe("getChapter", () => {
     const after = await getChapter(USER, 1);
     expect(after.scenes.find((s) => s.id === target.id)?.backgroundImageUrl).toBe(bg);
     expect(after.scenes.find((s) => s.id !== target.id && s.backgroundImageUrl)).toBeUndefined();
+  });
+
+  it("exposes chapter music and per-scene music/effect to the reader", async () => {
+    await adminUpdateChapter(1, { backgroundMusicUrl: "/sounds/bgm/village-calm.mp3" });
+    const before = await getChapter(USER, 1);
+    const target = before.scenes[2];
+    await adminUpdateScene(target.id, {
+      type: "system",
+      idx: target.index,
+      speakerName: "",
+      text: target.text,
+      backgroundMusicUrl: "/sounds/bgm/castle-tension.mp3",
+      soundEffectUrl: "/sounds/sfx/rumble.mp3",
+    });
+    const after = await getChapter(USER, 1);
+    expect(after.backgroundMusicUrl).toBe("/sounds/bgm/village-calm.mp3");
+    const scene = after.scenes.find((s) => s.id === target.id)!;
+    expect(scene.backgroundMusicUrl).toBe("/sounds/bgm/castle-tension.mp3");
+    expect(scene.soundEffectUrl).toBe("/sounds/sfx/rumble.mp3");
   });
 
   it("throws CHAPTER_NOT_FOUND for unknown chapter id", async () => {
