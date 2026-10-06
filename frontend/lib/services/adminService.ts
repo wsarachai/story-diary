@@ -36,12 +36,20 @@ import {
   reorderEBookDocs,
 } from "@/lib/db";
 import { Errors } from "@/lib/errors";
+import { MAIN_ACTOR_SPEAKER_NAME } from "@/lib/character";
 import { getEntriesForDate, recordOccurrenceOnBehalf, type AdminRecordStatus } from "@/lib/services/habitService";
 import { DEFAULT_TIMEZONE, localDateStr } from "@/lib/utils/date";
 import type { HabitOccurrence, TodayHabitEntry } from "@/types/habit";
 import { resolveRole } from "@/lib/roles";
 import { isSupportedVideoUrl } from "@/lib/videoEmbed";
-import type { ChapterSummary, Chapter, ChapterScene } from "@/types/chapters";
+import type {
+  ChapterSummary,
+  Chapter,
+  ChapterScene,
+  SceneType,
+  SceneActorKind,
+} from "@/types/chapters";
+import type { ChapterSceneDoc } from "@/lib/db";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, QuestionGender } from "@/types/minigame";
 import type {
@@ -157,17 +165,14 @@ export async function adminGetChapter(id: number): Promise<Chapter> {
   };
 }
 
-function sceneDocToModel(doc: {
-  id: string;
-  chapter_id: number;
-  idx: number;
-  speaker_name: string;
-  speaker_image_url?: string | null;
-  text: string;
-}): ChapterScene {
+function sceneDocToModel(doc: ChapterSceneDoc): ChapterScene {
   return {
     id: doc.id,
     index: doc.idx,
+    type: doc.type ?? "actor",
+    ...((doc.type ?? "actor") === "actor"
+      ? { actorKind: doc.actor_kind ?? "other" }
+      : {}),
     speakerName: doc.speaker_name,
     ...(doc.speaker_image_url
       ? { speakerImageUrl: doc.speaker_image_url }
@@ -184,13 +189,46 @@ export async function adminListScenes(
 }
 
 export interface CreateSceneRequest {
+  type: SceneType;
+  actorKind?: SceneActorKind;
   idx: number;
-  speakerName: string;
+  speakerName?: string;
   speakerImageUrl?: string;
   text: string;
 }
 
-export type UpdateSceneRequest = Partial<CreateSceneRequest>;
+/** The admin form always submits a full scene payload, for create and update. */
+export type UpdateSceneRequest = CreateSceneRequest;
+
+/**
+ * Map a validated request onto stored fields. System scenes carry no speaker
+ * at all; main actors resolve name/art at render time from the registration
+ * character, so nothing per-scene is stored.
+ */
+function normalizeSceneBody(body: CreateSceneRequest): {
+  type: "system" | "actor";
+  actor_kind: "main" | "other" | null;
+  speaker_name: string;
+  speaker_image_url: string | null;
+} {
+  if (body.type === "system") {
+    return { type: "system", actor_kind: null, speaker_name: "", speaker_image_url: null };
+  }
+  if (body.actorKind === "main") {
+    return {
+      type: "actor",
+      actor_kind: "main",
+      speaker_name: MAIN_ACTOR_SPEAKER_NAME,
+      speaker_image_url: null,
+    };
+  }
+  return {
+    type: "actor",
+    actor_kind: "other",
+    speaker_name: (body.speakerName ?? "").trim(),
+    speaker_image_url: body.speakerImageUrl ?? null,
+  };
+}
 
 export async function adminCreateScene(
   chapterId: number,
@@ -204,38 +242,26 @@ export async function adminCreateScene(
     );
 
   const id = `scene-${uuidv4().slice(0, 8)}`;
-  await insertChapterSceneDoc({
+  const doc: ChapterSceneDoc = {
     id,
     chapter_id: chapterId,
     idx: body.idx,
-    speaker_name: body.speakerName,
-    speaker_image_url: body.speakerImageUrl ?? null,
-    text: body.text,
-  });
-  return {
-    id,
-    index: body.idx,
-    speakerName: body.speakerName,
-    ...(body.speakerImageUrl ? { speakerImageUrl: body.speakerImageUrl } : {}),
+    ...normalizeSceneBody(body),
     text: body.text,
   };
+  await insertChapterSceneDoc(doc);
+  return sceneDocToModel(doc);
 }
 
 export async function adminUpdateScene(
   sceneId: string,
   body: UpdateSceneRequest,
 ): Promise<ChapterScene> {
-  const patch: Record<string, unknown> = {};
-  if (body.idx !== undefined) patch.idx = body.idx;
-  if (body.speakerName !== undefined) patch.speaker_name = body.speakerName;
-  if (body.speakerImageUrl !== undefined)
-    patch.speaker_image_url = body.speakerImageUrl || null;
-  if (body.text !== undefined) patch.text = body.text;
-
-  const updated = await updateChapterSceneDoc(
-    sceneId,
-    patch as Parameters<typeof updateChapterSceneDoc>[1],
-  );
+  const updated = await updateChapterSceneDoc(sceneId, {
+    idx: body.idx,
+    ...normalizeSceneBody(body),
+    text: body.text,
+  });
   if (!updated)
     throw Errors.notFound("SCENE_NOT_FOUND", `Scene ${sceneId} not found`);
   return sceneDocToModel(updated);

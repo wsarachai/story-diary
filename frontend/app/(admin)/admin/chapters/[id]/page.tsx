@@ -15,9 +15,9 @@ import {
   useDeleteSceneMutation,
   useReorderChapterScenesMutation,
   type CreateSceneRequest,
-  type UpdateSceneRequest,
 } from "@/store/adminApi";
-import type { ChapterScene } from "@/types/chapters";
+import type { ChapterScene, SceneActorKind, SceneType } from "@/types/chapters";
+import { MAIN_ACTOR_SPEAKER_NAME, mainActorImageUrl } from "@/lib/character";
 import styles from "@/components/Admin.module.css";
 import {
   DndContext,
@@ -36,7 +36,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 const SPEAKER_IMAGES = [
-  { value: "", label: "None" },
   { value: "/images/chapter-speaker-narrator-transparent.png", label: "Narrator" },
   { value: "/images/chapter-speaker-girl-transparent.png", label: "Girl (clear)" },
   { value: "/images/chapter-speaker-girl-01.png", label: "Girl 1" },
@@ -50,11 +49,20 @@ const SPEAKER_IMAGES = [
 ];
 
 const EMPTY_SCENE: CreateSceneRequest = {
+  type: "actor",
+  actorKind: "main",
   idx: 0,
-  speakerName: "",
+  speakerName: MAIN_ACTOR_SPEAKER_NAME,
   speakerImageUrl: "",
   text: "",
 };
+
+/** Short label for the scenes table Type column. */
+function sceneTypeLabel(scene: ChapterScene): string {
+  if (scene.type === "system") return "System";
+  if (scene.actorKind === "main") return "Actor · ผู้กล้า";
+  return "Actor · อื่น ๆ";
+}
 
 function SortableSceneRow({
   scene,
@@ -84,7 +92,8 @@ function SortableSceneRow({
         </span>
       </td>
       <td>{scene.index}</td>
-      <td>{scene.speakerName}</td>
+      <td>{sceneTypeLabel(scene)}</td>
+      <td>{scene.speakerName || "—"}</td>
       <td className={styles.adminTruncated}>
         {scene.speakerImageUrl ?? "—"}
       </td>
@@ -152,6 +161,8 @@ export default function AdminChapterDetailPage() {
   function openEditScene(scene: ChapterScene) {
     setEditSceneId(scene.id);
     setSceneForm({
+      type: scene.type ?? "actor",
+      actorKind: scene.actorKind ?? "other",
       idx: scene.index,
       speakerName: scene.speakerName,
       speakerImageUrl: scene.speakerImageUrl ?? "",
@@ -168,12 +179,16 @@ export default function AdminChapterDetailPage() {
 
   async function handleSubmitScene(e: React.FormEvent) {
     e.preventDefault();
+    if (sceneForm.type === "actor" && sceneForm.actorKind === "other") {
+      if (!sceneForm.speakerName?.trim() || !sceneForm.speakerImageUrl) return;
+    }
     const body: CreateSceneRequest = {
       ...sceneForm,
+      speakerName: sceneForm.speakerName ?? "",
       speakerImageUrl: sceneForm.speakerImageUrl || undefined,
     };
     if (editSceneId !== null) {
-      await updateScene({ sceneId: editSceneId, chapterId, body: body as UpdateSceneRequest });
+      await updateScene({ sceneId: editSceneId, chapterId, body });
     } else {
       await createScene({ chapterId, body });
     }
@@ -297,37 +312,91 @@ export default function AdminChapterDetailPage() {
                     />
                   </div>
                   <div className={styles.adminFormField}>
-                    <label className={styles.adminLabel}>Speaker Name</label>
-                    <input
-                      className={styles.adminInput}
-                      value={sceneForm.speakerName}
-                      onChange={(e) => setSceneForm({ ...sceneForm, speakerName: e.target.value })}
-                      required
-                    />
+                    <label className={styles.adminLabel}>ประเภท Scene</label>
+                    <select
+                      className={styles.adminSelect}
+                      value={sceneForm.type}
+                      onChange={(e) =>
+                        setSceneForm({ ...sceneForm, type: e.target.value as SceneType })
+                      }
+                    >
+                      <option value="system">System (ไม่มีตัวละคร)</option>
+                      <option value="actor">Actor (มีตัวละคร)</option>
+                    </select>
                   </div>
-                  <div className={`${styles.adminFormField} ${styles.full}`}>
-                    <label className={styles.adminLabel}>Speaker Image (optional)</label>
-                    <div className={styles.adminImagePicker}>
-                      {SPEAKER_IMAGES.map((img) => {
-                        const selected = (sceneForm.speakerImageUrl ?? "") === img.value;
-                        return (
-                          <button
-                            key={img.value || "__none__"}
-                            type="button"
-                            title={img.label}
-                            onClick={() => setSceneForm({ ...sceneForm, speakerImageUrl: img.value })}
-                            className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
-                          >
-                            {img.value ? (
-                              <Image src={img.value} alt={img.label} fill sizes="20vw" className={styles.adminImageTileImg} />
-                            ) : (
-                              <span className={styles.adminImageTileNone}>—</span>
-                            )}
-                          </button>
-                        );
-                      })}
+                  {sceneForm.type === "actor" && (
+                    <div className={styles.adminFormField}>
+                      <label className={styles.adminLabel}>ตัวละคร</label>
+                      <select
+                        className={styles.adminSelect}
+                        value={sceneForm.actorKind}
+                        onChange={(e) => {
+                          const actorKind = e.target.value as SceneActorKind;
+                          setSceneForm({
+                            ...sceneForm,
+                            actorKind,
+                            speakerName:
+                              actorKind === "main" ? MAIN_ACTOR_SPEAKER_NAME : "",
+                          });
+                        }}
+                      >
+                        <option value="main">ตัวละครหลัก (ผู้กล้า)</option>
+                        <option value="other">ตัวละครอื่น ๆ</option>
+                      </select>
                     </div>
-                  </div>
+                  )}
+                  {sceneForm.type === "actor" && sceneForm.actorKind === "main" && (
+                    <>
+                      <div className={styles.adminFormField}>
+                        <label className={styles.adminLabel}>Speaker Name</label>
+                        <input className={styles.adminInput} value={MAIN_ACTOR_SPEAKER_NAME} disabled />
+                      </div>
+                      <div className={`${styles.adminFormField} ${styles.full}`}>
+                        <label className={styles.adminLabel}>
+                          รูปตัวละคร — ใช้รูปจากหน้าลงทะเบียน (แสดงตามเพศที่ผู้ใช้เลือก)
+                        </label>
+                        <Image
+                          src={mainActorImageUrl("female")}
+                          alt="ตัวละครหลัก"
+                          width={466}
+                          height={760}
+                          style={{ height: "110px", width: "auto" }}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {sceneForm.type === "actor" && sceneForm.actorKind === "other" && (
+                    <>
+                      <div className={styles.adminFormField}>
+                        <label className={styles.adminLabel}>Speaker Name</label>
+                        <input
+                          className={styles.adminInput}
+                          value={sceneForm.speakerName}
+                          onChange={(e) => setSceneForm({ ...sceneForm, speakerName: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className={`${styles.adminFormField} ${styles.full}`}>
+                        <label className={styles.adminLabel}>Speaker Image</label>
+                        <div className={styles.adminImagePicker}>
+                          {SPEAKER_IMAGES.map((img) => {
+                            const selected = (sceneForm.speakerImageUrl ?? "") === img.value;
+                            return (
+                              <button
+                                key={img.value}
+                                type="button"
+                                title={img.label}
+                                onClick={() => setSceneForm({ ...sceneForm, speakerImageUrl: img.value })}
+                                className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
+                              >
+                                <Image src={img.value} alt={img.label} fill sizes="20vw" className={styles.adminImageTileImg} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <div className={`${styles.adminFormField} ${styles.full}`}>
                     <label className={styles.adminLabel}>Text</label>
                     <textarea
@@ -365,6 +434,7 @@ export default function AdminChapterDetailPage() {
                     <tr>
                       <th style={{ width: "2rem" }} />
                       <th>idx</th>
+                      <th>Type</th>
                       <th>Speaker Name</th>
                       <th>Speaker Image URL</th>
                       <th>Text</th>

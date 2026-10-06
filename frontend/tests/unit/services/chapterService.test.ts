@@ -76,6 +76,18 @@ describe("getChapter", () => {
     expect(indices).toEqual([...indices].sort((a, b) => a - b));
   });
 
+  it("exposes scene type and actorKind", async () => {
+    const chapter = await getChapter(USER, 1);
+    const main = chapter.scenes.find((s) => s.actorKind === "main");
+    expect(main?.type).toBe("actor");
+    expect(main?.speakerName).toBe("ผู้กล้า");
+    expect(main?.speakerImageUrl).toBeUndefined();
+    const narrator = chapter.scenes.find((s) => s.speakerName === "ผู้บรรยาย");
+    expect(narrator?.type).toBe("actor");
+    expect(narrator?.actorKind).toBe("other");
+    expect(narrator?.speakerImageUrl).toBeTruthy();
+  });
+
   it("throws CHAPTER_NOT_FOUND for unknown chapter id", async () => {
     await expect(getChapter(USER, 999)).rejects.toMatchObject({
       code: "CHAPTER_NOT_FOUND",

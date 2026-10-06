@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { CreateActivitySchema } from "@/lib/schemas";
+import { CreateActivitySchema, CreateSceneSchema } from "@/lib/schemas";
 import { validate } from "@/lib/validate";
 import { PHYSICAL_PRESETS, PHYSICAL_PRESET_CATEGORY, type PhysicalPresetKey } from "@/types/habit";
 
@@ -29,5 +29,66 @@ describe("CreateActivitySchema physicalPreset", () => {
         schedule: { frequency: "daily", weekdays: [] },
       })
     ).toThrow();
+  });
+});
+
+describe("CreateSceneSchema", () => {
+  it("accepts a system scene without speaker fields", () => {
+    const result = validate(CreateSceneSchema, {
+      type: "system",
+      idx: 0,
+      text: "ระบบบรรยาย",
+    });
+    expect(result.type).toBe("system");
+    expect(result.speakerName).toBeUndefined();
+  });
+
+  it("accepts an actor/main scene and defaults legacy payloads to actor/other", () => {
+    const main = validate(CreateSceneSchema, {
+      type: "actor",
+      actorKind: "main",
+      idx: 1,
+      text: "บทตัวละครหลัก",
+    });
+    expect(main.actorKind).toBe("main");
+
+    // Pre-type clients send only the old fields — still valid.
+    const legacy = validate(CreateSceneSchema, {
+      idx: 2,
+      speakerName: "ผู้บรรยาย",
+      speakerImageUrl: "/images/chapter-speaker-narrator-transparent.png",
+      text: "บทเดิม",
+    });
+    expect(legacy.type).toBe("actor");
+    expect(legacy.actorKind).toBe("other");
+  });
+
+  it("requires speaker name and image for actor/other scenes", () => {
+    expect(() =>
+      validate(CreateSceneSchema, {
+        type: "actor",
+        actorKind: "other",
+        idx: 3,
+        text: "บทตัวละครอื่น",
+      }),
+    ).toThrow();
+    expect(() =>
+      validate(CreateSceneSchema, {
+        type: "actor",
+        actorKind: "other",
+        idx: 3,
+        speakerName: "ป้าแก่น",
+        text: "บทตัวละครอื่น",
+      }),
+    ).toThrow();
+    const ok = validate(CreateSceneSchema, {
+      type: "actor",
+      actorKind: "other",
+      idx: 3,
+      speakerName: "ป้าแก่น",
+      speakerImageUrl: "/images/chapter-speaker-girl-01.png",
+      text: "บทตัวละครอื่น",
+    });
+    expect(ok.speakerName).toBe("ป้าแก่น");
   });
 });

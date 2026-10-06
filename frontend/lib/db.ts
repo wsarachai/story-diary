@@ -1,16 +1,19 @@
 import { MongoClient, ServerApiVersion, type Db } from "mongodb";
 import dns from "dns";
+import { MAIN_ACTOR_SPEAKER_NAME } from "./character";
 
 type DatabaseMode = "memory" | "mongo";
 
+// NODE_ENV=test wins first (Vitest suites must never touch Atlas); then an
+// explicit DB_MODE=memory is honored so local E2E runs against seeded
+// fixtures instead of the shared database.
 const mode: DatabaseMode =
-  process.env.DB_MODE === "mongo"
-    ? "mongo"
-    : process.env.NODE_ENV === "test"
+  process.env.NODE_ENV === "test"
+    ? "memory"
+    : process.env.DB_MODE === "memory"
       ? "memory"
       : "mongo";
 
-const CHAR_IMG = "/images/chapter-speaker-girl-transparent.png";
 const NARRATOR_IMG = "/images/chapter-speaker-narrator-transparent.png";
 
 export interface UserDoc {
@@ -41,6 +44,10 @@ export interface ChapterSceneDoc {
   id: string;
   chapter_id: number;
   idx: number;
+  /** "system" = narration without a figure; "actor" = spoken by a character. */
+  type: "system" | "actor";
+  /** For type "actor": "main" resolves name/art from the registration character. */
+  actor_kind?: "main" | "other" | null;
   speaker_name: string;
   speaker_image_url?: string | null;
   text: string;
@@ -218,32 +225,35 @@ const CHAPTERS: ChapterDoc[] = [
   { id: 5, title: "บทที่ 5: บทสรุป", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 5 },
 ];
 
+// "ผู้บรรยาย" seeds keep their figure (actor/other); "ชื่อตัวละคร" seeds are the
+// registration protagonist — main-actor scenes store no art, the reader
+// resolves "ผู้กล้า" + gender-matched art at render time.
 const CHAPTER_SCENES: ChapterSceneDoc[] = [
-  { id: "c1s0", chapter_id: 1, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน" },
-  { id: "c1s1", chapter_id: 1, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ" },
-  { id: "c1s2", chapter_id: 1, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้" },
-  { id: "c1s3", chapter_id: 1, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน" },
-  { id: "c1s4", chapter_id: 1, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้" },
-  { id: "c2s0", chapter_id: 2, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร" },
-  { id: "c2s1", chapter_id: 2, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?" },
-  { id: "c2s2", chapter_id: 2, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ" },
-  { id: "c2s3", chapter_id: 2, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน" },
-  { id: "c2s4", chapter_id: 2, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด" },
-  { id: "c3s0", chapter_id: 3, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต" },
-  { id: "c3s1", chapter_id: 3, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย" },
-  { id: "c3s2", chapter_id: 3, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่" },
-  { id: "c3s3", chapter_id: 3, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร" },
-  { id: "c3s4", chapter_id: 3, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง" },
-  { id: "c4s0", chapter_id: 4, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น" },
-  { id: "c4s1", chapter_id: 4, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย" },
-  { id: "c4s2", chapter_id: 4, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม" },
-  { id: "c4s3", chapter_id: 4, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง" },
-  { id: "c4s4", chapter_id: 4, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป" },
-  { id: "c5s0", chapter_id: 5, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน" },
-  { id: "c5s1", chapter_id: 5, idx: 1, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้" },
-  { id: "c5s2", chapter_id: 5, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว" },
-  { id: "c5s3", chapter_id: 5, idx: 3, speaker_name: "ชื่อตัวละคร", speaker_image_url: CHAR_IMG, text: "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง" },
-  { id: "c5s4", chapter_id: 5, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, text: "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้" },
+  { id: "c1s0", chapter_id: 1, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ยินดีต้อนรับสู่ Story Diary — บันทึกการเดินทางสุขภาพของคุณ\nวันนี้เราจะเริ่มต้นก้าวแรกด้วยกัน" },
+  { id: "c1s1", chapter_id: 1, idx: 1, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "สวัสดี! ฉันชื่อ... ยังไม่รู้จะตั้งชื่ออะไรดี แต่ฉันพร้อมแล้วที่จะดูแลสุขภาพ" },
+  { id: "c1s2", chapter_id: 1, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "การดูแลสุขภาพไม่ใช่เรื่องยาก เพียงแค่เริ่มต้นทีละก้าว\nบันทึกกิจกรรมประจำวัน ติดตามความก้าวหน้า และสนุกกับการเรียนรู้" },
+  { id: "c1s3", chapter_id: 1, idx: 3, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันจะลองดู! เริ่มจากการบันทึกยาที่ต้องทานและอาหารในแต่ละวัน" },
+  { id: "c1s4", chapter_id: 1, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ยอดเยี่ยมมาก! ไปดูกันเลยว่ามีอะไรรออยู่บ้างในการเดินทางครั้งนี้" },
+  { id: "c2s0", chapter_id: 2, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "บทเรียนใหม่กำลังเริ่มต้นขึ้น — วันนี้เราจะเรียนรู้ว่าร่างกายทำงานอย่างไร" },
+  { id: "c2s1", chapter_id: 2, idx: 1, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันอยากเข้าใจร่างกายของตัวเองให้มากขึ้น ทำไมบางวันถึงรู้สึกอ่อนเพลีย?" },
+  { id: "c2s2", chapter_id: 2, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ความรู้ที่ถูกต้องช่วยให้การตัดสินใจง่ายขึ้น\nการรู้ว่าอาหารแต่ละประเภทมีผลต่อร่างกายอย่างไรคือก้าวสำคัญ" },
+  { id: "c2s3", chapter_id: 2, idx: 3, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ถ้าฉันฝึกสม่ำเสมอและบันทึกทุกวัน ฉันจะดูแลตัวเองได้ดีขึ้นแน่นอน" },
+  { id: "c2s4", chapter_id: 2, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ทุกคำตอบที่ค้นพบจะกลายเป็นพลังใจ\nการเรียนรู้ไม่มีวันสิ้นสุด" },
+  { id: "c3s0", chapter_id: 3, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "เส้นทางนี้ไม่ได้ราบรื่นเสมอไป — ความท้าทายคือส่วนหนึ่งของการเติบโต" },
+  { id: "c3s1", chapter_id: 3, idx: 1, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "บางวันฉันก็รู้สึกเหนื่อยและไม่มั่นใจ อยากเลิกทำทุกอย่างเลย" },
+  { id: "c3s2", chapter_id: 3, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ความท้าทายคือบททดสอบของความตั้งใจ\nทุกคนล้มได้ แต่สิ่งสำคัญคือการลุกขึ้นมาใหม่" },
+  { id: "c3s3", chapter_id: 3, idx: 3, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันจะไม่ยอมแพ้ให้กับอุปสรรคเล็ก ๆ\nฉันจะจดบันทึกทุกวันไม่ว่าจะรู้สึกอย่างไร" },
+  { id: "c3s4", chapter_id: 3, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "เมื่อก้าวผ่านได้ เราจะเห็นตัวเองชัดขึ้น\nความแกร่งเกิดจากการเผชิญ ไม่ใช่การหลีกเลี่ยง" },
+  { id: "c4s0", chapter_id: 4, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ผลลัพธ์ของความสม่ำเสมอเริ่มเผยให้เห็น — ดูความเปลี่ยนแปลงที่เกิดขึ้น" },
+  { id: "c4s1", chapter_id: 4, idx: 1, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันรู้สึกภูมิใจที่ทำได้ต่อเนื่อง\nสุขภาพดีขึ้น และจิตใจก็เบาขึ้นด้วย" },
+  { id: "c4s2", chapter_id: 4, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "การเติบโตมักเกิดขึ้นอย่างเงียบ ๆ\nบันทึกที่สะสมมาทุกวันคือหลักฐานของความพยายาม" },
+  { id: "c4s3", chapter_id: 4, idx: 3, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ตอนนี้ฉันเริ่มเชื่อมั่นในตัวเองมากขึ้น\nฉันรู้ว่าฉันทำได้ถ้าตั้งใจจริง" },
+  { id: "c4s4", chapter_id: 4, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ทุกประสบการณ์ได้หล่อหลอมเป็นพลังใหม่\nพร้อมแล้วสำหรับก้าวต่อไป" },
+  { id: "c5s0", chapter_id: 5, idx: 0, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "การเดินทางครั้งนี้กำลังจะถึงบทสรุป — มาทบทวนสิ่งที่ได้เรียนรู้ด้วยกัน" },
+  { id: "c5s1", chapter_id: 5, idx: 1, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันได้เรียนรู้ว่าการดูแลตัวเองเริ่มจากวันนี้\nไม่ต้องรอให้พร้อมก่อนถึงจะเริ่มได้" },
+  { id: "c5s2", chapter_id: 5, idx: 2, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "ความสม่ำเสมอและความเข้าใจคือหัวใจสำคัญ\nทำทีละน้อยทุกวันดีกว่าทำมากแค่วันเดียว" },
+  { id: "c5s3", chapter_id: 5, idx: 3, speaker_name: "ผู้กล้า", type: "actor", actor_kind: "main", text: "ฉันพร้อมจะเดินหน้าต่อด้วยความมั่นใจ\nขอบคุณ Story Diary ที่เป็นเพื่อนร่วมทาง" },
+  { id: "c5s4", chapter_id: 5, idx: 4, speaker_name: "ผู้บรรยาย", speaker_image_url: NARRATOR_IMG, type: "actor", actor_kind: "other", text: "เรื่องราวบทนี้จบลง แต่การดูแลสุขภาพยังดำเนินต่อไป\nจงรักษานิสัยดี ๆ ที่สร้างมาตลอดการเดินทางนี้" },
 ];
 
 /**
@@ -553,6 +563,32 @@ async function backfillQuizQuestionGenders(): Promise<void> {
   await col.insertMany(clones);
 }
 
+/**
+ * One-time, idempotent migration for the scene system/actor split. Legacy
+ * scenes predate the `type` field: the "ชื่อตัวละคร" sentinel becomes the main
+ * actor (name/art resolved at render time), everything else keeps its stored
+ * name and figure as a custom actor. No-op once scenes carry a type; gated by
+ * `runOncePerDatabase` like the other backfills.
+ */
+async function backfillChapterSceneTypes(): Promise<void> {
+  const col = chapterScenesCollection();
+  await col.updateMany(
+    { type: { $exists: false }, speaker_name: "ชื่อตัวละคร" },
+    {
+      $set: {
+        type: "actor",
+        actor_kind: "main",
+        speaker_name: MAIN_ACTOR_SPEAKER_NAME,
+        speaker_image_url: null,
+      },
+    },
+  );
+  await col.updateMany(
+    { type: { $exists: false } },
+    { $set: { type: "actor", actor_kind: "other" } },
+  );
+}
+
 interface MongoConnection {
   client: MongoClient;
   db: Db;
@@ -600,6 +636,7 @@ async function connectMongo(): Promise<MongoConnection> {
   await runOncePerDatabase(`indexes-${MONGO_INDEXES_VERSION}`, ensureMongoIndexes);
   await runOncePerDatabase("reference-data", seedMongoReferenceData);
   await runOncePerDatabase("quiz-gender-backfill", backfillQuizQuestionGenders);
+  await runOncePerDatabase("scene-type-backfill", backfillChapterSceneTypes);
   return { client, db: mongoDb };
 }
 

@@ -232,14 +232,43 @@ export const CreateChapterSchema = z.object({
 
 export const UpdateChapterSchema = atLeastOneKey(CreateChapterSchema.partial());
 
-export const CreateSceneSchema = z.object({
-  idx: z.number().int().min(0),
-  speakerName: z.string().trim().min(1, "REQUIRED").max(120, "TOO_LONG"),
-  speakerImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
-  text: z.string().trim().min(1, "REQUIRED").max(4000, "TOO_LONG"),
-});
+export const SceneTypeSchema = z.enum(["system", "actor"]);
+export const SceneActorKindSchema = z.enum(["main", "other"]);
 
-export const UpdateSceneSchema = atLeastOneKey(CreateSceneSchema.partial());
+/**
+ * Scene payloads are always sent in full by the admin UI (create and update).
+ * "system" scenes carry no speaker; "actor"+"main" gets its name/art from the
+ * registration character; "actor"+"other" requires an authored name and art.
+ * Defaults keep pre-type clients (speakerName + optional image) valid.
+ */
+export const CreateSceneSchema = z
+  .object({
+    type: SceneTypeSchema.default("actor"),
+    actorKind: SceneActorKindSchema.default("other"),
+    idx: z.number().int().min(0),
+    speakerName: z.string().trim().max(120, "TOO_LONG").optional(),
+    speakerImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
+    text: z.string().trim().min(1, "REQUIRED").max(4000, "TOO_LONG"),
+  })
+  .superRefine((value, ctx) => {
+    if (value.type !== "actor" || value.actorKind !== "other") return;
+    if (!value.speakerName) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["speakerName"],
+        message: "REQUIRED",
+      });
+    }
+    if (!value.speakerImageUrl) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["speakerImageUrl"],
+        message: "REQUIRED",
+      });
+    }
+  });
+
+export const UpdateSceneSchema = CreateSceneSchema;
 
 export const CreateEBookSchema = z.object({
   title: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),

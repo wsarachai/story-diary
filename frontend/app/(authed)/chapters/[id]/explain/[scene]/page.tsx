@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useGetChapterQuery, useUpdateChapterProgressMutation } from "@/store/chaptersApi";
 import { useGetMeQuery } from "@/store/authApi";
+import { MAIN_ACTOR_SPEAKER_NAME, mainActorImageUrl } from "@/lib/character";
 import PageSpinner from "@/components/PageSpinner";
 import styles from "../../../chapters.module.css";
 import layoutStyles from "@/components/BookShellLayout.module.css";
@@ -153,6 +154,14 @@ export default function ChapterScenePage() {
   if (!scene) return null;
 
   const bgUrl = chapter.backgroundImageUrl;
+  const isSystemScene = scene.type === "system";
+  const isMainActor = scene.type === "actor" && scene.actorKind === "main";
+  const speakerImageUrl = isMainActor
+    ? mainActorImageUrl(currentUser?.gender)
+    : scene.speakerImageUrl;
+  const speakerDisplayName = isMainActor
+    ? MAIN_ACTOR_SPEAKER_NAME
+    : scene.speakerName;
 
   return (
     <main
@@ -197,17 +206,17 @@ export default function ChapterScenePage() {
         />
       )}
 
-      {scene.speakerImageUrl ? (
+      {!isSystemScene && speakerImageUrl ? (
         <Image
           className={styles.speakerFigure}
-          src={scene.speakerImageUrl}
+          src={speakerImageUrl}
           alt="ตัวละครผู้พูด"
-          width={540}
+          width={isMainActor ? 466 : 540}
           height={760}
         />
-      ) : (
+      ) : !isSystemScene ? (
         <SpeakerPlaceholder />
-      )}
+      ) : null}
 
       {showTranscript && (
         <div
@@ -229,19 +238,20 @@ export default function ChapterScenePage() {
             </div>
             <div className={styles.transcriptList}>
               {chapter.scenes.map((s, i) => {
-                const isUser = s.speakerName === "ชื่อตัวละคร";
-                const displayName = isUser
-                  ? (currentUser?.characterName ?? s.speakerName)
-                  : s.speakerName;
+                const isMain = s.type === "actor" && s.actorKind === "main";
+                const isSystem = s.type === "system";
+                const displayName = isMain ? MAIN_ACTOR_SPEAKER_NAME : s.speakerName;
                 return (
                   <div
                     key={i}
                     className={[
                       styles.transcriptBubbleWrap,
-                      isUser ? styles.transcriptRight : styles.transcriptLeft,
+                      isMain ? styles.transcriptRight : styles.transcriptLeft,
                     ].join(" ")}
                   >
-                    <span className={styles.transcriptSpeakerName}>{displayName}</span>
+                    {!isSystem && (
+                      <span className={styles.transcriptSpeakerName}>{displayName}</span>
+                    )}
                     <div className={styles.transcriptBubble}>
                       {s.text.split("\n").map((line, j, arr) => (
                         <span key={j}>
@@ -259,11 +269,9 @@ export default function ChapterScenePage() {
       )}
 
       <section className={styles.dialogPanel} aria-label="บทสนทนา">
-        <h1 className={styles.speakerName}>
-          {scene.speakerName === "ชื่อตัวละคร"
-            ? (currentUser?.characterName ?? scene.speakerName)
-            : scene.speakerName}
-        </h1>
+        {!isSystemScene && (
+          <h1 className={styles.speakerName}>{speakerDisplayName}</h1>
+        )}
         <p className={styles.dialogText}>
           {typingDone ? (
             // Typing skipped — render full text directly

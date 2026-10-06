@@ -80,6 +80,10 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
         scenes: scenes.map((scene) => ({
             id: scene.id,
             index: scene.idx,
+            type: scene.type ?? "actor",
+            ...((scene.type ?? "actor") === "actor"
+                ? { actorKind: scene.actor_kind ?? "other" }
+                : {}),
             speakerName: scene.speaker_name,
             ...(scene.speaker_image_url ? { speakerImageUrl: scene.speaker_image_url } : {}),
             text: scene.text,

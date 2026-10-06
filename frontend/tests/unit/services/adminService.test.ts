@@ -404,6 +404,17 @@ describe("adminListScenes", () => {
     expect(scenes[0]).toHaveProperty("text");
   });
 
+  it("types seeded scenes: narrator as other-actor, protagonist as main-actor", async () => {
+    const scenes = await adminListScenes(1);
+    const narrator = scenes.find((s) => s.speakerName === "ผู้บรรยาย");
+    expect(narrator?.type).toBe("actor");
+    expect(narrator?.actorKind).toBe("other");
+    const main = scenes.find((s) => s.actorKind === "main");
+    expect(main?.type).toBe("actor");
+    expect(main?.speakerName).toBe("ผู้กล้า");
+    expect(main?.speakerImageUrl).toBeUndefined();
+  });
+
   it("returns empty array for chapter with no scenes", async () => {
     const scenes = await adminListScenes(9999);
     expect(scenes).toHaveLength(0);
@@ -411,13 +422,17 @@ describe("adminListScenes", () => {
 });
 
 describe("adminCreateScene", () => {
-  it("creates a scene and returns it", async () => {
+  it("creates an actor/other scene with authored name and image", async () => {
     const scene = await adminCreateScene(1, {
+      type: "actor",
+      actorKind: "other",
       idx: 99,
       speakerName: "ทดสอบ",
       speakerImageUrl: "/img/test.png",
       text: "ข้อความทดสอบ",
     });
+    expect(scene.type).toBe("actor");
+    expect(scene.actorKind).toBe("other");
     expect(scene.index).toBe(99);
     expect(scene.speakerName).toBe("ทดสอบ");
     expect(scene.speakerImageUrl).toBe("/img/test.png");
@@ -425,11 +440,42 @@ describe("adminCreateScene", () => {
     expect(typeof scene.id).toBe("string");
   });
 
+  it("creates a system scene without speaker name or image", async () => {
+    const scene = await adminCreateScene(1, {
+      type: "system",
+      idx: 98,
+      speakerName: "",
+      text: "บทรระบบ",
+    });
+    expect(scene.type).toBe("system");
+    expect(scene.actorKind).toBeUndefined();
+    expect(scene.speakerName).toBe("");
+    expect(scene.speakerImageUrl).toBeUndefined();
+  });
+
+  it("forces main-actor scenes to the ผู้กล้า name and drops stored art", async () => {
+    const scene = await adminCreateScene(1, {
+      type: "actor",
+      actorKind: "main",
+      idx: 97,
+      speakerName: "ชื่ออื่นที่ส่งมา",
+      speakerImageUrl: "/img/should-not persist.png",
+      text: "บทตัวละครหลัก",
+    });
+    expect(scene.type).toBe("actor");
+    expect(scene.actorKind).toBe("main");
+    expect(scene.speakerName).toBe("ผู้กล้า");
+    expect(scene.speakerImageUrl).toBeUndefined();
+  });
+
   it("new scene appears in list", async () => {
     const before = await adminListScenes(1);
     await adminCreateScene(1, {
+      type: "actor",
+      actorKind: "other",
       idx: 50,
       speakerName: "ผู้บรรยาย",
+      speakerImageUrl: "/images/chapter-speaker-narrator-transparent.png",
       text: "เพิ่มใหม่",
     });
     const after = await adminListScenes(1);
@@ -438,7 +484,11 @@ describe("adminCreateScene", () => {
 
   it("throws 404 for non-existent chapter", async () => {
     await expect(
-      adminCreateScene(9999, { idx: 0, speakerName: "x", text: "x" }),
+      adminCreateScene(9999, {
+        type: "system",
+        idx: 0,
+        text: "x",
+      }),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 });
@@ -447,20 +497,39 @@ describe("adminUpdateScene", () => {
   it("updates scene text", async () => {
     const scenes = await adminListScenes(1);
     const id = scenes[0].id;
-    const updated = await adminUpdateScene(id, { text: "ข้อความใหม่" });
+    const updated = await adminUpdateScene(id, {
+      type: "actor",
+      actorKind: "other",
+      idx: scenes[0].index,
+      speakerName: scenes[0].speakerName,
+      speakerImageUrl: scenes[0].speakerImageUrl,
+      text: "ข้อความใหม่",
+    });
     expect(updated.text).toBe("ข้อความใหม่");
   });
 
-  it("updates speakerName", async () => {
+  it("retypes an actor scene to system and clears the speaker", async () => {
     const scenes = await adminListScenes(1);
-    const id = scenes[0].id;
-    const updated = await adminUpdateScene(id, { speakerName: "ชื่อใหม่" });
-    expect(updated.speakerName).toBe("ชื่อใหม่");
+    const target = scenes.find((s) => s.type === "actor")!;
+    const updated = await adminUpdateScene(target.id, {
+      type: "system",
+      idx: target.index,
+      speakerName: "",
+      text: target.text,
+    });
+    expect(updated.type).toBe("system");
+    expect(updated.actorKind).toBeUndefined();
+    expect(updated.speakerName).toBe("");
+    expect(updated.speakerImageUrl).toBeUndefined();
   });
 
   it("throws 404 for missing scene", async () => {
     await expect(
-      adminUpdateScene("ghost-id", { text: "x" }),
+      adminUpdateScene("ghost-id", {
+        type: "system",
+        idx: 0,
+        text: "x",
+      }),
     ).rejects.toMatchObject({ statusCode: 404 });
   });
 });

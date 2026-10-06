@@ -1,5 +1,12 @@
 import { apiSlice } from "./apiSlice";
-import type { Chapter, ChapterSummary, ChapterLockState, ChapterScene } from "@/types/chapters";
+import type {
+  Chapter,
+  ChapterSummary,
+  ChapterLockState,
+  ChapterScene,
+  SceneType,
+  SceneActorKind,
+} from "@/types/chapters";
 import type { EBookChapter } from "@/types/ebook";
 import type { QuizQuestion, AnswerLetter, QuestionGender } from "@/types/minigame";
 import type { VideoClipModel, CreateVideoClipRequest, UpdateVideoClipRequest, HabitRecordUser } from "@/lib/services/adminService";
@@ -31,13 +38,16 @@ export type UpdateChapterRequest = Partial<CreateChapterRequest>;
 // ── Scene admin payloads ────────────────────────────────────────────────────
 
 export interface CreateSceneRequest {
+  type: SceneType;
+  actorKind?: SceneActorKind;
   idx: number;
-  speakerName: string;
+  speakerName?: string;
   speakerImageUrl?: string;
   text: string;
 }
 
-export type UpdateSceneRequest = Partial<CreateSceneRequest>;
+/** The admin form always submits a full scene payload, for create and update. */
+export type UpdateSceneRequest = CreateSceneRequest;
 
 // ── EBook admin payloads ────────────────────────────────────────────────────
 

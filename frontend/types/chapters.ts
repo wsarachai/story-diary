@@ -49,6 +49,25 @@ export interface ChapterSummary {
 }
 
 /**
+ * Presentation type of a scene.
+ *
+ *   "system" — narration/UI copy with no speaker figure or name pill.
+ *   "actor"  — spoken by a character; see {@link SceneActorKind}.
+ */
+export type SceneType = "system" | "actor";
+
+/**
+ * Which character speaks an "actor" scene.
+ *
+ *   "main"  — the protagonist created at registration; the reader resolves the
+ *             speaker name ("ผู้กล้า") and the figure art from the logged-in
+ *             user's gender, so nothing is stored per scene.
+ *   "other" — any custom character; speaker name and figure art are authored
+ *             per scene in the admin chapter editor.
+ */
+export type SceneActorKind = "main" | "other";
+
+/**
  * One scene/dialogue step within a chapter, as rendered by s010.
  *
  * The wireframe shows a single placeholder dialogue with the character's name
@@ -64,9 +83,16 @@ export interface ChapterScene {
     id: string;
     /** 0-based position within the chapter's scene array. */
     index: number;
-    /** Speaker display name shown in the orange .speaker-name pill. */
+    /** Scene presentation type; defaults to "actor" for legacy data. */
+    type: SceneType;
+    /** Required when type is "actor"; ignored for "system". */
+    actorKind?: SceneActorKind;
+    /** Speaker display name shown in the orange .speaker-name pill ("" for system). */
     speakerName: string;
-    /** Optional asset URL for the speaker figure (s010 .speaker-figure). */
+    /**
+     * Optional asset URL for the speaker figure (s010 .speaker-figure).
+     * Main-actor scenes resolve their figure at render time instead.
+     */
     speakerImageUrl?: string;
     /** Body copy shown in the dialog panel. May contain `\n` for line breaks. */
     text: string;
