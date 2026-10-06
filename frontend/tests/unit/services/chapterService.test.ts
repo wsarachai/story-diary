@@ -82,10 +82,9 @@ describe("getChapter", () => {
     expect(main?.type).toBe("actor");
     expect(main?.speakerName).toBe("ผู้กล้า");
     expect(main?.speakerImageUrl).toBeUndefined();
-    const narrator = chapter.scenes.find((s) => s.speakerName === "ผู้บรรยาย");
-    expect(narrator?.type).toBe("actor");
-    expect(narrator?.actorKind).toBe("other");
-    expect(narrator?.speakerImageUrl).toBeTruthy();
+    const system = chapter.scenes.find((s) => s.type === "system");
+    expect(system?.speakerName).toBe("");
+    expect(system?.speakerImageUrl).toBeUndefined();
   });
 
   it("throws CHAPTER_NOT_FOUND for unknown chapter id", async () => {

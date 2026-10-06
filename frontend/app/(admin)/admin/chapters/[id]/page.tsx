@@ -16,8 +16,15 @@ import {
   useReorderChapterScenesMutation,
   type CreateSceneRequest,
 } from "@/store/adminApi";
-import type { ChapterScene, SceneActorKind, SceneType } from "@/types/chapters";
-import { MAIN_ACTOR_SPEAKER_NAME, mainActorImageUrl } from "@/lib/character";
+import type { ChapterScene, SceneType } from "@/types/chapters";
+import {
+  CHARACTER_IMAGE_GROUPS,
+  CHARACTER_PRESETS,
+  MAIN_ACTOR_SPEAKER_NAME,
+  MAIN_ACTOR_IMAGE_URLS,
+  findCharacterPreset,
+  guessCharacterKey,
+} from "@/lib/character";
 import styles from "@/components/Admin.module.css";
 import {
   DndContext,
@@ -34,19 +41,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-const SPEAKER_IMAGES = [
-  { value: "/images/chapter-speaker-narrator-transparent.png", label: "Narrator" },
-  { value: "/images/chapter-speaker-girl-transparent.png", label: "Girl (clear)" },
-  { value: "/images/chapter-speaker-girl-01.png", label: "Girl 1" },
-  { value: "/images/chapter-speaker-girl-02.png", label: "Girl 2" },
-  { value: "/images/chapter-speaker-girl-03.png", label: "Girl 3" },
-  { value: "/images/chapter-speaker-girl-04.png", label: "Girl 4" },
-  { value: "/images/chapter-speaker-girl-05.png", label: "Girl 5" },
-  { value: "/images/chapter-speaker-man-01.png", label: "Man 1" },
-  { value: "/images/chapter-speaker-man-02.png", label: "Man 2" },
-  { value: "/images/chapter-speaker-man-03.png", label: "Man 3" },
-];
 
 const EMPTY_SCENE: CreateSceneRequest = {
   type: "actor",
@@ -146,6 +140,40 @@ export default function AdminChapterDetailPage() {
   const [showSceneForm, setShowSceneForm] = useState(false);
   const [editSceneId, setEditSceneId] = useState<string | null>(null);
   const [sceneForm, setSceneForm] = useState<CreateSceneRequest>(EMPTY_SCENE);
+  const [characterKey, setCharacterKey] = useState("main");
+
+  /** Apply a character preset: fills actor kind, speaker name and first art. */
+  function applyCharacterKey(key: string) {
+    setCharacterKey(key);
+    const preset = findCharacterPreset(key);
+    if (!preset) return;
+    if (preset.kind === "main") {
+      setSceneForm((f) => ({
+        ...f,
+        type: "actor",
+        actorKind: "main",
+        speakerName: MAIN_ACTOR_SPEAKER_NAME,
+        speakerImageUrl: "",
+      }));
+      return;
+    }
+    setSceneForm((f) => ({
+      ...f,
+      type: "actor",
+      actorKind: "other",
+      speakerName: preset.kind === "custom" ? "" : preset.label,
+      speakerImageUrl: preset.images[0] ?? "",
+    }));
+  }
+
+  /** Image groups offered for the currently selected character. */
+  function pickerGroups(): { label: string; images: string[] }[] {
+    const preset = findCharacterPreset(characterKey);
+    if (preset && preset.kind === "preset" && preset.images.length > 0) {
+      return [{ label: preset.label, images: preset.images }];
+    }
+    return CHARACTER_IMAGE_GROUPS;
+  }
 
   async function handleSaveChapter(e: React.FormEvent) {
     e.preventDefault();
@@ -155,6 +183,7 @@ export default function AdminChapterDetailPage() {
   function openCreateScene() {
     setEditSceneId(null);
     setSceneForm(EMPTY_SCENE);
+    setCharacterKey("main");
     setShowSceneForm(true);
   }
 
@@ -168,6 +197,11 @@ export default function AdminChapterDetailPage() {
       speakerImageUrl: scene.speakerImageUrl ?? "",
       text: scene.text,
     });
+    setCharacterKey(
+      scene.type === "actor" && scene.actorKind === "main"
+        ? "main"
+        : guessCharacterKey(scene.speakerName, scene.speakerImageUrl),
+    );
     setShowSceneForm(true);
   }
 
@@ -175,6 +209,7 @@ export default function AdminChapterDetailPage() {
     setShowSceneForm(false);
     setEditSceneId(null);
     setSceneForm(EMPTY_SCENE);
+    setCharacterKey("main");
   }
 
   async function handleSubmitScene(e: React.FormEvent) {
@@ -329,19 +364,14 @@ export default function AdminChapterDetailPage() {
                       <label className={styles.adminLabel}>ตัวละคร</label>
                       <select
                         className={styles.adminSelect}
-                        value={sceneForm.actorKind}
-                        onChange={(e) => {
-                          const actorKind = e.target.value as SceneActorKind;
-                          setSceneForm({
-                            ...sceneForm,
-                            actorKind,
-                            speakerName:
-                              actorKind === "main" ? MAIN_ACTOR_SPEAKER_NAME : "",
-                          });
-                        }}
+                        value={characterKey}
+                        onChange={(e) => applyCharacterKey(e.target.value)}
                       >
-                        <option value="main">ตัวละครหลัก (ผู้กล้า)</option>
-                        <option value="other">ตัวละครอื่น ๆ</option>
+                        {CHARACTER_PRESETS.map((p) => (
+                          <option key={p.key} value={p.key}>
+                            {p.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -355,13 +385,27 @@ export default function AdminChapterDetailPage() {
                         <label className={styles.adminLabel}>
                           รูปตัวละคร — ใช้รูปจากหน้าลงทะเบียน (แสดงตามเพศที่ผู้ใช้เลือก)
                         </label>
-                        <Image
-                          src={mainActorImageUrl("female")}
-                          alt="ตัวละครหลัก"
-                          width={466}
-                          height={760}
-                          style={{ height: "110px", width: "auto" }}
-                        />
+                        <div style={{ display: "flex", gap: "1.5rem" }}>
+                          {(
+                            [
+                              ["ชาย", MAIN_ACTOR_IMAGE_URLS.male],
+                              ["หญิง", MAIN_ACTOR_IMAGE_URLS.female],
+                            ] as const
+                          ).map(([label, src]) => (
+                            <figure key={label} style={{ margin: 0, textAlign: "center" }}>
+                              <Image
+                                src={src}
+                                alt={`ตัวละครหลัก (${label})`}
+                                width={73}
+                                height={110}
+                                style={{ height: "110px", width: "auto", objectFit: "contain" }}
+                              />
+                              <figcaption style={{ fontSize: "0.85rem", marginTop: "0.25rem" }}>
+                                {label}
+                              </figcaption>
+                            </figure>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
@@ -377,23 +421,45 @@ export default function AdminChapterDetailPage() {
                         />
                       </div>
                       <div className={`${styles.adminFormField} ${styles.full}`}>
-                        <label className={styles.adminLabel}>Speaker Image</label>
-                        <div className={styles.adminImagePicker}>
-                          {SPEAKER_IMAGES.map((img) => {
-                            const selected = (sceneForm.speakerImageUrl ?? "") === img.value;
-                            return (
-                              <button
-                                key={img.value}
-                                type="button"
-                                title={img.label}
-                                onClick={() => setSceneForm({ ...sceneForm, speakerImageUrl: img.value })}
-                                className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
-                              >
-                                <Image src={img.value} alt={img.label} fill sizes="20vw" className={styles.adminImageTileImg} />
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <label className={styles.adminLabel}>
+                          Speaker Image
+                          {(() => {
+                            const preset = findCharacterPreset(characterKey);
+                            return preset && preset.kind === "preset" && preset.images.length === 0
+                              ? " — ยังไม่มีรูปของตัวละครนี้ เลือกจากทั้งหมดด้านล่างได้"
+                              : "";
+                          })()}
+                        </label>
+                        {pickerGroups().map((group) => (
+                          <div key={group.label}>
+                            <div style={{ margin: "0.5rem 0 0.25rem", fontSize: "0.9rem", opacity: 0.75 }}>
+                              {group.label}
+                            </div>
+                            <div className={styles.adminImagePicker}>
+                              {group.images.map((img) => {
+                                const selected = (sceneForm.speakerImageUrl ?? "") === img;
+                                return (
+                                  <button
+                                    key={img}
+                                    type="button"
+                                    title={group.label}
+                                    onClick={() => setSceneForm({ ...sceneForm, speakerImageUrl: img })}
+                                    className={`${styles.adminImageTile} ${selected ? styles.adminImageTileSelected : ""}`}
+                                  >
+                                    <Image
+                                      src={img}
+                                      alt={group.label}
+                                      fill
+                                      sizes="20vw"
+                                      style={{ objectFit: "contain" }}
+                                      className={styles.adminImageTileImg}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </>
                   )}

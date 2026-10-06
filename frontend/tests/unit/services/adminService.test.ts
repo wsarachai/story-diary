@@ -404,11 +404,10 @@ describe("adminListScenes", () => {
     expect(scenes[0]).toHaveProperty("text");
   });
 
-  it("types seeded scenes: narrator as other-actor, protagonist as main-actor", async () => {
+  it("types seeded scenes: narration as system, protagonist as main-actor", async () => {
     const scenes = await adminListScenes(1);
-    const narrator = scenes.find((s) => s.speakerName === "ผู้บรรยาย");
-    expect(narrator?.type).toBe("actor");
-    expect(narrator?.actorKind).toBe("other");
+    const system = scenes.find((s) => s.type === "system");
+    expect(system?.speakerName).toBe("");
     const main = scenes.find((s) => s.actorKind === "main");
     expect(main?.type).toBe("actor");
     expect(main?.speakerName).toBe("ผู้กล้า");
@@ -475,7 +474,7 @@ describe("adminCreateScene", () => {
       actorKind: "other",
       idx: 50,
       speakerName: "ผู้บรรยาย",
-      speakerImageUrl: "/images/chapter-speaker-narrator-transparent.png",
+      speakerImageUrl: "/images/characters/wizard-normal-650x720.png",
       text: "เพิ่มใหม่",
     });
     const after = await adminListScenes(1);

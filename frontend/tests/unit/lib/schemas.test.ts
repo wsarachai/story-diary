@@ -56,7 +56,7 @@ describe("CreateSceneSchema", () => {
     const legacy = validate(CreateSceneSchema, {
       idx: 2,
       speakerName: "ผู้บรรยาย",
-      speakerImageUrl: "/images/chapter-speaker-narrator-transparent.png",
+      speakerImageUrl: "/images/characters/villager-a-normal-522x720.png",
       text: "บทเดิม",
     });
     expect(legacy.type).toBe("actor");
@@ -86,7 +86,7 @@ describe("CreateSceneSchema", () => {
       actorKind: "other",
       idx: 3,
       speakerName: "ป้าแก่น",
-      speakerImageUrl: "/images/chapter-speaker-girl-01.png",
+      speakerImageUrl: "/images/characters/villager-a-sick-522x720.png",
       text: "บทตัวละครอื่น",
     });
     expect(ok.speakerName).toBe("ป้าแก่น");

@@ -7,6 +7,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import { useGetMeQuery, useLogoutMutation } from "@/store/authApi";
 import { useUpdateProfileMutation } from "@/store/userApi";
+import { mainActorImageUrl } from "@/lib/character";
 import type { User } from "@/types/auth";
 import { isApiError } from "@/types/error";
 import type { UpdateUserRequest } from "@/types/user";
@@ -111,7 +112,7 @@ function AvatarPanel({ user }: { user: User }) {
   const [updateProfile, { isLoading: uploading }] = useUpdateProfileMutation();
   const [avatarError, setAvatarError] = useState("");
 
-  const charImg = "/images/chapter-speaker-girl-transparent.png";
+  const charImg = mainActorImageUrl(user.gender);
   const hasAvatar = Boolean(user.avatarUrl);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

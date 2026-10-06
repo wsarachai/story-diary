@@ -6,6 +6,7 @@ import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
 import Image from "next/image";
 import { useGetMeQuery } from "@/store/authApi";
+import { mainActorImageUrl } from "@/lib/character";
 import { DateFull } from "@/components/DateBadge";
 import PageSpinner from "@/components/PageSpinner";
 import styles from "./HomePage.module.css";
@@ -57,7 +58,7 @@ function ProfileChip() {
           <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
         ) : (
           <Image
-            src="/images/chapter-speaker-girl-transparent.png"
+            src={mainActorImageUrl(user?.gender)}
             alt=""
             width={24}
             height={24}
