@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
 import AdminDragHandle from "@/components/AdminDragHandle";
+import { upload } from "@vercel/blob/client";
+import { MAX_EBOOK_PDF_BYTES } from "@/lib/ebook";
 import {
   useGetAdminEBooksQuery,
   useCreateEBookMutation,
@@ -31,6 +33,21 @@ import { CSS } from "@dnd-kit/utilities";
 import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateEBookRequest = { title: "", pdfUrl: "" };
+
+/** Map a failed Blob client-upload to actionable Thai copy. */
+function uploadErrorMessage(err: unknown): string {
+  const msg = err instanceof Error ? err.message : "";
+  if (/token|access/i.test(msg)) {
+    return "ยังไม่ได้เชื่อมต่อ Vercel Blob — ต้องสร้าง Blob store และเชื่อมกับโปรเจกต์ในหน้า dashboard ก่อน";
+  }
+  if (/large|size|413/i.test(msg)) {
+    return "ไฟล์ใหญ่เกิน 50 MB";
+  }
+  if (/content[- ]type|pdf/i.test(msg)) {
+    return "รองรับเฉพาะไฟล์ PDF";
+  }
+  return `อัปโหลดไม่สำเร็จ${msg ? ` (${msg})` : " ลองอีกครั้ง"}`;
+}
 
 function SortableRow({
   ebook,
@@ -103,7 +120,10 @@ export default function AdminEBooksPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateEBookRequest>(EMPTY_FORM);
   const [pdfUrlError, setPdfUrlError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ebooks = serverEBooks ?? [];
 
@@ -132,6 +152,42 @@ export default function AdminEBooksPage() {
     setEditId(null);
     setForm(EMPTY_FORM);
     setPdfUrlError(null);
+    setIsUploading(false);
+    setUploadError(null);
+  }
+
+  /** Upload the picked PDF straight from the browser to Vercel Blob, then
+   *  fill the URL field with the resulting blob URL. */
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setUploadError("เลือกไฟล์ PDF เท่านั้น");
+      return;
+    }
+    if (file.size > MAX_EBOOK_PDF_BYTES) {
+      setUploadError("ไฟล์ใหญ่เกิน 50 MB");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+    try {
+      // Spaces/unicode in filenames are collapsed to keep Blob pathnames safe.
+      const safeName = file.name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      const blob = await upload(`ebooks/${safeName || "ebook.pdf"}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/e-books/upload",
+      });
+      setForm((f) => ({ ...f, pdfUrl: blob.url }));
+      setPdfUrlError(null);
+    } catch (err) {
+      setUploadError(uploadErrorMessage(err));
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   function validatePdfUrl(url: string): boolean {
@@ -210,8 +266,27 @@ export default function AdminEBooksPage() {
                     required
                   />
                 </div>
-                <div className={styles.adminFormField}>
-                  <label className={styles.adminLabel}>PDF URL</label>
+                <div className={`${styles.adminFormField} ${styles.full}`}>
+                  <label className={styles.adminLabel}>PDF</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      style={{ display: "none" }}
+                      onChange={handleFileChange}
+                    />
+                    <button
+                      type="button"
+                      className={`${styles.adminBtn} ${styles.adminBtnSecondary}`}
+                      disabled={isUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {isUploading ? "กำลังอัปโหลด…" : "อัปโหลดไฟล์ PDF"}
+                    </button>
+                    <span style={{ opacity: 0.65 }}>หรือวาง URL ด้านล่าง (สูงสุด 50 MB)</span>
+                  </div>
+                  {uploadError && <span className={styles.adminFieldError}>{uploadError}</span>}
                   <input
                     className={`${styles.adminInput} ${pdfUrlError ? styles.adminInputError : ""}`}
                     value={form.pdfUrl}

@@ -18,6 +18,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@reduxjs/toolkit": "^2.11.2",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.8.0",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.17.0",
