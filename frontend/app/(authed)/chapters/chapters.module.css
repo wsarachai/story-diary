@@ -627,6 +627,19 @@
   z-index: 1;
 }
 
+/* Desktop: size the figure by height and stand it just behind the dialog's
+   top edge (dialog top = 7.5% + 31.5% from the bottom), so wide art such as
+   the winged fairy stays grounded instead of floating above the box. */
+@media (min-width: 901px) {
+  .speakerFigure {
+    top: auto;
+    bottom: 36%;
+    height: 57%;
+    width: auto;
+    max-width: none;
+  }
+}
+
 .dialogPanel {
   position: absolute;
   left: 1.5%;
