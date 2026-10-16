@@ -35,6 +35,8 @@ export interface ChapterDoc {
   id: number;
   title: string;
   intro_title: string;
+  /** Show the intro route before the first scene; missing = false (hidden). */
+  intro_enabled?: boolean;
   background_image_url?: string | null;
   /** Default background music for the chapter's scenes. */
   background_music_url?: string | null;
@@ -228,11 +230,11 @@ const VIDEO_CLIPS: VideoClipDoc[] = [1, 2, 3, 4, 5].map((n) => ({
 }));
 
 const CHAPTERS: ChapterDoc[] = [
-  { id: 1, title: "บทที่ 1: เริ่มต้นการเดินทาง", intro_title: "บทบรรยาย", lock_state: "unlocked", sort_order: 1 },
-  { id: 2, title: "บทที่ 2: การเรียนรู้", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 2 },
-  { id: 3, title: "บทที่ 3: ความท้าทาย", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 3 },
-  { id: 4, title: "บทที่ 4: การเติบโต", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 4 },
-  { id: 5, title: "บทที่ 5: บทสรุป", intro_title: "บทบรรยาย", lock_state: "locked", sort_order: 5 },
+  { id: 1, title: "บทที่ 1: เริ่มต้นการเดินทาง", intro_title: "บทบรรยาย", intro_enabled: false, lock_state: "unlocked", sort_order: 1 },
+  { id: 2, title: "บทที่ 2: การเรียนรู้", intro_title: "บทบรรยาย", intro_enabled: false, lock_state: "locked", sort_order: 2 },
+  { id: 3, title: "บทที่ 3: ความท้าทาย", intro_title: "บทบรรยาย", intro_enabled: false, lock_state: "locked", sort_order: 3 },
+  { id: 4, title: "บทที่ 4: การเติบโต", intro_title: "บทบรรยาย", intro_enabled: false, lock_state: "locked", sort_order: 4 },
+  { id: 5, title: "บทที่ 5: บทสรุป", intro_title: "บทบรรยาย", intro_enabled: false, lock_state: "locked", sort_order: 5 },
 ];
 
 // "ผู้กล้า" seeds are the registration protagonist — main-actor scenes store

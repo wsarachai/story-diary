@@ -250,6 +250,7 @@ export default function AdminChapterDetailPage() {
   const [chapterForm, setChapterForm] = useState({
     title: "",
     introTitle: "",
+    introEnabled: false,
     lockState: "unlocked" as "unlocked" | "locked",
     backgroundImageUrl: "",
     backgroundMusicUrl: "",
@@ -262,6 +263,7 @@ export default function AdminChapterDetailPage() {
       setChapterForm({
         title: chapter.title,
         introTitle: chapter.introTitle,
+        introEnabled: chapter.introEnabled,
         lockState: chapter.lockState,
         backgroundImageUrl: chapter.backgroundImageUrl ?? "",
         backgroundMusicUrl: chapter.backgroundMusicUrl ?? "",
@@ -514,6 +516,7 @@ export default function AdminChapterDetailPage() {
               </div>
               <div className={styles.chapterSummarySub}>
                 {chapter?.introTitle || "—"}
+                {chapter && !chapter.introEnabled ? " · Intro ซ่อนอยู่" : ""}
                 {background ? ` · พื้นหลัง: ${background.label}` : ""}
                 {findBgmTrack(chapter?.backgroundMusicUrl) ? ` · 🎵 ${findBgmTrack(chapter?.backgroundMusicUrl)!.label}` : ""}
               </div>
@@ -554,6 +557,17 @@ export default function AdminChapterDetailPage() {
                       value={chapterForm.introTitle}
                       onChange={(e) => setChapterForm({ ...chapterForm, introTitle: e.target.value })}
                     />
+                    <label className={styles.adminCheckboxRow}>
+                      <input
+                        type="checkbox"
+                        checked={chapterForm.introEnabled}
+                        onChange={(e) => setChapterForm({ ...chapterForm, introEnabled: e.target.checked })}
+                      />
+                      แสดงหน้า Intro (บทบรรยาย) ก่อนเข้า Scene แรก
+                    </label>
+                    <span className={styles.adminCheckboxHint}>
+                      ไม่ติ้ก = เปิดบทแล้วเข้า Scene แรกทันที
+                    </span>
                   </div>
                   <div className={styles.adminFormField}>
                     <label className={styles.adminLabel}>Lock State</label>

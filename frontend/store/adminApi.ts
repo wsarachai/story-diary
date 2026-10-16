@@ -29,6 +29,8 @@ export interface HabitRecordDay {
 export interface CreateChapterRequest {
   title: string;
   introTitle: string;
+  /** Show the intro route before the first scene; omitted = false (hidden). */
+  introEnabled?: boolean;
   lockState: ChapterLockState;
   backgroundImageUrl?: string;
   /** Empty clears the chapter music. */

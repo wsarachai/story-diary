@@ -34,6 +34,7 @@ import styles from "@/components/Admin.module.css";
 const EMPTY_FORM: CreateChapterRequest = {
   title: "",
   introTitle: "",
+  introEnabled: false,
   lockState: "unlocked",
   backgroundImageUrl: "",
 };
@@ -198,6 +199,17 @@ export default function AdminChaptersPage() {
                       onChange={(e) => setForm({ ...form, introTitle: e.target.value })}
                       required
                     />
+                    <label className={styles.adminCheckboxRow}>
+                      <input
+                        type="checkbox"
+                        checked={form.introEnabled ?? false}
+                        onChange={(e) => setForm({ ...form, introEnabled: e.target.checked })}
+                      />
+                      แสดงหน้า Intro (บทบรรยาย) ก่อนเข้า Scene แรก
+                    </label>
+                    <span className={styles.adminCheckboxHint}>
+                      ปล่อยไม่ติ้ก = เปิดบทแล้วเข้า Scene แรกทันที
+                    </span>
                   </div>
                   <div className={styles.adminFormField}>
                     <label className={styles.adminLabel}>Lock State</label>

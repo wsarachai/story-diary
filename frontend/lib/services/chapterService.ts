@@ -74,6 +74,7 @@ export async function getChapter(userId: string, chapterId: number): Promise<Cha
         id: row.id,
         title: row.title,
         introTitle: row.intro_title,
+        introEnabled: row.intro_enabled ?? false,
         ...(row.background_image_url ? { backgroundImageUrl: row.background_image_url } : {}),
         ...(row.background_music_url ? { backgroundMusicUrl: row.background_music_url } : {}),
         lockState,

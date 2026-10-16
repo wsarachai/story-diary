@@ -66,6 +66,26 @@ describe("adminCreateChapter", () => {
     expect(typeof ch.id).toBe("number");
   });
 
+  it("defaults introEnabled to false when omitted", async () => {
+    const ch = await adminCreateChapter({
+      title: "No Intro Flag",
+      introTitle: "Intro",
+      lockState: "locked",
+    });
+    expect(ch.introEnabled).toBe(false);
+    expect((await adminGetChapter(ch.id)).introEnabled).toBe(false);
+  });
+
+  it("creates a chapter with the intro enabled", async () => {
+    const ch = await adminCreateChapter({
+      title: "With Intro",
+      introTitle: "Intro",
+      introEnabled: true,
+      lockState: "locked",
+    });
+    expect(ch.introEnabled).toBe(true);
+  });
+
   it("new chapter appears in subsequent list", async () => {
     await adminCreateChapter({
       title: "Extra",
@@ -115,6 +135,13 @@ describe("adminUpdateChapter", () => {
   it("updates lockState", async () => {
     const updated = await adminUpdateChapter(1, { lockState: "locked" });
     expect(updated.lockState).toBe("locked");
+  });
+
+  it("toggles introEnabled and leaves it alone when the patch omits it", async () => {
+    expect((await adminUpdateChapter(1, { introEnabled: true })).introEnabled).toBe(true);
+    // A patch that doesn't mention the flag leaves it alone.
+    expect((await adminUpdateChapter(1, { title: "ชื่อใหม่" })).introEnabled).toBe(true);
+    expect((await adminUpdateChapter(1, { introEnabled: false })).introEnabled).toBe(false);
   });
 
   it("sets, keeps and clears the chapter's background music", async () => {

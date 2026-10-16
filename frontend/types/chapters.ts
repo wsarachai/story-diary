@@ -114,6 +114,8 @@ export interface Chapter {
     title: string;
     /** Intro panel copy on s009. Defaults to "บทบรรยาย" when not provided. */
     introTitle: string;
+    /** Whether the intro route shows before the first scene; false = open straight into scene 0. */
+    introEnabled: boolean;
     /** Optional bg image URL used by s009/s010 .chapter-explain-bg. */
     backgroundImageUrl?: string;
     /** Default background music for every scene (scenes may override). */

@@ -81,6 +81,7 @@ function chapterDocToModel(
     id: row.id,
     title: row.title,
     introTitle: row.intro_title,
+    introEnabled: row.intro_enabled ?? false,
     ...(row.background_image_url
       ? { backgroundImageUrl: row.background_image_url }
       : {}),
@@ -107,6 +108,7 @@ export async function adminCreateChapter(
     id,
     title: body.title,
     intro_title: body.introTitle,
+    intro_enabled: body.introEnabled ?? false,
     lock_state: body.lockState,
     background_image_url: body.backgroundImageUrl ?? null,
     background_music_url: body.backgroundMusicUrl || null,
@@ -128,6 +130,7 @@ export async function adminUpdateChapter(
   const patch: Record<string, unknown> = {};
   if (body.title !== undefined) patch.title = body.title;
   if (body.introTitle !== undefined) patch.intro_title = body.introTitle;
+  if (body.introEnabled !== undefined) patch.intro_enabled = body.introEnabled;
   if (body.lockState !== undefined) patch.lock_state = body.lockState;
   if (body.backgroundImageUrl !== undefined)
     patch.background_image_url = body.backgroundImageUrl || null;
@@ -162,6 +165,7 @@ export async function adminGetChapter(id: number): Promise<Chapter> {
     id: row.id,
     title: row.title,
     introTitle: row.intro_title,
+    introEnabled: row.intro_enabled ?? false,
     ...(row.background_image_url
       ? { backgroundImageUrl: row.background_image_url }
       : {}),

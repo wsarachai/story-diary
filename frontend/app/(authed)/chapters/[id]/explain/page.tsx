@@ -42,7 +42,17 @@ export default function ChapterIntroPage() {
     }
   }, [chapter, isError, isSuccess, router]);
 
-  const isLoading = isDetailLoading || isUninitialized;
+  // The intro is opt-in (admin toggle): with it disabled the reader lands
+  // straight on the first scene. RTK caches the chapter by id, so the scene
+  // page reuses this fetch instead of requesting it again.
+  const introEnabled = chapter?.introEnabled ?? false;
+  useEffect(() => {
+    if (isSuccess && chapter && !introEnabled) {
+      router.replace(`/chapters/${id}/explain/0`);
+    }
+  }, [chapter, introEnabled, id, isSuccess, router]);
+
+  const isLoading = isDetailLoading || isUninitialized || (isSuccess && !!chapter && !introEnabled);
   const introTitle = chapter?.introTitle ?? "บทบรรยาย";
   const bgUrl = chapter?.backgroundImageUrl;
 

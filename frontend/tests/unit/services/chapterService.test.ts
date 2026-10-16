@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach } from "vitest";
-import { clearTestData, deleteChapterDoc } from "@/lib/db";
+import { clearTestData, deleteChapterDoc, insertChapterDoc } from "@/lib/db";
 import {
   listChapters,
   getChapter,
@@ -69,6 +69,24 @@ describe("getChapter", () => {
     expect(chapter.id).toBe(1);
     expect(chapter.scenes.length).toBeGreaterThan(0);
     expect(chapter.scenes[0].index).toBe(0);
+  });
+
+  it("defaults introEnabled to false and reflects the admin toggle", async () => {
+    expect((await getChapter(USER, 1)).introEnabled).toBe(false);
+    await adminUpdateChapter(1, { introEnabled: true });
+    expect((await getChapter(USER, 1)).introEnabled).toBe(true);
+  });
+
+  it("maps a legacy chapter without the intro flag to introEnabled false", async () => {
+    await deleteChapterDoc(5);
+    await insertChapterDoc({
+      id: 5,
+      title: "Legacy",
+      intro_title: "บทบรรยาย",
+      lock_state: "locked",
+      sort_order: 5,
+    });
+    expect((await getChapter(USER, 5)).introEnabled).toBe(false);
   });
 
   it("scenes are sorted by index", async () => {

@@ -226,6 +226,8 @@ function atLeastOneKey<T extends z.ZodTypeAny>(schema: T) {
 export const CreateChapterSchema = z.object({
   title: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
   introTitle: z.string().trim().min(1, "REQUIRED").max(200, "TOO_LONG"),
+  /** Show the intro route before the first scene; omitted = false (hidden). */
+  introEnabled: z.boolean().optional(),
   lockState: z.enum(["unlocked", "locked"]),
   backgroundImageUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
   backgroundMusicUrl: z.string().trim().max(2048, "TOO_LONG").optional(),
