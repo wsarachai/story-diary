@@ -36,6 +36,16 @@ export const CHAPTER_BACKGROUNDS: readonly ChapterBackground[] = [
   bg(16, "castle-door-landing", "ชานพักหน้าประตู"),
   bg(17, "castle-flash", "แสงวาบในปราสาท"),
   bg(18, "white", "จอขาว"),
+  // Named renders added to the Drive folder after the numbered set
+  // (scripts/process-background-art.py, WebP quality 80, 1920×1080).
+  { url: "/images/backgrounds/bg-19-guide-1920x1080.webp", label: "คู่มือ" },
+  { url: "/images/backgrounds/bg-20-fairy-1920x1080.webp", label: "ภูติน้อย" },
+  { url: "/images/backgrounds/bg-21-notebook-1920x1080.webp", label: "สมุดโน๊ต" },
+  { url: "/images/backgrounds/bg-22-notebook-village-1920x1080.webp", label: "สมุดโน๊ตในหมู่บ้าน" },
+  { url: "/images/backgrounds/bg-23-goddess-good-1920x1080.webp", label: "เทพีดี" },
+  { url: "/images/backgrounds/bg-24-goddess-good-pre-mist-1920x1080.webp", label: "เทพีดี (ก่อนหมอกลง)" },
+  { url: "/images/backgrounds/bg-25-goddess-good-hurt-1920x1080.webp", label: "เทพีดี (เจ็บปวด)" },
+  { url: "/images/backgrounds/bg-26-goddess-evil-1920x1080.webp", label: "เทพีร้าย" },
 ];
 
 export function findChapterBackground(url: string | undefined): ChapterBackground | undefined {

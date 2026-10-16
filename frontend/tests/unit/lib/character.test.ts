@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import {
   CHARACTER_PRESETS,
-  FAIRY_UNKNOWN_IMAGE,
   MAIN_ACTOR_EXPRESSIONS,
   MAIN_ACTOR_IMAGE_URLS,
   mainActorImageUrl,
@@ -22,14 +21,16 @@ describe("character art registry", () => {
     for (const key of ["villager-a", "villager-b", "fairy", "main-male", "main-female", "goddess-good"]) {
       expect(findCharacterPreset(key)?.images.length, key).toBeGreaterThan(0);
     }
-    expect(findCharacterPreset("fairy")?.images).toContain(FAIRY_UNKNOWN_IMAGE);
+    // The full fairy set from the Drive folder (10 expressions).
+    expect(findCharacterPreset("fairy")?.images).toHaveLength(10);
   });
 });
 
 describe("main actor expressions", () => {
-  it("ships all 8 expressions in both genders, every file present", () => {
+  it("ships all 7 expressions in both genders, every file present", () => {
+    // The Drive art set has no "scared" hero renders.
     expect(MAIN_ACTOR_EXPRESSIONS.map((e) => e.key)).toEqual([
-      "normal", "sick", "curious", "smile", "excited", "determined", "shocked", "scared",
+      "normal", "sick", "curious", "smile", "excited", "determined", "shocked",
     ]);
     for (const e of MAIN_ACTOR_EXPRESSIONS) {
       expect(exists(e.images.male), e.images.male).toBe(true);
@@ -45,6 +46,7 @@ describe("main actor expressions", () => {
   it("falls back to normal for missing/unknown expressions and to female for unknown gender", () => {
     expect(mainActorImageUrl("male", undefined)).toBe(MAIN_ACTOR_IMAGE_URLS.male);
     expect(mainActorImageUrl("male", "angry")).toBe(MAIN_ACTOR_IMAGE_URLS.male);
+    expect(mainActorImageUrl("male", "scared")).toBe(MAIN_ACTOR_IMAGE_URLS.male);
     expect(mainActorImageUrl(undefined, "smile")).toBe("/images/characters/main-female-smile-593x720.png");
   });
 
@@ -52,9 +54,9 @@ describe("main actor expressions", () => {
     expect(MAIN_ACTOR_IMAGE_URLS.male).toBe("/images/characters/main-male-normal-593x720.png");
   });
 
-  it("recognises the new fairy and villager B art when reopening a scene", () => {
+  it("recognises the fairy and villager B art when reopening a scene", () => {
     expect(guessCharacterKey("ภูติน้อย", "/images/characters/fairy-worried-560x720.png")).toBe("fairy");
-    expect(guessCharacterKey("???", FAIRY_UNKNOWN_IMAGE)).toBe("fairy");
+    expect(guessCharacterKey("ภูติน้อย", "/images/characters/fairy-crying-560x720.png")).toBe("fairy");
     expect(guessCharacterKey("ชาวบ้าน B", "/images/characters/villager-b-sick-540x720.png")).toBe("villager-b");
   });
 });

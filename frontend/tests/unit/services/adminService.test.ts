@@ -507,8 +507,8 @@ describe("adminCreateScene", () => {
   });
 
   it("clears the expression when a main-actor scene is retyped to system", async () => {
-    const created = await adminCreateScene(1, { type: "actor", actorKind: "main", actorExpression: "scared", idx: 91, text: "กลัว" });
-    const updated = await adminUpdateScene(created.id, { type: "system", idx: 91, speakerName: "", text: "กลัว" });
+    const created = await adminCreateScene(1, { type: "actor", actorKind: "main", actorExpression: "shocked", idx: 91, text: "ตกใจ" });
+    const updated = await adminUpdateScene(created.id, { type: "system", idx: 91, speakerName: "", text: "ตกใจ" });
     expect(updated.actorExpression).toBeUndefined();
   });
 

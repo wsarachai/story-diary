@@ -44,7 +44,10 @@ describe("CreateSceneSchema", () => {
   });
 
   it("accepts known main-actor expressions and rejects unknown ones", () => {
-    expect(validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "scared", idx: 0, text: "x" }).actorExpression).toBe("scared");
+    expect(validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "shocked", idx: 0, text: "x" }).actorExpression).toBe("shocked");
+    // "scared" was removed along with its art (remapped to "shocked" by the
+    // scene-image-remap-v2 migration).
+    expect(() => validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "scared", idx: 0, text: "x" })).toThrow();
     expect(() => validate(CreateSceneSchema, { type: "actor", actorKind: "main", actorExpression: "angry", idx: 0, text: "x" })).toThrow();
   });
 

@@ -627,6 +627,24 @@ async function remapLegacySceneImages(): Promise<void> {
   );
 }
 
+/**
+ * One-time, idempotent migration for the art sync against the project's Drive
+ * folder: the hero "scared" set and the "???" fairy silhouette were removed,
+ * so stored references are remapped to their nearest surviving art before the
+ * files disappear. No-op once nothing references them; runOncePerDatabase.
+ */
+async function remapRemovedSceneArt(): Promise<void> {
+  const col = chapterScenesCollection();
+  await col.updateMany(
+    { actor_expression: "scared" },
+    { $set: { actor_expression: "shocked" } },
+  );
+  await col.updateMany(
+    { speaker_image_url: "/images/characters/fairy-unknown-560x720.png" },
+    { $set: { speaker_image_url: "/images/characters/fairy-normal-560x720.png" } },
+  );
+}
+
 interface MongoConnection {
   client: MongoClient;
   db: Db;
@@ -676,6 +694,7 @@ async function connectMongo(): Promise<MongoConnection> {
   await runOncePerDatabase("quiz-gender-backfill", backfillQuizQuestionGenders);
   await runOncePerDatabase("scene-type-backfill", backfillChapterSceneTypes);
   await runOncePerDatabase("scene-image-remap-v1", remapLegacySceneImages);
+  await runOncePerDatabase("scene-image-remap-v2", remapRemovedSceneArt);
   return { client, db: mongoDb };
 }
 

@@ -15,6 +15,10 @@ describe("CHAPTER_BACKGROUNDS", () => {
     expect(new Set(urls).size).toBe(urls.length);
   });
 
+  it("mirrors the Drive art set: 18 numbered renders + 8 named ones", () => {
+    expect(CHAPTER_BACKGROUNDS).toHaveLength(26);
+  });
+
   it("finds entries by URL and ignores unknown or empty values", () => {
     expect(findChapterBackground(CHAPTER_BACKGROUNDS[1].url)?.label).toBe("หมู่บ้าน");
     expect(findChapterBackground("/images/other.png")).toBeUndefined();

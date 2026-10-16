@@ -25,8 +25,7 @@ export type MainActorExpression =
   | "smile"
   | "excited"
   | "determined"
-  | "shocked"
-  | "scared";
+  | "shocked";
 
 const heroImage = (gender: Gender, expression: MainActorExpression): string =>
   // The female "shocked" art is wider to fit its "!!!" marks.
@@ -45,7 +44,6 @@ export const MAIN_ACTOR_EXPRESSIONS: readonly {
     ["excited", "ตื่นเต้น"],
     ["determined", "มุ่งมั่น"],
     ["shocked", "ตกใจ"],
-    ["scared", "กลัว / กังวล"],
   ] as const
 ).map(([key, label]) => ({
   key,
@@ -89,9 +87,6 @@ export interface CharacterPreset {
    */
   images: string[];
 }
-
-/** Shadow-in-the-mist version of the fairy, used while it is still "???". */
-export const FAIRY_UNKNOWN_IMAGE = "/images/characters/fairy-unknown-560x720.png";
 
 export const CHARACTER_PRESETS: CharacterPreset[] = [
   { key: "main", label: "ตัวละครหลัก (ผู้กล้า)", kind: "main", images: [] },
@@ -147,7 +142,6 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
       "/images/characters/main-female-excited-593x720.png",
       "/images/characters/main-female-determined-593x720.png",
       "/images/characters/main-female-shocked-673x720.png",
-      "/images/characters/main-female-scared-593x720.png",
     ],
   },
   {
@@ -171,15 +165,20 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
       "/images/characters/fairy-worried-560x720.png",
       "/images/characters/fairy-determined-560x720.png",
       "/images/characters/fairy-happy-560x720.png",
-      // Mist-veiled silhouette for scenes before the fairy is named ("???").
-      FAIRY_UNKNOWN_IMAGE,
+      "/images/characters/fairy-curious-560x720.png",
+      "/images/characters/fairy-excited-560x720.png",
+      "/images/characters/fairy-scared-560x720.png",
+      "/images/characters/fairy-crying-560x720.png",
     ],
   },
   {
     key: "blue-flame",
     label: "ลูกไฟสีฟ้า",
     kind: "preset",
-    images: ["/images/characters/blue-flame-normal-478x720.png"],
+    images: [
+      "/images/characters/blue-flame-normal-478x720.png",
+      "/images/characters/blue-flame-faded-478x720.png",
+    ],
   },
   { key: "custom", label: "ตัวละครอื่นๆ", kind: "custom", images: [] },
 ];

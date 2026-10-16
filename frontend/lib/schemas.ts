@@ -249,7 +249,7 @@ export const CreateSceneSchema = z
     type: SceneTypeSchema.default("actor"),
     actorKind: SceneActorKindSchema.default("other"),
     actorExpression: z
-      .enum(["normal", "sick", "curious", "smile", "excited", "determined", "shocked", "scared"])
+      .enum(["normal", "sick", "curious", "smile", "excited", "determined", "shocked"])
       .optional(),
     idx: z.number().int().min(0),
     speakerName: z.string().trim().max(120, "TOO_LONG").optional(),
