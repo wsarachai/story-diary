@@ -39,7 +39,6 @@
 }
 
 .clipPlayerFrameWrap {
-  position: relative;
   border-radius: 1.2rem;
   overflow: hidden;
   background: #10212d;
@@ -52,26 +51,29 @@
   border: 0;
 }
 
+.clipPlayerActions {
+  display: flex;
+  justify-content: center;
+}
+
 .clipPlayerExpand {
-  position: absolute;
-  top: 0.7rem;
-  right: 0.7rem;
-  z-index: 2;
-  width: 2.4rem;
-  height: 2.4rem;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #ffffff;
+  background: #2e7aaa;
   border: 0;
   border-radius: 999px;
-  background: rgba(16, 33, 45, 0.65);
-  color: #ffffff;
+  padding: 0.45rem 1.1rem;
+  font: inherit;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .clipPlayerExpand:hover {
-  background: rgba(16, 33, 45, 0.9);
-  transform: scale(1.06);
+  background: #246a96;
+  transform: translateY(-1px);
 }
 
 .clipPlayerFallback {

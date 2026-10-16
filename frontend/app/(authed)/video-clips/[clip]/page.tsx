@@ -86,30 +86,15 @@ export default function VideoClipPlayerPage() {
             {isLoading ? (
               <PageSpinner label="กำลังโหลดวิดีโอ…" />
             ) : videoFileUrl ? (
-              <>
-                <video
-                  ref={videoRef}
-                  className={styles.clipPlayerFrame}
-                  src={videoFileUrl}
-                  title={activeClip?.caption ?? "วิดีโอคลิป"}
-                  controls
-                  autoPlay
-                  playsInline
-                />
-                {/* iPhone Safari hides the controls' expand button on
-                    playsinline videos, so fullscreen gets an explicit button. */}
-                <button
-                  type="button"
-                  className={styles.clipPlayerExpand}
-                  aria-label="ขยายวิดีโอเต็มจอ"
-                  title="ขยายเต็มจอ"
-                  onClick={() => {
-                    if (videoRef.current) void toggleVideoFullscreen(videoRef.current);
-                  }}
-                >
-                  <Maximize2 size={18} aria-hidden="true" />
-                </button>
-              </>
+              <video
+                ref={videoRef}
+                className={styles.clipPlayerFrame}
+                src={videoFileUrl}
+                title={activeClip?.caption ?? "วิดีโอคลิป"}
+                controls
+                autoPlay
+                playsInline
+              />
             ) : embedUrl ? (
               <iframe
                 className={styles.clipPlayerFrame}
@@ -125,6 +110,25 @@ export default function VideoClipPlayerPage() {
               </div>
             )}
           </div>
+
+          {/* iPhone Safari hides the native controls' expand button on
+              playsinline videos, so fullscreen gets its own button — kept in
+              normal flow below the player so no overlay positioning can push
+              it off-screen on mobile. */}
+          {videoFileUrl && (
+            <div className={styles.clipPlayerActions}>
+              <button
+                type="button"
+                className={styles.clipPlayerExpand}
+                aria-label="ขยายวิดีโอเต็มจอ"
+                onClick={() => {
+                  if (videoRef.current) void toggleVideoFullscreen(videoRef.current);
+                }}
+              >
+                <Maximize2 size={16} aria-hidden="true" /> ขยายเต็มจอ
+              </button>
+            </div>
+          )}
 
           <div className={styles.clipPlayerCaption}>
             {activeClip
