@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
+import { Maximize2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import BookShellLayout from "@/components/BookShellLayout";
 import IconRail from "@/components/IconRail";
@@ -9,6 +10,7 @@ import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
 import { directVideoFileUrl, toEmbedUrl } from "@/lib/videoEmbed";
+import { toggleVideoFullscreen } from "@/lib/videoFullscreen";
 import styles from "../VideoClipPlayer.module.css";
 
 const EMPTY_CLIPS: VideoClip[] = [];
@@ -56,6 +58,7 @@ export default function VideoClipPlayerPage() {
     () => directVideoFileUrl(activeClip?.sourceUrl),
     [activeClip?.sourceUrl],
   );
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   return (
     <BookShellLayout
@@ -83,14 +86,30 @@ export default function VideoClipPlayerPage() {
             {isLoading ? (
               <PageSpinner label="กำลังโหลดวิดีโอ…" />
             ) : videoFileUrl ? (
-              <video
-                className={styles.clipPlayerFrame}
-                src={videoFileUrl}
-                title={activeClip?.caption ?? "วิดีโอคลิป"}
-                controls
-                autoPlay
-                playsInline
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  className={styles.clipPlayerFrame}
+                  src={videoFileUrl}
+                  title={activeClip?.caption ?? "วิดีโอคลิป"}
+                  controls
+                  autoPlay
+                  playsInline
+                />
+                {/* iPhone Safari hides the controls' expand button on
+                    playsinline videos, so fullscreen gets an explicit button. */}
+                <button
+                  type="button"
+                  className={styles.clipPlayerExpand}
+                  aria-label="ขยายวิดีโอเต็มจอ"
+                  title="ขยายเต็มจอ"
+                  onClick={() => {
+                    if (videoRef.current) void toggleVideoFullscreen(videoRef.current);
+                  }}
+                >
+                  <Maximize2 size={18} aria-hidden="true" />
+                </button>
+              </>
             ) : embedUrl ? (
               <iframe
                 className={styles.clipPlayerFrame}

@@ -39,6 +39,7 @@
 }
 
 .clipPlayerFrameWrap {
+  position: relative;
   border-radius: 1.2rem;
   overflow: hidden;
   background: #10212d;
@@ -49,6 +50,28 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+.clipPlayerExpand {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 2;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(16, 33, 45, 0.65);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.clipPlayerExpand:hover {
+  background: rgba(16, 33, 45, 0.9);
+  transform: scale(1.06);
 }
 
 .clipPlayerFallback {
@@ -65,4 +88,22 @@
   font-weight: 600;
   color: #1f5f85;
   text-align: center;
+}
+
+/* Mobile: the stacked book page only guarantees 50dvh, which leaves the
+   player a small framed box — give the video most of the screen instead. */
+@media (max-width: 900px) {
+  .clipPlayerPage {
+    padding: 1rem;
+    gap: 0.7rem;
+  }
+
+  .clipPlayerFrameWrap {
+    min-height: 64vh;
+    min-height: 64dvh;
+  }
+
+  .clipPlayerTitle {
+    font-size: 1.25em;
+  }
 }
