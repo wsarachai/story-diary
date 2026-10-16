@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Play, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Play, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminErrorBanner from "@/components/AdminErrorBanner";
 import AdminDragHandle from "@/components/AdminDragHandle";
+import { upload } from "@vercel/blob/client";
+import { MAX_VIDEO_BYTES, videoBlobPathname, videoContentType } from "@/lib/videoFile";
 import {
   useGetAdminVideoClipsQuery,
   useCreateVideoClipMutation,
@@ -31,7 +33,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { clipThumbnailUrl, isSupportedVideoUrl, toEmbedUrl } from "@/lib/videoEmbed";
+import { clipThumbnailUrl, directVideoFileUrl, isSupportedVideoUrl, toEmbedUrl, videoSourceKind, type VideoSourceKind } from "@/lib/videoEmbed";
 import styles from "@/components/Admin.module.css";
 
 const EMPTY_FORM: CreateVideoClipRequest = {
@@ -40,13 +42,28 @@ const EMPTY_FORM: CreateVideoClipRequest = {
   thumbnailUrl: "",
 };
 
-const SOURCE_URL_ERROR = "รองรับเฉพาะลิงก์ YouTube หรือ Google Drive รูปแบบ file/d/.../view";
+const SOURCE_URL_ERROR = "รองรับเฉพาะลิงก์ YouTube, Google Drive หรือลิงก์ไฟล์วิดีโอ (.mp4/.webm/.ogg)";
 
-/** "YouTube" / "Google Drive" for a supported link, else null. */
+/**
+ * Abort an upload once no bytes have moved for this long. The Blob SDK
+ * retries network-level failures ~10 times with exponential backoff, which
+ * otherwise leaves the dropzone stuck on "กำลังอัปโหลด…" for many minutes.
+ */
+const UPLOAD_STALL_MS = 30_000;
+
+/** SDK docs: client uploads above 100 MB must go through multipart mode. */
+const MULTIPART_THRESHOLD_BYTES = 100 * 1024 * 1024;
+
+const SOURCE_KIND_LABEL: Record<VideoSourceKind, string> = {
+  youtube: "YouTube",
+  drive: "Google Drive",
+  file: "ไฟล์วิดีโอ",
+};
+
+/** "YouTube" / "Google Drive" / "ไฟล์วิดีโอ" for a supported link, else null. */
 function sourceKind(url: string): string | null {
-  const embed = toEmbedUrl(url);
-  if (!embed) return null;
-  return embed.includes("youtube.com") ? "YouTube" : "Google Drive";
+  const kind = videoSourceKind(url);
+  return kind ? SOURCE_KIND_LABEL[kind] : null;
 }
 
 /** Placeholder for the thumbnail field: say when YouTube fills it in. */
@@ -59,6 +76,30 @@ function youtubeHint(sourceUrl: string): string {
 /** Embed URL for the editor preview — never autoplays. */
 function previewEmbedUrl(url: string): string {
   return toEmbedUrl(url).replace("autoplay=1", "autoplay=0");
+}
+
+/**
+ * Map a failed Blob client-upload to actionable Thai copy. The SDK throws a
+ * generic "Failed to retrieve the client token" for ANY server-side failure
+ * of the token request (expired session or missing video Blob env), so that
+ * case names both likely causes. Same message patterns as the e-book
+ * uploader, with video-specific type/size copy.
+ */
+function uploadVideoErrorMessage(err: unknown): string {
+  const msg = err instanceof Error ? err.message : "";
+  if (/The request was aborted/i.test(msg)) {
+    return "อัปโหลดไม่สำเร็จ — การเชื่อมต่อกับ Vercel Blob ไม่ตอบสนอง ลองอีกครั้ง";
+  }
+  if (/retrieve the client token|presigned url/i.test(msg)) {
+    return "อัปโหลดไม่สำเร็จ — เซสชันอาจหมดอายุ (ลองเข้าสู่ระบบใหม่) หรือเซิร์ฟเวอร์ยังไม่ได้เชื่อมต่อ Blob store ของวิดีโอ";
+  }
+  if (/File is too large/i.test(msg)) {
+    return "ไฟล์ใหญ่เกิน 200 MB";
+  }
+  if (/Content type mismatch/i.test(msg)) {
+    return "รองรับเฉพาะไฟล์วิดีโอ MP4, WebM หรือ OGG";
+  }
+  return `อัปโหลดไม่สำเร็จ${msg ? ` (${msg})` : " ลองอีกครั้ง"}`;
 }
 
 /**
@@ -184,12 +225,18 @@ export default function AdminVideoClipsPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const clips: VideoClipModel[] = serverClips ?? [];
   const isDirty = JSON.stringify(form) !== JSON.stringify(baseline);
   const editIndex = editId === null ? -1 : clips.findIndex((c) => c.id === editId);
   const sourceSupported = isSupportedVideoUrl(form.sourceUrl);
+  const previewFileUrl = directVideoFileUrl(form.sourceUrl);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -199,9 +246,87 @@ export default function AdminVideoClipsPage() {
   );
 
   const confirmDiscard = useCallback(
-    () => !isDirty || window.confirm("มีการแก้ไขที่ยังไม่บันทึก ต้องการทิ้งการแก้ไขหรือไม่?"),
-    [isDirty],
+    () =>
+      isUploadingVideo && !window.confirm("กำลังอัปโหลดไฟล์อยู่ ต้องการออกจากการแก้ไขหรือไม่?")
+        ? false
+        : !isDirty || window.confirm("มีการแก้ไขที่ยังไม่บันทึก ต้องการทิ้งการแก้ไขหรือไม่?"),
+    [isDirty, isUploadingVideo],
   );
+
+  /**
+   * Upload the picked/dropped video straight from the browser to the public
+   * Blob store, then fill the URL field with the resulting blob URL.
+   */
+  async function uploadVideoFile(file: File) {
+    const contentType = videoContentType(file.name);
+    if (!contentType) {
+      setUploadError("รองรับเฉพาะไฟล์วิดีโอ MP4, WebM หรือ OGG");
+      return;
+    }
+    if (file.size > MAX_VIDEO_BYTES) {
+      setUploadError("ไฟล์ใหญ่เกิน 200 MB");
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    setUploadProgress(0);
+    setUploadError(null);
+    const controller = new AbortController();
+    let stallTimer = setTimeout(() => controller.abort(), UPLOAD_STALL_MS);
+    // SDK retries re-send the body from byte 0, so only progress past the
+    // furthest point reached counts as the upload being alive.
+    let maxLoaded = 0;
+    const onProgress = ({ loaded, percentage }: { loaded: number; percentage: number }) => {
+      setUploadProgress(percentage);
+      if (loaded <= maxLoaded) return;
+      maxLoaded = loaded;
+      clearTimeout(stallTimer);
+      stallTimer = setTimeout(() => controller.abort(), UPLOAD_STALL_MS);
+    };
+    try {
+      // The SDK's token request carries no cookies, so the admin JWT must be
+      // attached explicitly for the upload route's requireAdmin guard.
+      const jwt = localStorage.getItem("auth_token");
+      if (!jwt) {
+        setUploadError("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+        return;
+      }
+      const blob = await upload(videoBlobPathname(file.name), file, {
+        access: "public",
+        // Derived from the extension — an OS-reported MIME can be empty or
+        // exotic and would fail the route's content-type check.
+        contentType,
+        handleUploadUrl: "/api/admin/video-clips/upload",
+        headers: { Authorization: `Bearer ${jwt}` },
+        abortSignal: controller.signal,
+        onUploadProgress: onProgress,
+        multipart: file.size > MULTIPART_THRESHOLD_BYTES,
+      });
+      setForm((f) => ({ ...f, sourceUrl: blob.url }));
+      setSourceUrlError(null);
+      setShowPreview(false);
+    } catch (err) {
+      setUploadError(uploadVideoErrorMessage(err));
+    } finally {
+      clearTimeout(stallTimer);
+      setIsUploadingVideo(false);
+      setUploadProgress(null);
+    }
+  }
+
+  function handleVideoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void uploadVideoFile(file);
+  }
+
+  function handleVideoDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (isUploadingVideo) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file) void uploadVideoFile(file);
+  }
 
   function scrollCardIntoView(id: string) {
     requestAnimationFrame(() =>
@@ -217,6 +342,7 @@ export default function AdminVideoClipsPage() {
     setBaseline(next);
     setSourceUrlError(null);
     setMutationError(null);
+    setUploadError(null);
     setShowPreview(false);
     setSaved(false);
     setShowForm(true);
@@ -248,6 +374,7 @@ export default function AdminVideoClipsPage() {
     setBaseline(EMPTY_FORM);
     setSourceUrlError(null);
     setMutationError(null);
+    setUploadError(null);
     setShowPreview(false);
     setSaved(false);
   }, [confirmDiscard]);
@@ -440,7 +567,7 @@ export default function AdminVideoClipsPage() {
                           />
                         </div>
                         <div className={`${styles.adminFormField} ${styles.full}`}>
-                          <label className={styles.adminLabel} htmlFor="clip-source">ลิงก์วิดีโอ (YouTube / Google Drive)</label>
+                          <label className={styles.adminLabel} htmlFor="clip-source">แหล่งวิดีโอ — ลิงก์ YouTube / Google Drive หรือไฟล์ที่อัปโหลด</label>
                           <input
                             id="clip-source"
                             className={`${styles.adminInput} ${sourceUrlError ? styles.adminInputError : ""}`}
@@ -456,6 +583,44 @@ export default function AdminVideoClipsPage() {
                             placeholder="https://drive.google.com/file/d/.../view"
                             required
                           />
+                          <input
+                            ref={videoInputRef}
+                            type="file"
+                            accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
+                            style={{ display: "none" }}
+                            onChange={handleVideoFileChange}
+                          />
+                          <button
+                            type="button"
+                            className={`${styles.ebookDropzone} ${isDragOver ? styles.ebookDropzoneActive : ""}`}
+                            disabled={isUploadingVideo}
+                            onClick={() => videoInputRef.current?.click()}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              if (!isUploadingVideo) setIsDragOver(true);
+                            }}
+                            onDragLeave={() => setIsDragOver(false)}
+                            onDrop={handleVideoDrop}
+                          >
+                            <UploadCloud size={22} aria-hidden="true" />
+                            {isUploadingVideo ? (
+                              <span>
+                                กำลังอัปโหลด… {uploadProgress !== null ? `${Math.round(uploadProgress)}%` : ""}
+                                <span className={styles.ebookProgress}>
+                                  <span style={{ width: `${uploadProgress ?? 0}%` }} />
+                                </span>
+                              </span>
+                            ) : (
+                              <span>
+                                <strong>หรืออัปโหลดไฟล์วิดีโอ (MP4/WebM/OGG)</strong>
+                                <br />
+                                <span className={styles.ebookDropzoneHint}>
+                                  คลิกเพื่อเลือก หรือลากไฟล์มาวางที่นี่ · สูงสุด 200 MB — อัปโหลดเสร็จจะเติมลิงก์ให้อัตโนมัติ
+                                </span>
+                              </span>
+                            )}
+                          </button>
+                          {uploadError && <span className={styles.adminFieldError}>{uploadError}</span>}
                           {sourceUrlError ? (
                             <span className={styles.adminFieldError}>{sourceUrlError}</span>
                           ) : sourceSupported ? (
@@ -476,12 +641,16 @@ export default function AdminVideoClipsPage() {
                           ) : null}
                           {showPreview && sourceSupported && (
                             <div className={styles.clipPreview}>
-                              <iframe
-                                src={previewEmbedUrl(form.sourceUrl)}
-                                title="ตัวอย่างวิดีโอ"
-                                allow="encrypted-media; picture-in-picture; fullscreen"
-                                allowFullScreen
-                              />
+                              {previewFileUrl ? (
+                                <video src={previewFileUrl} controls playsInline title="ตัวอย่างวิดีโอ" />
+                              ) : (
+                                <iframe
+                                  src={previewEmbedUrl(form.sourceUrl)}
+                                  title="ตัวอย่างวิดีโอ"
+                                  allow="encrypted-media; picture-in-picture; fullscreen"
+                                  allowFullScreen
+                                />
+                              )}
                             </div>
                           )}
                         </div>
@@ -519,7 +688,7 @@ export default function AdminVideoClipsPage() {
                       <button
                         type="submit"
                         className={`${styles.adminBtn} ${styles.adminBtnPrimary}`}
-                        disabled={saving || (editId !== null && !isDirty)}
+                        disabled={saving || isUploadingVideo || (editId !== null && !isDirty)}
                       >
                         {saving ? "กำลังบันทึก…" : editId !== null ? "บันทึก" : "เพิ่ม"}
                       </button>

@@ -716,9 +716,15 @@ describe("adminCreateVideoClip", () => {
     await expect(
       adminCreateVideoClip({
         caption: "Unsupported",
-        sourceUrl: "https://example.com/video.mp4",
+        sourceUrl: "https://example.com/watch?v=abc",
       }),
     ).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it("accepts an uploaded public Blob video file URL", async () => {
+    const sourceUrl = "https://abc123.public.blob.vercel-storage.com/videos/clip-D7k2.mp4";
+    const clip = await adminCreateVideoClip({ caption: "คลิปอัปโหลด", sourceUrl });
+    expect(clip.sourceUrl).toBe(sourceUrl);
   });
 });
 

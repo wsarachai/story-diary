@@ -68,6 +68,38 @@ export function clipThumbnailUrl(thumbnailUrl?: string, sourceUrl?: string): str
   return id ? `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg` : undefined;
 }
 
+/** Extensions browsers play natively in a <video> element. */
+const DIRECT_VIDEO_FILE = /\.(mp4|webm|ogg)$/i;
+
+/**
+ * URL of a directly playable video file — an uploaded Blob video or any
+ * other https link ending in a video extension. Unlike the embed sources
+ * these render in a <video> element, not an iframe (and `toEmbedUrl`
+ * deliberately keeps returning "" for them).
+ */
+export function directVideoFileUrl(sourceUrl?: string): string | null {
+  if (!sourceUrl) return null;
+  try {
+    const parsed = new URL(sourceUrl);
+    if (parsed.protocol !== "https:") return null;
+    return DIRECT_VIDEO_FILE.test(parsed.pathname) ? sourceUrl : null;
+  } catch {
+    return null;
+  }
+}
+
+export type VideoSourceKind = "youtube" | "drive" | "file";
+
+/** Which player a source URL needs, or null when nothing supports it. */
+export function videoSourceKind(sourceUrl?: string): VideoSourceKind | null {
+  if (!sourceUrl) return null;
+  if (youtubeVideoId(sourceUrl)) return "youtube";
+  if (directVideoFileUrl(sourceUrl)) return "file";
+  // toEmbedUrl only ever yields YouTube (excluded above) or Drive, so a
+  // non-empty embed here means a Drive link.
+  return toEmbedUrl(sourceUrl) ? "drive" : null;
+}
+
 export function isSupportedVideoUrl(sourceUrl: string): boolean {
-  return Boolean(toEmbedUrl(sourceUrl));
+  return videoSourceKind(sourceUrl) !== null;
 }

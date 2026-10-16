@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { toEmbedUrl, isSupportedVideoUrl, clipThumbnailUrl, youtubeVideoId } from "@/lib/videoEmbed";
+import {
+  toEmbedUrl,
+  isSupportedVideoUrl,
+  clipThumbnailUrl,
+  youtubeVideoId,
+  directVideoFileUrl,
+  videoSourceKind,
+} from "@/lib/videoEmbed";
 
 describe("toEmbedUrl — YouTube", () => {
   it("converts youtu.be short links", () => {
@@ -60,6 +67,54 @@ describe("toEmbedUrl — rejects", () => {
   it("drives isSupportedVideoUrl", () => {
     expect(isSupportedVideoUrl("https://www.youtube.com/shorts/x")).toBe(true);
     expect(isSupportedVideoUrl("https://vimeo.com/12345")).toBe(false);
+  });
+});
+
+describe("directVideoFileUrl", () => {
+  it("accepts https links ending in a video extension", () => {
+    const blobUrl = "https://abc123.public.blob.vercel-storage.com/videos/clip-D7k2.mp4";
+    expect(directVideoFileUrl(blobUrl)).toBe(blobUrl);
+    expect(directVideoFileUrl("https://example.com/movie.WEBM")).toBe("https://example.com/movie.WEBM");
+    expect(directVideoFileUrl("https://example.com/a.ogg?token=x")).toBe("https://example.com/a.ogg?token=x");
+  });
+
+  it("rejects other extensions, non-https and malformed URLs", () => {
+    expect(directVideoFileUrl("https://example.com/movie.mov")).toBeNull();
+    expect(directVideoFileUrl("https://example.com/page.html")).toBeNull();
+    expect(directVideoFileUrl("http://example.com/movie.mp4")).toBeNull();
+    expect(directVideoFileUrl("not a url")).toBeNull();
+    expect(directVideoFileUrl(undefined)).toBeNull();
+  });
+
+  it("is not an embed URL — files render in <video>, never an iframe", () => {
+    expect(toEmbedUrl("https://abc123.public.blob.vercel-storage.com/videos/a.mp4")).toBe("");
+  });
+});
+
+describe("videoSourceKind", () => {
+  it("classifies every supported source", () => {
+    expect(videoSourceKind("https://youtu.be/Ktxam4bHrTo")).toBe("youtube");
+    expect(videoSourceKind("https://drive.google.com/file/d/FILE123/view")).toBe("drive");
+    expect(videoSourceKind("https://abc123.public.blob.vercel-storage.com/videos/a.mp4")).toBe("file");
+  });
+
+  it("returns null for unsupported URLs", () => {
+    expect(videoSourceKind("https://example.com/watch?v=abc")).toBeNull();
+    expect(videoSourceKind("https://vimeo.com/12345")).toBeNull();
+    expect(videoSourceKind("")).toBeNull();
+    expect(videoSourceKind(undefined)).toBeNull();
+  });
+});
+
+describe("isSupportedVideoUrl — direct video files", () => {
+  it("accepts uploaded Blob videos alongside YouTube and Drive", () => {
+    expect(isSupportedVideoUrl("https://abc123.public.blob.vercel-storage.com/videos/a.mp4")).toBe(true);
+    expect(isSupportedVideoUrl("https://example.com/movie.webm")).toBe(true);
+    expect(isSupportedVideoUrl("https://example.com/movie.mov")).toBe(false);
+  });
+
+  it("keeps YouTube classification ahead of the file extension", () => {
+    expect(videoSourceKind("https://www.youtube.com/watch?v=abc.mp4")).toBe("youtube");
   });
 });
 

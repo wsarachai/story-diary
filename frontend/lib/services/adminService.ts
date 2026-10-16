@@ -544,7 +544,7 @@ export type UpdateVideoClipRequest = Partial<CreateVideoClipRequest>;
 function assertSupportedVideoUrl(sourceUrl: string): void {
   if (!isSupportedVideoUrl(sourceUrl)) {
     throw Errors.validation(
-      "`sourceUrl` must be a supported YouTube or Google Drive video URL",
+      "`sourceUrl` must be a supported YouTube, Google Drive, or direct video file (MP4/WebM/OGG) URL",
     );
   }
 }

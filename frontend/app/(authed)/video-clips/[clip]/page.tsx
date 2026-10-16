@@ -8,7 +8,7 @@ import IconRail from "@/components/IconRail";
 import { useGetVideoClipsQuery } from "@/store/videoClipsApi";
 import PageSpinner from "@/components/PageSpinner";
 import type { VideoClip } from "@/types/chapters";
-import { toEmbedUrl } from "@/lib/videoEmbed";
+import { directVideoFileUrl, toEmbedUrl } from "@/lib/videoEmbed";
 import styles from "../VideoClipPlayer.module.css";
 
 const EMPTY_CLIPS: VideoClip[] = [];
@@ -50,6 +50,12 @@ export default function VideoClipPlayerPage() {
     () => toEmbedUrl(activeClip?.sourceUrl),
     [activeClip?.sourceUrl],
   );
+  // Uploaded videos (public Blob store) and any other direct video file play
+  // in a native <video> element instead of an embed iframe.
+  const videoFileUrl = useMemo(
+    () => directVideoFileUrl(activeClip?.sourceUrl),
+    [activeClip?.sourceUrl],
+  );
 
   return (
     <BookShellLayout
@@ -76,6 +82,15 @@ export default function VideoClipPlayerPage() {
           <div className={styles.clipPlayerFrameWrap}>
             {isLoading ? (
               <PageSpinner label="กำลังโหลดวิดีโอ…" />
+            ) : videoFileUrl ? (
+              <video
+                className={styles.clipPlayerFrame}
+                src={videoFileUrl}
+                title={activeClip?.caption ?? "วิดีโอคลิป"}
+                controls
+                autoPlay
+                playsInline
+              />
             ) : embedUrl ? (
               <iframe
                 className={styles.clipPlayerFrame}
